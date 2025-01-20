@@ -4,5 +4,6 @@ track_artefacts
 CMakeCache.txt
 Makefile
 cmake_install.cmake
-compile_cmomands.json
+compile_commands.json
 juce_vst3_helper
+.cache
