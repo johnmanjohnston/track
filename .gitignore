@@ -1,0 +1,8 @@
+CMakeFiles/
+JUCE/
+track_artefacts
+CMakeCache.txt
+Makefile
+cmake_install.cmake
+compile_cmomands.json
+juce_vst3_helper
