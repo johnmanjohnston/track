@@ -1,7 +1,8 @@
 #pragma once
 #include "processor.h"
 
-class AudioPluginAudioProcessorEditor : public juce::AudioProcessorEditor {
+class AudioPluginAudioProcessorEditor : public juce::AudioProcessorEditor,
+                                        public juce::Timer {
   public:
     explicit AudioPluginAudioProcessorEditor(AudioPluginAudioProcessor &);
     ~AudioPluginAudioProcessorEditor() override;
@@ -10,7 +11,9 @@ class AudioPluginAudioProcessorEditor : public juce::AudioProcessorEditor {
     void resized() override;
 
   private:
-    AudioPluginAudioProcessor &p;
+    AudioPluginAudioProcessor &processorRef;
+
+    void timerCallback() override { repaint(); }
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(
         AudioPluginAudioProcessorEditor)

@@ -33,6 +33,9 @@ class AudioPluginAudioProcessor : public juce::AudioProcessor {
     void getStateInformation(juce::MemoryBlock &destData) override;
     void setStateInformation(const void *data, int sizeInBytes) override;
 
+    juce::Optional<int64_t> phBar = -1;
+    bool shouldPlay = false;
+
   private:
     juce::Random random;
 

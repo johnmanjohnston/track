@@ -1,5 +1,6 @@
 #include "processor.h"
 #include "editor.h"
+#include "juce_audio_basics/juce_audio_basics.h"
 
 AudioPluginAudioProcessor::AudioPluginAudioProcessor()
     : AudioProcessor(
@@ -126,13 +127,23 @@ void AudioPluginAudioProcessor::processBlock(juce::AudioBuffer<float> &buffer,
     // the samples and the outer loop is handling the channels.
     // Alternatively, you can process the samples with the channels
     // interleaved by keeping the same state.
+    //
+
+    auto playhead = getPlayHead();
+    bool playheadExists = playhead != nullptr;
+
+    // this->phBar = *playhead->getPosition()->getBpm();
+    this->phBar = *playhead->getPosition()->getPpqPosition();
+
     for (int channel = 0; channel < totalNumInputChannels; ++channel) {
         auto *channelData = buffer.getWritePointer(channel);
         juce::ignoreUnused(channelData);
 
         // generate noise for now
-        for (auto sample = 0; sample < buffer.getNumSamples(); ++sample) {
-            channelData[sample] = random.nextFloat() * 0.25f - 0.125f;
+        if (shouldPlay) {
+            for (auto sample = 0; sample < buffer.getNumSamples(); ++sample) {
+                channelData[sample] = random.nextFloat() * 0.25f - 0.125f;
+            }
         }
     }
 }

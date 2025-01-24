@@ -26,7 +26,8 @@ juce_add_plugin(track
 juce_generate_juce_header(track)
 target_sources(track PRIVATE
     src/processor.cpp
-    src/editor.cpp)
+    src/editor.cpp
+    src/daw/track.cpp)
 
 target_compile_definitions(track PRIVATE
     PIP_JUCE_EXAMPLES_DIRECTORY_STRING="${JUCE_SOURCE_DIR}/examples"
