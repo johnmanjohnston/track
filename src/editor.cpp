@@ -1,4 +1,5 @@
 #include "editor.h"
+#include "juce_graphics/juce_graphics.h"
 #include "processor.h"
 
 AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
@@ -8,10 +9,10 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
 
     // sizing
     setResizable(true, true);
-    setResizeLimits(540, 360, 1080, 720);
-    setSize(1080, 720);
+    setResizeLimits(540, 360, 1280, 720);
+    setSize(1280, 720);
 
-    startTimer(100);
+    startTimer(20);
 }
 
 AudioPluginAudioProcessorEditor::~AudioPluginAudioProcessorEditor() {}
@@ -26,16 +27,46 @@ void AudioPluginAudioProcessorEditor::paint(juce::Graphics &g) {
     g.setFont(15.0f);
 
     juce::String tmp;
-    int bar = *processorRef.phBar;
 
-    bool isPlaying = processorRef.getPlayHead()->getPosition()->getIsPlaying();
-
+    /*
     if (isPlaying)
         tmp = "is playing";
     else
         tmp = "NOT playing";
+    */
+
+    int ppq = -1;
+    int timeInSeconds = -1;
+    int tempo = -1;
+    int bar = -1;
+    juce::AudioPlayHead::TimeSignature timeSignature;
+
+    if (processorRef.getPlayHead() != nullptr) {
+        tmp = juce::String(
+            *processorRef.getPlayHead()->getPosition()->getTimeInSamples());
+
+        // bar = *processorRef.getPlayHead()->getPosition()->getBarCount();
+        tempo = *processorRef.getPlayHead()->getPosition()->getBpm();
+        timeInSeconds =
+            *processorRef.getPlayHead()->getPosition()->getTimeInSeconds();
+        timeSignature =
+            *processorRef.getPlayHead()->getPosition()->getTimeSignature();
+        ppq = *processorRef.getPlayHead()->getPosition()->getPpqPosition();
+
+        // https://music.stackexchange.com/questions/109729/how-to-figure-out-the-length-time-in-ms-of-a-bar-from-bpm-and-time-signature
+        // 4 * N / D = length of bar in quarter notes (@Bavi_H's answer)
+        int barLength = 4 * timeSignature.numerator / timeSignature.denominator;
+        bar = static_cast<int>(ppq / barLength);
+    }
 
     g.drawFittedText(tmp, getLocalBounds(), juce::Justification::centred, 1);
+
+    g.setFont(24.f);
+    g.drawFittedText("track", juce::Rectangle<int>(34, 8, 100, 50),
+                     juce::Justification::left, 1);
+
+    g.drawFittedText(juce::String(bar), juce::Rectangle<int>(300, 8, 100, 50),
+                     juce::Justification::left, 1);
 }
 
 void AudioPluginAudioProcessorEditor::resized() {

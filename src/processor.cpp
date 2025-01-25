@@ -132,19 +132,9 @@ void AudioPluginAudioProcessor::processBlock(juce::AudioBuffer<float> &buffer,
     auto playhead = getPlayHead();
     bool playheadExists = playhead != nullptr;
 
-    // this->phBar = *playhead->getPosition()->getBpm();
-    this->phBar = *playhead->getPosition()->getPpqPosition();
-
     for (int channel = 0; channel < totalNumInputChannels; ++channel) {
         auto *channelData = buffer.getWritePointer(channel);
         juce::ignoreUnused(channelData);
-
-        // generate noise for now
-        if (shouldPlay) {
-            for (auto sample = 0; sample < buffer.getNumSamples(); ++sample) {
-                channelData[sample] = random.nextFloat() * 0.25f - 0.125f;
-            }
-        }
     }
 }
 
