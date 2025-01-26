@@ -1,4 +1,5 @@
 #pragma once
+#include <JuceHeader.h>
 #include <juce_audio_processors/juce_audio_processors.h>
 
 class AudioPluginAudioProcessor : public juce::AudioProcessor {
@@ -35,6 +36,12 @@ class AudioPluginAudioProcessor : public juce::AudioProcessor {
 
   private:
     juce::Random random;
+
+    juce::AudioFormatManager afm;
+    juce::String path = "/home/johnston/Downloads/tracktest.wav";
+    juce::AudioBuffer<float> fileBuffer;
+    int position = 0;
+    int startSample = 96000;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AudioPluginAudioProcessor)
 };

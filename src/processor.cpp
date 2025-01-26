@@ -73,6 +73,21 @@ void AudioPluginAudioProcessor::prepareToPlay(double sampleRate,
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
     juce::ignoreUnused(sampleRate, samplesPerBlock);
+
+    if (afm.findFormatForFileExtension("wav") == nullptr) {
+        afm.registerBasicFormats();
+    }
+
+    std::unique_ptr<juce::AudioFormatReader> reader(afm.createReaderFor(path));
+
+    if (reader.get() != nullptr) {
+        auto duration = reader->lengthInSamples / reader->sampleRate;
+        fileBuffer.setSize((int)reader->numChannels,
+                           (int)reader->lengthInSamples);
+
+        reader->read(&fileBuffer, 0, (int)reader->lengthInSamples, 0, true,
+                     true);
+    }
 }
 
 void AudioPluginAudioProcessor::releaseResources() {
@@ -131,6 +146,41 @@ void AudioPluginAudioProcessor::processBlock(juce::AudioBuffer<float> &buffer,
 
     auto playhead = getPlayHead();
     bool playheadExists = playhead != nullptr;
+
+    if (playheadExists) {
+        if (playhead->getPosition()->getIsPlaying() == true) {
+            int currentSample = *playhead->getPosition()->getTimeInSamples();
+            int outputSamplesRemaining = buffer.getNumSamples();
+            auto outputSamplesOffset = 0;
+
+            position = currentSample - startSample;
+
+            if (currentSample >= startSample &&
+                currentSample <= fileBuffer.getNumSamples()) {
+                int bufferSamplesRemaining =
+                    fileBuffer.getNumSamples() - position;
+                auto samplesThisTime =
+                    juce::jmin(outputSamplesRemaining, bufferSamplesRemaining);
+
+                for (auto channel = 0; channel < buffer.getNumChannels();
+                     ++channel) {
+                    buffer.copyFrom(channel,                         // [12]
+                                    outputSamplesOffset,             //  [12.1]
+                                    fileBuffer,                      //  [12.2]
+                                    channel % totalNumInputChannels, //  [12.3]
+                                    position,                        //  [12.4]
+                                    samplesThisTime);                //  [12.5]
+                }
+
+                outputSamplesRemaining -= samplesThisTime; // [13]
+                outputSamplesOffset += samplesThisTime;    // [14]
+                // position += samplesThisTime;
+
+                if (position == fileBuffer.getNumSamples())
+                    position = 0; // [16]
+            }
+        }
+    }
 
     for (int channel = 0; channel < totalNumInputChannels; ++channel) {
         auto *channelData = buffer.getWritePointer(channel);

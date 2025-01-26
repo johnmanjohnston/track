@@ -13,6 +13,9 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
     setSize(1280, 720);
 
     startTimer(20);
+
+    clipComponent.setBounds(200, 200, 200, 200);
+    addAndMakeVisible(clipComponent);
 }
 
 AudioPluginAudioProcessorEditor::~AudioPluginAudioProcessorEditor() {}

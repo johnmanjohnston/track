@@ -9,6 +9,14 @@ class clip {
     float fadeOut = 0.f;
 };
 
+class ClipComponent : public juce::Component {
+  public:
+    ClipComponent();
+    ~ClipComponent();
+
+    void paint(juce::Graphics &g) override;
+};
+
 class track {
   public:
     bool s = false;
