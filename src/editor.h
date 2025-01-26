@@ -1,4 +1,5 @@
 #pragma once
+#include "daw/timeline.h"
 #include "daw/track.h"
 #include "processor.h"
 
@@ -14,7 +15,8 @@ class AudioPluginAudioProcessorEditor : public juce::AudioProcessorEditor,
   private:
     AudioPluginAudioProcessor &processorRef;
 
-    track::ClipComponent clipComponent;
+    // track::ClipComponent clipComponent;
+    track::TimelineComponent timelineComponent;
 
     void timerCallback() override { repaint(); }
 

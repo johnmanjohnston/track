@@ -27,7 +27,8 @@ juce_generate_juce_header(track)
 target_sources(track PRIVATE
     src/processor.cpp
     src/editor.cpp
-    src/daw/track.cpp)
+    src/daw/track.cpp
+    src/daw/timeline.cpp)
 
 target_compile_definitions(track PRIVATE
     PIP_JUCE_EXAMPLES_DIRECTORY_STRING="${JUCE_SOURCE_DIR}/examples"

@@ -14,8 +14,10 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
 
     startTimer(20);
 
-    clipComponent.setBounds(200, 200, 200, 200);
-    addAndMakeVisible(clipComponent);
+    // clipComponent.setBounds(200, 200, 200, 200);
+    // addAndMakeVisible(clipComponent);
+    timelineComponent.setBounds(170, 50 + 8, 1090, 650 + 8);
+    addAndMakeVisible(timelineComponent);
 }
 
 AudioPluginAudioProcessorEditor::~AudioPluginAudioProcessorEditor() {}
