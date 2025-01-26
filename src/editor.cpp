@@ -35,17 +35,30 @@ void AudioPluginAudioProcessorEditor::paint(juce::Graphics &g) {
         tmp = "NOT playing";
     */
 
+    // TODO: timing calculations don't work properly for some time signatures
+    // like 6/8; that's now a prolem for future me
     int ppq = -1;
     int timeInSeconds = -1;
     int tempo = -1;
+
     int bar = -1;
+    int beat = -1;
+    int division = -1;
     juce::AudioPlayHead::TimeSignature timeSignature;
+
+    double sampleRate = processorRef.getSampleRate();
+    double curSample = -1;
+    double curSecond = -1;
 
     if (processorRef.getPlayHead() != nullptr) {
         tmp = juce::String(
             *processorRef.getPlayHead()->getPosition()->getTimeInSamples());
 
-        // bar = *processorRef.getPlayHead()->getPosition()->getBarCount();
+        // yoink data from host DAW
+        curSample =
+            *processorRef.getPlayHead()->getPosition()->getTimeInSamples();
+        curSecond =
+            *processorRef.getPlayHead()->getPosition()->getTimeInSeconds();
         tempo = *processorRef.getPlayHead()->getPosition()->getBpm();
         timeInSeconds =
             *processorRef.getPlayHead()->getPosition()->getTimeInSeconds();
@@ -53,10 +66,25 @@ void AudioPluginAudioProcessorEditor::paint(juce::Graphics &g) {
             *processorRef.getPlayHead()->getPosition()->getTimeSignature();
         ppq = *processorRef.getPlayHead()->getPosition()->getPpqPosition();
 
+        // bar, beat, division calculations
         // https://music.stackexchange.com/questions/109729/how-to-figure-out-the-length-time-in-ms-of-a-bar-from-bpm-and-time-signature
         // 4 * N / D = length of bar in quarter notes (@Bavi_H's answer)
         int barLength = 4 * timeSignature.numerator / timeSignature.denominator;
-        bar = static_cast<int>(ppq / barLength);
+        bar = static_cast<int>(ppq / barLength) + 1;
+        beat = (ppq % timeSignature.numerator) + 1;
+
+        // calculate 8th note divisions from sample counts
+        float eigthNoteLengthInSeconds = (60.f * 1.f / tempo) * .5f;
+        float beatDuration = 60.f / tempo;
+
+        float mul = 4.f / timeSignature.denominator;
+        float effectiveBeatDuration = beatDuration * mul;
+
+        float elapsedTime = curSample / sampleRate;
+
+        int totalDivisions = ((elapsedTime / effectiveBeatDuration) * 2);
+        int divisionPerBar = timeSignature.numerator * 2;
+        division = (totalDivisions % divisionPerBar) + 1;
     }
 
     g.drawFittedText(tmp, getLocalBounds(), juce::Justification::centred, 1);
@@ -65,7 +93,15 @@ void AudioPluginAudioProcessorEditor::paint(juce::Graphics &g) {
     g.drawFittedText("track", juce::Rectangle<int>(34, 8, 100, 50),
                      juce::Justification::left, 1);
 
-    g.drawFittedText(juce::String(bar), juce::Rectangle<int>(300, 8, 100, 50),
+    // bar.beat.division
+    juce::String tempoInformationToDisplay = juce::String(bar);
+    tempoInformationToDisplay.append(".", 1);
+    tempoInformationToDisplay.append(juce::String(beat), 3);
+    tempoInformationToDisplay.append(".", 1);
+    tempoInformationToDisplay.append(juce::String(division), 3);
+
+    g.drawFittedText(tempoInformationToDisplay,
+                     juce::Rectangle<int>(300, 8, 100, 50),
                      juce::Justification::left, 1);
 }
 
