@@ -1,5 +1,5 @@
 #include "editor.h"
-#include "juce_graphics/juce_graphics.h"
+#include "daw/timeline.h"
 #include "processor.h"
 
 AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
@@ -16,8 +16,10 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
 
     // clipComponent.setBounds(200, 200, 200, 200);
     // addAndMakeVisible(clipComponent);
-    timelineComponent.setBounds(170, 50 + 8, 1090, 650 + 8);
-    addAndMakeVisible(timelineComponent);
+
+    timelineViewport.setViewedComponent(new track::TimelineComponent, true);
+    timelineViewport.setBounds(170, 50 + 8, 1090, 650 + 8);
+    addAndMakeVisible(timelineViewport);
 }
 
 AudioPluginAudioProcessorEditor::~AudioPluginAudioProcessorEditor() {}

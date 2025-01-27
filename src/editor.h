@@ -16,7 +16,8 @@ class AudioPluginAudioProcessorEditor : public juce::AudioProcessorEditor,
     AudioPluginAudioProcessor &processorRef;
 
     // track::ClipComponent clipComponent;
-    track::TimelineComponent timelineComponent;
+    track::TimelineViewport timelineViewport;
+    // track::TimelineComponent timelineComponent;
 
     void timerCallback() override { repaint(); }
 
