@@ -17,6 +17,7 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
     // clipComponent.setBounds(200, 200, 200, 200);
     // addAndMakeVisible(clipComponent);
 
+    // TODO: don't use new here
     timelineViewport.setViewedComponent(new track::TimelineComponent, true);
     timelineViewport.setBounds(170, 50 + 8, 1090, 650 + 8);
     addAndMakeVisible(timelineViewport);
@@ -57,7 +58,11 @@ void AudioPluginAudioProcessorEditor::paint(juce::Graphics &g) {
     double curSample = -1;
     double curSecond = -1;
 
-    if (processorRef.getPlayHead() != nullptr) {
+    // check if host DAW supplies tempo to make sure that the host DAW actually
+    // exists, because getPlayHead() doesn't return nullptr sometimes for some
+    // reason, leading to segfault
+    if (processorRef.getPlayHead() != nullptr &&
+        processorRef.getPlayHead()->getPosition()->getBpm().hasValue()) {
         tmp = juce::String(
             *processorRef.getPlayHead()->getPosition()->getTimeInSamples());
 

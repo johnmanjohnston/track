@@ -8,6 +8,9 @@ class TimelineComponent : public juce::Component {
     ~TimelineComponent();
 
     void paint(juce::Graphics &g) override;
+
+  private:
+    int zoomLevel = 1;
 };
 
 class TimelineViewport : public juce::Viewport {
