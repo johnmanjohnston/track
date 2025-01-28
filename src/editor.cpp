@@ -17,9 +17,10 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
     // clipComponent.setBounds(200, 200, 200, 200);
     // addAndMakeVisible(clipComponent);
 
-    // TODO: don't use new here
-    timelineViewport.setViewedComponent(new track::TimelineComponent, true);
-    timelineViewport.setBounds(170, 50 + 8, 1090, 650 + 8);
+    auto x = new track::TimelineComponent;
+    x->viewport = &timelineViewport;
+    timelineViewport.setViewedComponent(x, true);
+    timelineViewport.setBounds(170, 50 + 8, 1110 - 1, 650);
     addAndMakeVisible(timelineViewport);
 }
 
