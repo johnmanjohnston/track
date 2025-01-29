@@ -22,8 +22,24 @@ class track {
     bool s = false;
     bool m = false;
 
+    juce::String trackName = "Untitled Track";
+
     // future john, have fun trying to implement hosting audio plugins :skull:
 
     std::vector<clip> clips;
+};
+
+class TrackComponent : public juce::Component {
+  public:
+    TrackComponent(track *t);
+    ~TrackComponent();
+
+    void paint(juce::Graphics &g);
+
+    // instances of TrackComponent are responsible for only handling the UI for
+    // an indiviaul track (only the left section which shows track name, volume
+    // controls, mute/soloing control). The actual CLIPS of audio will be
+    // handles in the TimelineComponent class
+    track *correspondingTrack = nullptr;
 };
 } // namespace track

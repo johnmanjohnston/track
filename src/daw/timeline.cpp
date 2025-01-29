@@ -2,6 +2,12 @@
 
 track::TimelineComponent::TimelineComponent() : juce::Component() {
     setSize(9000, 7000);
+
+    track *t = new track();
+    trackComponents.emplace_back(new TrackComponent(t));
+
+    addAndMakeVisible(*trackComponents[0]);
+    trackComponents[0]->setBounds(0, 50, 300, 50);
 };
 track::TimelineComponent::~TimelineComponent(){};
 
@@ -10,6 +16,10 @@ track::TimelineViewport::~TimelineViewport() {}
 
 void track::TimelineComponent::paint(juce::Graphics &g) {
     g.fillAll(juce::Colours::black);
+
+    auto horizontalScrollValue =
+        viewport->getHorizontalScrollBar().getCurrentRangeStart();
+    trackComponents[0]->setBounds(horizontalScrollValue, 50, 300, 50);
 
     g.setColour(juce::Colours::white);
     for (int i = 0; i < (getBounds().getWidth() / 100); ++i) {
