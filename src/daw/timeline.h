@@ -18,8 +18,10 @@ class TimelineComponent : public juce::Component {
 
     TimelineViewport *viewport = nullptr;
 
-    // https://forum.juce.com/t/creating-arrays-vectors-of-components-copy-move-semantics/47054/5
+    /*
+    //forum.juce.com/t/creating-arrays-vectors-of-components-copy-move-semantics/47054/5
     std::vector<std::unique_ptr<TrackComponent>> trackComponents;
+    */
 
   private:
     int zoomLevel = 1;

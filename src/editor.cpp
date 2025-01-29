@@ -1,10 +1,11 @@
 #include "editor.h"
 #include "daw/timeline.h"
+#include "daw/track.h"
 #include "processor.h"
 
 AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
     AudioPluginAudioProcessor &p)
-    : AudioProcessorEditor(&p), processorRef(p) {
+    : AudioProcessorEditor(&p), processorRef(p), _trackComponent(&_track) {
     juce::ignoreUnused(processorRef);
 
     // sizing
@@ -17,11 +18,21 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
     // clipComponent.setBounds(200, 200, 200, 200);
     // addAndMakeVisible(clipComponent);
 
-    auto x = new track::TimelineComponent;
+    // TimelineViewport holds TimelineComponent
+    track::TimelineComponent *x = new track::TimelineComponent;
     x->viewport = &timelineViewport;
     timelineViewport.setViewedComponent(x, true);
     timelineViewport.setBounds(170, 50 + 8, 1110 - 1, 650);
     addAndMakeVisible(timelineViewport);
+
+    // tracks
+    tracklist.setBounds(0, 60, 170 - 10, 2000);
+    tracklist.addAndMakeVisible(_trackComponent);
+    _trackComponent.setBounds(10, 10, 100, 100);
+
+    trackViewport.setViewedComponent(&tracklist, false);
+    trackViewport.setBounds(0, 60, 170, 660);
+    addAndMakeVisible(trackViewport);
 }
 
 AudioPluginAudioProcessorEditor::~AudioPluginAudioProcessorEditor() {}
@@ -45,7 +56,7 @@ void AudioPluginAudioProcessorEditor::paint(juce::Graphics &g) {
     */
 
     // TODO: timing calculations don't work properly for some time signatures
-    // like 6/8; that's now a prolem for future me
+    // like 6/8; that's now a problem for future me
     int ppq = -1;
     int timeInSeconds = -1;
     int tempo = -1;

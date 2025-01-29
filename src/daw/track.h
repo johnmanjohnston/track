@@ -42,4 +42,16 @@ class TrackComponent : public juce::Component {
     // handles in the TimelineComponent class
     track *correspondingTrack = nullptr;
 };
+
+class Tracklist : public juce::Component {
+  public:
+    Tracklist();
+    ~Tracklist();
+};
+
+class TrackViewport : public juce::Viewport {
+  public:
+    TrackViewport();
+    ~TrackViewport();
+};
 } // namespace track
