@@ -22,7 +22,7 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
     track::TimelineComponent *x = new track::TimelineComponent;
     x->viewport = &timelineViewport;
     timelineViewport.setViewedComponent(x, true);
-    timelineViewport.setBounds(170, 50 + 8, 1110 - 1, 650);
+    timelineViewport.setBounds(170, 60, 1110 - 1, 650);
     addAndMakeVisible(timelineViewport);
 
     // tracks
@@ -31,8 +31,11 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
     _trackComponent.setBounds(10, 10, 100, 100);
 
     trackViewport.setViewedComponent(&tracklist, false);
-    trackViewport.setBounds(0, 60, 170, 660);
+    trackViewport.setBounds(0, 60, 170, 650);
     addAndMakeVisible(trackViewport);
+
+    trackViewport.timelineViewport = &timelineViewport;
+    timelineViewport.trackViewport = &trackViewport;
 }
 
 AudioPluginAudioProcessorEditor::~AudioPluginAudioProcessorEditor() {}

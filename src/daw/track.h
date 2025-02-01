@@ -53,5 +53,9 @@ class TrackViewport : public juce::Viewport {
   public:
     TrackViewport();
     ~TrackViewport();
+
+    void scrollBarMoved(juce::ScrollBar *bar, double newRangeStart) override;
+
+    void *timelineViewport = nullptr;
 };
 } // namespace track

@@ -1,4 +1,5 @@
 #include "track.h"
+#include "timeline.h"
 track::ClipComponent::ClipComponent() : juce::Component() {}
 track::ClipComponent::~ClipComponent() {}
 
@@ -31,6 +32,17 @@ void track::TrackComponent::paint(juce::Graphics &g) {
 // ASJAJSAJSJAS
 track::TrackViewport::TrackViewport() : juce::Viewport() {}
 track::TrackViewport::~TrackViewport(){};
+
+void track::TrackViewport::scrollBarMoved(juce::ScrollBar *bar,
+                                     double newRangeStart) {
+    if (bar->isVertical()) {
+        if (timelineViewport != nullptr) {
+            TimelineViewport *tv = (TimelineViewport *)(timelineViewport);
+            tv->setViewPosition(tv->getViewPositionX(),
+                newRangeStart);
+        } 
+    }
+}
 
 track::Tracklist::Tracklist() : juce::Component() {}
 track::Tracklist::~Tracklist() {}

@@ -1,7 +1,7 @@
 #include "./timeline.h"
 
 track::TimelineComponent::TimelineComponent() : juce::Component() {
-    setSize(9000, 7000);
+    setSize(9000, 2000);
 
     /*
     track *t = new track();
@@ -15,6 +15,19 @@ track::TimelineComponent::~TimelineComponent(){};
 
 track::TimelineViewport::TimelineViewport() : juce::Viewport() {}
 track::TimelineViewport::~TimelineViewport() {}
+
+void track::TimelineViewport::scrollBarMoved(juce::ScrollBar* bar,
+    double newRangeStart) {
+    if (bar->isVertical()) {
+        // update tracklist scroll
+        if (trackViewport != nullptr) {
+            trackViewport->setViewPosition(0, newRangeStart); 
+        }
+    }
+    else {
+        setViewPosition(newRangeStart, getViewPositionY()); 
+    }
+}
 
 void track::TimelineComponent::paint(juce::Graphics &g) {
     g.fillAll(juce::Colours::black);

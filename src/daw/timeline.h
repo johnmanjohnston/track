@@ -7,6 +7,9 @@ class TimelineViewport : public juce::Viewport {
   public:
     TimelineViewport();
     ~TimelineViewport();
+
+    void scrollBarMoved(juce::ScrollBar *bar, double newRangeStart) override;
+    TrackViewport *trackViewport = nullptr;
 };
 
 class TimelineComponent : public juce::Component {
