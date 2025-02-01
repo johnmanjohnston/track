@@ -26,8 +26,8 @@ class AudioPluginAudioProcessorEditor : public juce::AudioProcessorEditor,
 
     // track::TimelineComponent timelineComponent;
 
-    juce::AudioThumbnail thumbnail;
     juce::AudioThumbnailCache thumbnailCache;
+    juce::AudioThumbnail thumbnail;
     std::unique_ptr<juce::AudioFormatReaderSource> afmReaderSource;
     juce::AudioFormatManager audioFormatManager;
 
