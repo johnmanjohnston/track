@@ -38,7 +38,8 @@ class AudioPluginAudioProcessor : public juce::AudioProcessor {
     juce::Random random;
 
     juce::AudioFormatManager afm;
-    juce::String path = "/home/johnston/Downloads/tracktest.wav";
+    // juce::String path = "/home/johnston/Downloads/tracktest.wav";
+    juce::String path = "C:/Users/USER/Downloads/hyperpop-trap-drums_151bpm_B_major.wav";
     juce::AudioBuffer<float> fileBuffer;
     int position = 0;
     int startSample = 96000;

@@ -87,6 +87,12 @@ void AudioPluginAudioProcessor::prepareToPlay(double sampleRate,
 
         reader->read(&fileBuffer, 0, (int)reader->lengthInSamples, 0, true,
                      true);
+
+         DBG("Audio file loaded with " << reader->lengthInSamples << " samples, with sample rate of " << reader->sampleRate << " lasting " << duration << " seconds");
+    }
+    
+    else {
+        DBG("reader not created");
     }
 }
 
@@ -149,14 +155,14 @@ void AudioPluginAudioProcessor::processBlock(juce::AudioBuffer<float> &buffer,
 
     if (playheadExists) {
         if (playhead->getPosition()->getIsPlaying() == true) {
-            int currentSample = *playhead->getPosition()->getTimeInSamples();
+            int currentSamplePositionInDAW = *playhead->getPosition()->getTimeInSamples();
             int outputSamplesRemaining = buffer.getNumSamples();
             auto outputSamplesOffset = 0;
 
-            position = currentSample - startSample;
+            position = currentSamplePositionInDAW - startSample;
 
-            if (currentSample >= startSample &&
-                currentSample <= fileBuffer.getNumSamples()) {
+            // check if we're in bounds of the audio clip
+            if (position >= 0 && position < fileBuffer.getNumSamples()) {
                 int bufferSamplesRemaining =
                     fileBuffer.getNumSamples() - position;
                 auto samplesThisTime =
@@ -176,8 +182,8 @@ void AudioPluginAudioProcessor::processBlock(juce::AudioBuffer<float> &buffer,
                 outputSamplesOffset += samplesThisTime;    // [14]
                 // position += samplesThisTime;
 
-                if (position == fileBuffer.getNumSamples())
-                    position = 0; // [16]
+                // if (position >= fileBuffer.getNumSamples())
+                    //position = 0; // [16]
             }
         }
     }
