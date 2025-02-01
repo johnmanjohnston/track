@@ -7,3 +7,15 @@ cmake_install.cmake
 compile_commands.json
 juce_vst3_helper
 .cache
+.vs/
+Debug/
+juce_vst_helper.dir/
+out/
+track.dir/
+track_rc_lib.dir/
+track_VST3.dir/
+x64/
+*.vcxproj
+*.filters
+*.user
+*.sln
