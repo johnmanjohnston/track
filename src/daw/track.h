@@ -5,14 +5,22 @@ namespace track {
 class clip {
   public:
     juce::String path;
+
     float fadeIn = 0.f;
     float fadeOut = 0.f;
+
+    int startPositionSample = -1;
+    int endPositionSample = -1; // irrespective of looping
+    int endPositionSampleWithLooping;
+    bool isLooping;
 };
 
 class ClipComponent : public juce::Component {
   public:
-    ClipComponent();
+    ClipComponent(clip *c);
     ~ClipComponent();
+
+    clip *correspondingClip = nullptr;
 
     void paint(juce::Graphics &g) override;
 };

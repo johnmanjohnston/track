@@ -5,7 +5,8 @@
 
 AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
     AudioPluginAudioProcessor &p)
-    : AudioProcessorEditor(&p), processorRef(p), _trackComponent(&_track) {
+    : AudioProcessorEditor(&p), processorRef(p), _trackComponent(&_track), thumbnailCache(5), thumbnail(512, 
+        audioFormatManager, thumbnailCache) {
     juce::ignoreUnused(processorRef);
 
     // sizing
@@ -36,6 +37,18 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
 
     trackViewport.timelineViewport = &timelineViewport;
     timelineViewport.trackViewport = &trackViewport;
+
+    // draw audio thumbnail
+    juce::File file = juce::File(processorRef.path);
+    audioFormatManager.registerBasicFormats();
+    auto *reader = audioFormatManager.createReaderFor(file);
+
+    if (reader != nullptr) {
+        auto newSource =
+            std::make_unique<juce::AudioFormatReaderSource>(reader, true);
+        thumbnail.setSource(new juce::FileInputSource(file)); 
+         afmReaderSource.reset(newSource.release());
+    }
 }
 
 AudioPluginAudioProcessorEditor::~AudioPluginAudioProcessorEditor() {}
@@ -48,6 +61,25 @@ void AudioPluginAudioProcessorEditor::paint(juce::Graphics &g) {
 
     g.setColour(juce::Colours::white);
     g.setFont(15.0f);
+
+
+    // draw waveform
+    juce::Rectangle<int> thumbnailBounds(0, 0, 400,
+                                         200);
+    
+    if (thumbnail.getNumChannels() != 0) {
+         g.drawText("AUDIO THYUMBNAIL LOADED", 0, 0, 50, 10,
+                    juce::Justification::left, true);
+
+         thumbnail.drawChannels(g, thumbnailBounds, 0.0,
+                                thumbnail.getTotalLength(), 1.f); 
+    }
+
+    else {
+         g.drawText("no thyumbnail :(", 0, 0, 50, 10, juce::Justification::left,
+                    true); 
+    }
+
 
     juce::String tmp;
 

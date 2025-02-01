@@ -1,7 +1,18 @@
 #include "track.h"
 #include "timeline.h"
-track::ClipComponent::ClipComponent() : juce::Component() {}
+track::ClipComponent::ClipComponent(clip *c) : juce::Component() {
+    if (c == nullptr) {
+        DBG("JOHN WARNING: ClipComponent initialized with no clip provided");
+        return;
+    }
+
+    this->correspondingClip = c;
+}
 track::ClipComponent::~ClipComponent() {}
+
+void track::ClipComponent::paint(juce::Graphics& g) {
+    g.fillAll(juce::Colours::blue);
+}
 
 track::TrackComponent::TrackComponent(track *t) : juce::Component() {
     if (t == nullptr) {
@@ -12,12 +23,6 @@ track::TrackComponent::TrackComponent(track *t) : juce::Component() {
     this->correspondingTrack = t;
 }
 track::TrackComponent::~TrackComponent() {}
-
-void track::ClipComponent::paint(juce::Graphics &g) {
-    g.fillAll(juce::Colours::red);
-    g.fillAll();
-    // DBG("ClipComponent::paint() called");
-}
 
 void track::TrackComponent::paint(juce::Graphics &g) {
     g.fillAll(juce::Colours::green);

@@ -33,13 +33,15 @@ class AudioPluginAudioProcessor : public juce::AudioProcessor {
 
     void getStateInformation(juce::MemoryBlock &destData) override;
     void setStateInformation(const void *data, int sizeInBytes) override;
+    
+    juce::String path =
+        "C:/Users/USER/Downloads/hyperpop-trap-drums_151bpm_B_major.wav";
 
   private:
     juce::Random random;
 
     juce::AudioFormatManager afm;
     // juce::String path = "/home/johnston/Downloads/tracktest.wav";
-    juce::String path = "C:/Users/USER/Downloads/hyperpop-trap-drums_151bpm_B_major.wav";
     juce::AudioBuffer<float> fileBuffer;
     int position = 0;
     int startSample = 96000;
