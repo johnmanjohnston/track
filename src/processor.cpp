@@ -103,6 +103,7 @@ void AudioPluginAudioProcessor::prepareToPlay(double sampleRate,
     c->startPositionSample = 82000;
     c->path = path;
     c->updateBuffer();
+    c->trackIndex = tracks.size();
 
     t->clips.push_back(*c);
     tracks.push_back(*t);

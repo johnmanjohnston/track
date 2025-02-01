@@ -47,4 +47,42 @@ void track::TimelineComponent::paint(juce::Graphics &g) {
         g.drawText(juce::String(i), newBounds, juce::Justification::left,
                    false);
     }
+
+    g.drawText(juce::String(processorRef->tracks[0].clips[0].buffer.getNumChannels()), 10, 10,
+               50, 20,
+               juce::Justification::left,
+               false);
+
+    // TODO: don't call updateClipComponent() every paint()
+    updateClipComponents();
+
+    // draw clips
+    int trackHeight = 128;
+    for (auto clip : this->clipComponents) {
+        clip->setBounds(
+            clip->correspondingClip->startPositionSample / 41000,
+            clip->correspondingClip->trackIndex * trackHeight,
+            clip->correspondingClip->buffer.getNumSamples() / (4100 / 3),
+            trackHeight
+        );
+    }
+}
+
+void track::TimelineComponent::updateClipComponents() {
+
+    clipComponents.clear();
+
+    for (auto &t : processorRef->tracks) {
+        for (auto &c : t.clips) {
+            /*
+            ClipComponent *cc = new ClipComponent(&c);
+            this->clipComponents.emplace_back(*cc);
+            addAndMakeVisible(cc);
+            */
+
+            ClipComponent *cc = new ClipComponent(&c);
+            this->clipComponents.push_back(cc);
+            addAndMakeVisible(cc);
+        } 
+    }
 }

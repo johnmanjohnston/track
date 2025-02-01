@@ -1,5 +1,6 @@
 #pragma once
 #include "track.h"
+#include "../processor.h"
 #include <JuceHeader.h>
 
 namespace track {
@@ -20,6 +21,12 @@ class TimelineComponent : public juce::Component {
     void paint(juce::Graphics &g) override;
 
     TimelineViewport *viewport = nullptr;
+    AudioPluginAudioProcessor *processorRef = nullptr;
+
+    std::vector<ClipComponent*> clipComponents;
+    void updateClipComponents();
+
+    // std::vector<ClipComponent> clipComponents;
 
     /*
     //forum.juce.com/t/creating-arrays-vectors-of-components-copy-move-semantics/47054/5

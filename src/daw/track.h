@@ -13,6 +13,8 @@ class clip {
 
     juce::AudioBuffer<float> buffer; // irrespective of looping
     void updateBuffer();
+
+    int trackIndex = -1;
 };
 
 class ClipComponent : public juce::Component {

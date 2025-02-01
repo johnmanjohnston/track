@@ -7,6 +7,7 @@ track::ClipComponent::ClipComponent(clip *c) : juce::Component(), thumbnailCache
     }
 
     this->correspondingClip = c;
+    thumbnail.setSource(&correspondingClip->buffer, 41000.0, 2);
 }
 track::ClipComponent::~ClipComponent() {}
 
@@ -20,6 +21,8 @@ void track::ClipComponent::paint(juce::Graphics& g) {
     } 
 
     else {
+        //g.fillAll(juce::Colours::pink);
+        g.setColour(juce ::Colours::pink);
         thumbnail.drawChannels(g, getLocalBounds(), 0,
                                thumbnail.getTotalLength(), 1.f);  
     }
