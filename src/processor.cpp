@@ -94,6 +94,18 @@ void AudioPluginAudioProcessor::prepareToPlay(double sampleRate,
     else {
         DBG("reader not created");
     }
+
+    // initialize tracks
+    track::track *t = new track::track();
+    t->trackName = "beans";
+
+    track::clip *c = new track::clip();
+    c->startPositionSample = 82000;
+    c->path = path;
+    c->updateBuffer();
+
+    t->clips.push_back(*c);
+    tracks.push_back(*t);
 }
 
 void AudioPluginAudioProcessor::releaseResources() {

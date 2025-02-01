@@ -5,8 +5,11 @@
 
 AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
     AudioPluginAudioProcessor &p)
-    : AudioProcessorEditor(&p), processorRef(p), _trackComponent(&_track), thumbnailCache(5), thumbnail(512, 
-        audioFormatManager, thumbnailCache) {
+    : AudioProcessorEditor(&p), processorRef(p), thumbnailCache(5),
+      thumbnail(512, 
+        audioFormatManager, thumbnailCache),
+      _trackComponent(&processorRef.tracks[0]) {
+
     juce::ignoreUnused(processorRef);
 
     // sizing
@@ -39,16 +42,7 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
     timelineViewport.trackViewport = &trackViewport;
 
     // draw audio thumbnail
-    juce::File file = juce::File(processorRef.path);
-    audioFormatManager.registerBasicFormats();
-    auto *reader = audioFormatManager.createReaderFor(file);
-
-    if (reader != nullptr) {
-        auto newSource =
-            std::make_unique<juce::AudioFormatReaderSource>(reader, true);
-        thumbnail.setSource(new juce::FileInputSource(file)); 
-         afmReaderSource.reset(newSource.release());
-    }
+    thumbnail.setSource(&processorRef.tracks[0].clips[0].buffer, processorRef.getSampleRate(), 1);
 }
 
 AudioPluginAudioProcessorEditor::~AudioPluginAudioProcessorEditor() {}

@@ -6,19 +6,23 @@ class clip {
   public:
     juce::String path;
 
-    float fadeIn = 0.f;
-    float fadeOut = 0.f;
-
-    int startPositionSample = -1;
-    int endPositionSample = -1; // irrespective of looping
-    int endPositionSampleWithLooping;
+    int startPositionSample = -1; // absolute sample position within host
+    int endPositionSample = -1; // relative to audio file start, irrespective of looping
+    int endPositionSampleWithLooping; // absolute sample position within host
     bool isLooping;
+
+    juce::AudioBuffer<float> buffer; // irrespective of looping
+    void updateBuffer();
 };
 
 class ClipComponent : public juce::Component {
   public:
     ClipComponent(clip *c);
     ~ClipComponent();
+
+    juce::AudioThumbnail thumbnail;
+    juce::AudioThumbnailCache thumbnailCache;
+    juce::AudioFormatManager afm;
 
     clip *correspondingClip = nullptr;
 

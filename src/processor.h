@@ -1,6 +1,7 @@
 #pragma once
 #include <JuceHeader.h>
 #include <juce_audio_processors/juce_audio_processors.h>
+#include "daw/track.h"
 
 class AudioPluginAudioProcessor : public juce::AudioProcessor {
   public:
@@ -36,6 +37,8 @@ class AudioPluginAudioProcessor : public juce::AudioProcessor {
     
     juce::String path =
         "C:/Users/USER/Downloads/hyperpop-trap-drums_151bpm_B_major.wav";
+
+    std::vector<track::track> tracks;
 
   private:
     juce::Random random;

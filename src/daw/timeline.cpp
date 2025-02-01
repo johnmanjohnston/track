@@ -23,6 +23,8 @@ void track::TimelineViewport::scrollBarMoved(juce::ScrollBar* bar,
         if (trackViewport != nullptr) {
             trackViewport->setViewPosition(0, newRangeStart); 
         }
+
+        setViewPosition(getViewPositionX(), newRangeStart);
     }
     else {
         setViewPosition(newRangeStart, getViewPositionY()); 

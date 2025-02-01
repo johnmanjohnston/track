@@ -21,14 +21,13 @@ class AudioPluginAudioProcessorEditor : public juce::AudioProcessorEditor,
     track::Tracklist tracklist;
     track::TrackViewport trackViewport;
 
-    track::track _track;
+    // track::track _track;
     track::TrackComponent _trackComponent;
 
     // track::TimelineComponent timelineComponent;
 
     juce::AudioThumbnailCache thumbnailCache;
     juce::AudioThumbnail thumbnail;
-    std::unique_ptr<juce::AudioFormatReaderSource> afmReaderSource;
     juce::AudioFormatManager audioFormatManager;
 
     void timerCallback() override { repaint(); }
