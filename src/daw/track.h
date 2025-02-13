@@ -22,8 +22,8 @@ class ClipComponent : public juce::Component {
     ClipComponent(clip *c);
     ~ClipComponent();
 
-    juce::AudioThumbnail thumbnail;
     juce::AudioThumbnailCache thumbnailCache;
+    juce::AudioThumbnail thumbnail;
     juce::AudioFormatManager afm;
 
     clip *correspondingClip = nullptr;

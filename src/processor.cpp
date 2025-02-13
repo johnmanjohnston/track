@@ -96,10 +96,10 @@ void AudioPluginAudioProcessor::prepareToPlay(double sampleRate,
     }
 
     // initialize tracks
-    track::track *t = new track::track();
+    std::unique_ptr<track::track> t(new track::track());
     t->trackName = "beans";
 
-    track::clip *c = new track::clip();
+    std::unique_ptr<track::clip> c(new track::clip());
     c->startPositionSample = 82000;
     c->path = path;
     c->updateBuffer();

@@ -5,9 +5,7 @@
 
 AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
     AudioPluginAudioProcessor &p)
-    : AudioProcessorEditor(&p), processorRef(p), thumbnailCache(5),
-      thumbnail(512, 
-        audioFormatManager, thumbnailCache),
+    : AudioProcessorEditor(&p), processorRef(p),
       _trackComponent(&processorRef.tracks[0]) {
 
     juce::ignoreUnused(processorRef);
@@ -41,9 +39,6 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
 
     trackViewport.timelineViewport = &timelineViewport;
     timelineViewport.trackViewport = &trackViewport;
-
-    // draw audio thumbnail
-    thumbnail.setSource(&processorRef.tracks[0].clips[0].buffer, processorRef.getSampleRate(), 1);
 }
 
 AudioPluginAudioProcessorEditor::~AudioPluginAudioProcessorEditor() {}
@@ -56,25 +51,6 @@ void AudioPluginAudioProcessorEditor::paint(juce::Graphics &g) {
 
     g.setColour(juce::Colours::white);
     g.setFont(15.0f);
-
-
-    // draw waveform
-    juce::Rectangle<int> thumbnailBounds(0, 0, 400,
-                                         200);
-    
-    if (thumbnail.getNumChannels() != 0) {
-         g.drawText("AUDIO THYUMBNAIL LOADED", 0, 0, 50, 10,
-                    juce::Justification::left, true);
-
-         thumbnail.drawChannels(g, thumbnailBounds, 0.0,
-                                thumbnail.getTotalLength(), 1.f); 
-    }
-
-    else {
-         g.drawText("no thyumbnail :(", 0, 0, 50, 10, juce::Justification::left,
-                    true); 
-    }
-
 
     juce::String tmp;
 

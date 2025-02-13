@@ -26,10 +26,6 @@ class AudioPluginAudioProcessorEditor : public juce::AudioProcessorEditor,
 
     // track::TimelineComponent timelineComponent;
 
-    juce::AudioThumbnailCache thumbnailCache;
-    juce::AudioThumbnail thumbnail;
-    juce::AudioFormatManager audioFormatManager;
-
     void timerCallback() override { repaint(); }
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(
