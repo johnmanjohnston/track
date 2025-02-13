@@ -23,8 +23,11 @@ class TimelineComponent : public juce::Component {
     TimelineViewport *viewport = nullptr;
     AudioPluginAudioProcessor *processorRef = nullptr;
 
-    std::vector<ClipComponent*> clipComponents;
+   // std::vector<ClipComponent*> clipComponents;
+    std::vector<std::unique_ptr<ClipComponent>> clipComponents;
     void updateClipComponents();
+
+    bool clipComponentsUpdated = false;
 
     // std::vector<ClipComponent> clipComponents;
 

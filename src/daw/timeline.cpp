@@ -54,11 +54,12 @@ void track::TimelineComponent::paint(juce::Graphics &g) {
                false);
 
     // TODO: don't call updateClipComponent() every paint()
-    updateClipComponents();
+    if (clipComponentsUpdated == false)
+        updateClipComponents();
 
     // draw clips
     int trackHeight = 128;
-    for (auto clip : this->clipComponents) {
+    for (auto&& clip : this->clipComponents) {
         clip->setBounds(
             clip->correspondingClip->startPositionSample / 41000,
             clip->correspondingClip->trackIndex * trackHeight,
@@ -69,6 +70,7 @@ void track::TimelineComponent::paint(juce::Graphics &g) {
 }
 
 void track::TimelineComponent::updateClipComponents() {
+    clipComponentsUpdated = true;
 
     clipComponents.clear();
 
@@ -80,8 +82,12 @@ void track::TimelineComponent::updateClipComponents() {
             addAndMakeVisible(cc);
             */
 
+            // this->clipComponents.push_back(cc);
+            // ClipComponent *cc = new ClipComponent(&c);
+
             ClipComponent *cc = new ClipComponent(&c);
-            this->clipComponents.push_back(cc);
+            this->clipComponents.push_back(std::unique_ptr<ClipComponent>(cc));
+
             addAndMakeVisible(cc);
         } 
     }
