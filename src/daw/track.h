@@ -40,7 +40,7 @@ class track {
 
     // future john, have fun trying to implement hosting audio plugins :skull:
 
-    std::vector<std::unique_ptr<clip>> clips;
+    std::vector<clip> clips;
 };
 
 class TrackComponent : public juce::Component {
