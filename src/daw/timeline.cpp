@@ -61,9 +61,9 @@ void track::TimelineComponent::paint(juce::Graphics &g) {
     int trackHeight = 128;
     for (auto&& clip : this->clipComponents) {
         clip->setBounds(
-            clip->correspondingClip->startPositionSample / 41000,
+            clip->correspondingClip->startPositionSample / 41000.0 * 32.0,
             clip->correspondingClip->trackIndex * trackHeight,
-            clip->correspondingClip->buffer.getNumSamples() / (4100 / 3),
+            clip->correspondingClip->buffer.getNumSamples() / 41000.0 * 32.0,
             trackHeight
         );
     }
