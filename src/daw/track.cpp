@@ -28,6 +28,25 @@ void track::ClipComponent::paint(juce::Graphics& g) {
     }
 }
 
+void track::ClipComponent::mouseDrag(const juce::MouseEvent &event) {
+    DBG("dragging is happening");
+    isBeingDragged = true;
+}
+
+void track::ClipComponent::mouseUp(const juce::MouseEvent& event) {
+    if (isBeingDragged) {
+        DBG("DRAGGING STOPPED");
+        isBeingDragged = false;
+
+        int distanceMovedHorizontally = event.getDistanceFromDragStartX();
+
+        this->correspondingClip->startPositionSample +=
+            distanceMovedHorizontally * 50;
+    }
+
+    DBG(event.getDistanceFromDragStartX());
+}
+
 track::TrackComponent::TrackComponent(track *t) : juce::Component() {
     if (t == nullptr) {
         DBG("JOHN WARNING: TrackComponent initialized with no track provided");

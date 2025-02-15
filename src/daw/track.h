@@ -29,6 +29,11 @@ class ClipComponent : public juce::Component {
     clip *correspondingClip = nullptr;
 
     void paint(juce::Graphics &g) override;
+
+    // moving clips
+    void mouseDrag(const juce::MouseEvent &event) override;
+    void mouseUp(const juce::MouseEvent &event) override;
+    bool isBeingDragged = false;
 };
 
 class track {

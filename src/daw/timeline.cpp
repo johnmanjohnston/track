@@ -70,7 +70,7 @@ void track::TimelineComponent::paint(juce::Graphics &g) {
 
 
     // draw playhead
-    DBG("paint() for timeline component called");
+    // DBG("paint() for timeline component called");
     g.setColour(juce::Colours::white);
     if (processorRef->getPlayHead() != nullptr &&
         processorRef->getPlayHead()->getPosition()->getBpm().hasValue()) {

@@ -181,31 +181,41 @@ void AudioPluginAudioProcessor::processBlock(juce::AudioBuffer<float> &buffer,
             int outputSamplesRemaining = buffer.getNumSamples();
             auto outputSamplesOffset = 0;
 
-            position = currentSamplePositionInDAW - startSample;
+            int currentSample =
+                *playhead->getPosition()->getTimeInSamples();
 
-            // check if we're in bounds of the audio clip
-            if (position >= 0 && position < fileBuffer.getNumSamples()) {
-                int bufferSamplesRemaining =
-                    fileBuffer.getNumSamples() - position;
-                auto samplesThisTime =
-                    juce::jmin(outputSamplesRemaining, bufferSamplesRemaining);
+            for (track::track &t : tracks) {
+                for (track::clip &c : t.clips) {
+                    // bounds check
+                    if (c.startPositionSample < currentSample &&
+                        c.startPositionSample + c.buffer.getNumSamples() >
+                            currentSample) {
+                        // relative to start of clip
+                        int position =
+                            currentSample - c.startPositionSample;
 
-                for (auto channel = 0; channel < buffer.getNumChannels();
-                     ++channel) {
-                    buffer.copyFrom(channel,                         // [12]
-                                    outputSamplesOffset,             //  [12.1]
-                                    fileBuffer,                      //  [12.2]
-                                    channel % totalNumInputChannels, //  [12.3]
-                                    position,                        //  [12.4]
-                                    samplesThisTime);                //  [12.5]
+                        int bufferSamplesRemaining =
+                            c.buffer.getNumSamples() - position;
+
+                        auto samplesThisTime = juce::jmin(
+                            outputSamplesRemaining, bufferSamplesRemaining);
+
+                         for (auto channel = 0;
+                            channel < buffer.getNumChannels(); ++channel) {
+                            buffer.copyFrom(
+                                channel,                         // [12]
+                                outputSamplesOffset,             //  [12.1]
+                                c.buffer,                      //  [12.2]
+                                channel % totalNumInputChannels, //  [12.3]
+                                position,                        //  [12.4]
+                                samplesThisTime
+                            );                //  [12.5]
+                         }
+
+                        outputSamplesRemaining -= samplesThisTime; // [13]
+                        outputSamplesOffset += samplesThisTime;   
+                    }   
                 }
-
-                outputSamplesRemaining -= samplesThisTime; // [13]
-                outputSamplesOffset += samplesThisTime;    // [14]
-                // position += samplesThisTime;
-
-                // if (position >= fileBuffer.getNumSamples())
-                    //position = 0; // [16]
             }
         }
     }
