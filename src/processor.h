@@ -47,7 +47,9 @@ class AudioPluginAudioProcessor : public juce::AudioProcessor {
     // juce::String path = "/home/johnston/Downloads/tracktest.wav";
     juce::AudioBuffer<float> fileBuffer;
     int position = 0;
-    int startSample = 96000;
+    int startSample = 1;
+
+    bool prepared = false;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AudioPluginAudioProcessor)
 };

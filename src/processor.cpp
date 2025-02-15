@@ -74,6 +74,9 @@ void AudioPluginAudioProcessor::prepareToPlay(double sampleRate,
     // initialisation that you need..
     juce::ignoreUnused(sampleRate, samplesPerBlock);
 
+    if (prepared)
+        return;
+
     if (afm.findFormatForFileExtension("wav") == nullptr) {
         afm.registerBasicFormats();
     }
@@ -107,6 +110,12 @@ void AudioPluginAudioProcessor::prepareToPlay(double sampleRate,
 
     t->clips.push_back(*c);
     tracks.push_back(*t);
+
+    DBG("prepareToPlay() called with sample rate " << sampleRate);
+    DBG("total outputs: " << getTotalNumOutputChannels());
+    DBG("total inputs: " << getTotalNumInputChannels());
+
+    prepared = true;
 }
 
 void AudioPluginAudioProcessor::releaseResources() {

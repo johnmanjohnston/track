@@ -1,4 +1,4 @@
-#include "./timeline.h"
+#include "timeline.h"
 
 track::TimelineComponent::TimelineComponent() : juce::Component() {
     setSize(9000, 2000);
@@ -67,6 +67,18 @@ void track::TimelineComponent::paint(juce::Graphics &g) {
             trackHeight
         );
     }
+
+
+    // draw playhead
+    DBG("paint() for timeline component called");
+    g.setColour(juce::Colours::white);
+    if (processorRef->getPlayHead() != nullptr &&
+        processorRef->getPlayHead()->getPosition()->getBpm().hasValue()) {
+        int curSample =
+            *processorRef->getPlayHead()->getPosition()->getTimeInSamples(); 
+
+        g.drawRect(curSample / 41000.0 * 32.0, 0, 2, getHeight(), 2);
+    }
 }
 
 void track::TimelineComponent::updateClipComponents() {
@@ -89,6 +101,6 @@ void track::TimelineComponent::updateClipComponents() {
             this->clipComponents.push_back(std::unique_ptr<ClipComponent>(cc));
 
             addAndMakeVisible(cc);
-        } 
+        }
     }
 }
