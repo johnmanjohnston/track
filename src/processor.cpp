@@ -1,4 +1,5 @@
 #include "processor.h"
+#include "daw/track.h"
 #include "editor.h"
 #include "juce_audio_basics/juce_audio_basics.h"
 
@@ -91,14 +92,17 @@ void AudioPluginAudioProcessor::prepareToPlay(double sampleRate,
         reader->read(&fileBuffer, 0, (int)reader->lengthInSamples, 0, true,
                      true);
 
-         DBG("Audio file loaded with " << reader->lengthInSamples << " samples, with sample rate of " << reader->sampleRate << " lasting " << duration << " seconds");
+        DBG("Audio file loaded with "
+            << reader->lengthInSamples << " samples, with sample rate of "
+            << reader->sampleRate << " lasting " << duration << " seconds");
     }
-    
+
     else {
         DBG("reader not created");
     }
 
     // initialize tracks
+    // first track
     std::unique_ptr<track::track> t(new track::track());
     t->trackName = "beans";
 
@@ -110,6 +114,18 @@ void AudioPluginAudioProcessor::prepareToPlay(double sampleRate,
 
     t->clips.push_back(*c);
     tracks.push_back(*t);
+
+    // second track
+    track::track t2;
+    t2.trackName = "potato";
+    track::clip c2;
+    c2.startPositionSample = 44100;
+    // c2.path = "/home/johnston/Downloads/jldn.wav";
+    c2.path = path;
+    c2.updateBuffer();
+    c2.trackIndex = tracks.size();
+    t2.clips.push_back(c2);
+    tracks.push_back(t2);
 
     DBG("prepareToPlay() called with sample rate " << sampleRate);
     DBG("total outputs: " << getTotalNumOutputChannels());
@@ -177,44 +193,39 @@ void AudioPluginAudioProcessor::processBlock(juce::AudioBuffer<float> &buffer,
 
     if (playheadExists) {
         if (playhead->getPosition()->getIsPlaying() == true) {
-            int currentSamplePositionInDAW = *playhead->getPosition()->getTimeInSamples();
-            int outputSamplesRemaining = buffer.getNumSamples();
-            auto outputSamplesOffset = 0;
 
-            int currentSample =
-                *playhead->getPosition()->getTimeInSamples();
+            int currentSample = *playhead->getPosition()->getTimeInSamples();
+            int outputBufferLength = buffer.getNumSamples();
 
             for (track::track &t : tracks) {
                 for (track::clip &c : t.clips) {
+                    int clipStart = c.startPositionSample;
+                    int clipEnd =
+                        c.startPositionSample + c.buffer.getNumSamples();
+
                     // bounds check
-                    if (c.startPositionSample < currentSample &&
-                        c.startPositionSample + c.buffer.getNumSamples() >
-                            currentSample) {
-                        // relative to start of clip
-                        int position =
-                            currentSample - c.startPositionSample;
+                    if (clipEnd > currentSample &&
+                        clipStart < currentSample + outputBufferLength) {
+                        // where in buffer should clip start?
+                        int outputOffset = (clipStart < currentSample)
+                                               ? 0
+                                               : clipStart - currentSample;
+                        // starting point in clip's buffer?
+                        int clipBufferStart = (clipStart < currentSample)
+                                                  ? currentSample - clipStart
+                                                  : 0;
+                        // how many samples can we safely copy?
+                        int samplesToCopy = juce::jmin(
+                            outputBufferLength - outputOffset,
+                            c.buffer.getNumSamples() - clipBufferStart);
 
-                        int bufferSamplesRemaining =
-                            c.buffer.getNumSamples() - position;
-
-                        auto samplesThisTime = juce::jmin(
-                            outputSamplesRemaining, bufferSamplesRemaining);
-
-                         for (auto channel = 0;
-                            channel < buffer.getNumChannels(); ++channel) {
-                            buffer.copyFrom(
-                                channel,                         // [12]
-                                outputSamplesOffset,             //  [12.1]
-                                c.buffer,                      //  [12.2]
-                                channel % totalNumInputChannels, //  [12.3]
-                                position,                        //  [12.4]
-                                samplesThisTime
-                            );                //  [12.5]
-                         }
-
-                        outputSamplesRemaining -= samplesThisTime; // [13]
-                        outputSamplesOffset += samplesThisTime;   
-                    }   
+                        for (int channel = 0; channel < buffer.getNumChannels();
+                             ++channel) {
+                            buffer.addFrom(channel, outputOffset, c.buffer,
+                                           channel % totalNumInputChannels,
+                                           clipBufferStart, samplesToCopy);
+                        }
+                    }
                 }
             }
         }

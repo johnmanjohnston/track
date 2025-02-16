@@ -16,18 +16,17 @@ track::TimelineComponent::~TimelineComponent(){};
 track::TimelineViewport::TimelineViewport() : juce::Viewport() {}
 track::TimelineViewport::~TimelineViewport() {}
 
-void track::TimelineViewport::scrollBarMoved(juce::ScrollBar* bar,
-    double newRangeStart) {
+void track::TimelineViewport::scrollBarMoved(juce::ScrollBar *bar,
+                                             double newRangeStart) {
     if (bar->isVertical()) {
         // update tracklist scroll
         if (trackViewport != nullptr) {
-            trackViewport->setViewPosition(0, newRangeStart); 
+            trackViewport->setViewPosition(0, newRangeStart);
         }
 
         setViewPosition(getViewPositionX(), newRangeStart);
-    }
-    else {
-        setViewPosition(newRangeStart, getViewPositionY()); 
+    } else {
+        setViewPosition(newRangeStart, getViewPositionY());
     }
 }
 
@@ -48,26 +47,22 @@ void track::TimelineComponent::paint(juce::Graphics &g) {
                    false);
     }
 
-    g.drawText(juce::String(processorRef->tracks[0].clips[0].buffer.getNumChannels()), 10, 10,
-               50, 20,
-               juce::Justification::left,
-               false);
+    g.drawText(
+        juce::String(processorRef->tracks[0].clips[0].buffer.getNumChannels()),
+        10, 10, 50, 20, juce::Justification::left, false);
 
-    // TODO: don't call updateClipComponent() every paint()
     if (clipComponentsUpdated == false)
         updateClipComponents();
 
     // draw clips
     int trackHeight = 128;
-    for (auto&& clip : this->clipComponents) {
+    for (auto &&clip : this->clipComponents) {
         clip->setBounds(
             clip->correspondingClip->startPositionSample / 41000.0 * 32.0,
             clip->correspondingClip->trackIndex * trackHeight,
             clip->correspondingClip->buffer.getNumSamples() / 41000.0 * 32.0,
-            trackHeight
-        );
+            trackHeight);
     }
-
 
     // draw playhead
     // DBG("paint() for timeline component called");
@@ -75,7 +70,7 @@ void track::TimelineComponent::paint(juce::Graphics &g) {
     if (processorRef->getPlayHead() != nullptr &&
         processorRef->getPlayHead()->getPosition()->getBpm().hasValue()) {
         int curSample =
-            *processorRef->getPlayHead()->getPosition()->getTimeInSamples(); 
+            *processorRef->getPlayHead()->getPosition()->getTimeInSamples();
 
         g.drawRect(curSample / 41000.0 * 32.0, 0, 2, getHeight(), 2);
     }

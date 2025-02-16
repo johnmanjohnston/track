@@ -1,6 +1,8 @@
 #include "track.h"
 #include "timeline.h"
-track::ClipComponent::ClipComponent(clip *c) : juce::Component(), thumbnailCache(5), thumbnail(512, afm, thumbnailCache) {
+track::ClipComponent::ClipComponent(clip *c)
+    : juce::Component(), thumbnailCache(5),
+      thumbnail(512, afm, thumbnailCache) {
     if (c == nullptr) {
         DBG("JOHN WARNING: ClipComponent initialized with no clip provided");
         return;
@@ -11,20 +13,23 @@ track::ClipComponent::ClipComponent(clip *c) : juce::Component(), thumbnailCache
 }
 track::ClipComponent::~ClipComponent() {}
 
-void track::ClipComponent::paint(juce::Graphics& g) {
+void track::ClipComponent::paint(juce::Graphics &g) {
     if (thumbnail.getNumChannels() == 0) {
         g.fillAll(juce::Colours::blue);
         g.setColour(juce::Colours::white);
         g.setFont(12.f);
         g.drawText("SAMPLE OFFLINE", getLocalBounds(),
                    juce::Justification::centred, true);
-    } 
+    }
 
     else {
-        //g.fillAll(juce::Colours::pink);
+        if (isBeingDragged) {
+            g.fillAll(juce::Colours::blue);
+        }
+
         g.setColour(juce ::Colours::pink);
         thumbnail.drawChannels(g, getLocalBounds(), 0,
-                               thumbnail.getTotalLength(), 1.f);  
+                               thumbnail.getTotalLength(), 1.f);
     }
 }
 
@@ -33,7 +38,7 @@ void track::ClipComponent::mouseDrag(const juce::MouseEvent &event) {
     isBeingDragged = true;
 }
 
-void track::ClipComponent::mouseUp(const juce::MouseEvent& event) {
+void track::ClipComponent::mouseUp(const juce::MouseEvent &event) {
     if (isBeingDragged) {
         DBG("DRAGGING STOPPED");
         isBeingDragged = false;
@@ -41,7 +46,7 @@ void track::ClipComponent::mouseUp(const juce::MouseEvent& event) {
         int distanceMovedHorizontally = event.getDistanceFromDragStartX();
 
         this->correspondingClip->startPositionSample +=
-            distanceMovedHorizontally * 50;
+            distanceMovedHorizontally * 1100;
     }
 
     DBG(event.getDistanceFromDragStartX());
@@ -72,22 +77,21 @@ track::TrackViewport::TrackViewport() : juce::Viewport() {}
 track::TrackViewport::~TrackViewport(){};
 
 void track::TrackViewport::scrollBarMoved(juce::ScrollBar *bar,
-                                     double newRangeStart) {
+                                          double newRangeStart) {
     if (bar->isVertical()) {
         if (timelineViewport != nullptr) {
             TimelineViewport *tv = (TimelineViewport *)(timelineViewport);
-            tv->setViewPosition(tv->getViewPositionX(),
-                newRangeStart);
-        } 
+            tv->setViewPosition(tv->getViewPositionX(), newRangeStart);
+        }
     }
 }
 
 track::Tracklist::Tracklist() : juce::Component() {}
 track::Tracklist::~Tracklist() {}
 
-
-// TODO: update this function to take care of more advanced audio clip operations (like trimming, and offsetting)
-void track::clip::updateBuffer() { 
+// TODO: update this function to take care of more advanced audio clip
+// operations (like trimming, and offsetting)
+void track::clip::updateBuffer() {
     juce::File file(path);
     juce::AudioFormatManager afm;
     afm.registerBasicFormats();
