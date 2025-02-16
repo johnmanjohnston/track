@@ -26,6 +26,8 @@ class AudioPluginAudioProcessorEditor : public juce::AudioProcessorEditor,
 
     // track::TimelineComponent timelineComponent;
 
+    juce::Font getRobotoMonoThin();
+
     void timerCallback() override { repaint(); }
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(

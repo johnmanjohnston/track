@@ -19,3 +19,5 @@ x64/
 *.filters
 *.user
 *.sln
+libtrackBinaryData.a
+juce_binarydata_trackBinaryData/

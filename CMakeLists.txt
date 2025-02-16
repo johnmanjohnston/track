@@ -19,9 +19,10 @@ juce_add_plugin(track
     FORMATS Standalone VST3
     PRODUCT_NAME "track"
 )
-                                #add_subdirectory(assets)
-                                #juce_add_binary_data(jelodyneBinaryData SOURCES 
-                                #assets/Inter_24pt-BoldItalic.ttf)
+
+juce_add_binary_data(trackBinaryData SOURCES
+    assets/RobotoMono-Thin.ttf
+)
 
 juce_generate_juce_header(track)
 target_sources(track PRIVATE
@@ -49,7 +50,7 @@ target_compile_definitions(track PRIVATE
     JUCE_SILENCE_XCODE_15_LINKER_WARNING=1)
 
 target_link_libraries(track PRIVATE
-    #jelodyneBinaryData
+    trackBinaryData
     juce::juce_analytics
     juce::juce_animation
     juce::juce_audio_utils
