@@ -66,6 +66,10 @@ class Tracklist : public juce::Component {
   public:
     Tracklist();
     ~Tracklist();
+
+    std::vector<std::unique_ptr<TrackComponent>> trackComponents;
+    void createTrackComponents();
+    void *processor = nullptr;
 };
 
 class TrackViewport : public juce::Viewport {

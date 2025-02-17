@@ -1,5 +1,6 @@
 #include "track.h"
 #include "timeline.h"
+
 track::ClipComponent::ClipComponent(clip *c)
     : juce::Component(), thumbnailCache(5),
       thumbnail(512, afm, thumbnailCache) {
@@ -34,7 +35,7 @@ void track::ClipComponent::paint(juce::Graphics &g) {
 }
 
 void track::ClipComponent::mouseDrag(const juce::MouseEvent &event) {
-    DBG("dragging is happening");
+    // DBG("dragging is happening");
     isBeingDragged = true;
 }
 
@@ -88,6 +89,24 @@ void track::TrackViewport::scrollBarMoved(juce::ScrollBar *bar,
 
 track::Tracklist::Tracklist() : juce::Component() {}
 track::Tracklist::~Tracklist() {}
+void track::Tracklist::createTrackComponents() {
+    AudioPluginAudioProcessor *p =
+        (AudioPluginAudioProcessor *)(this->processor);
+
+    int counter = 0;
+    for (track &t : p->tracks) {
+        this->trackComponents.push_back(std::make_unique<TrackComponent>(&t));
+        addAndMakeVisible(*trackComponents.back());
+
+        auto &tc = trackComponents.back();
+        tc->setBounds(10, 10 + (100 * counter), 100, 100);
+
+        counter++;
+        // DBG("added track component for track with name " << t.trackName);
+    }
+
+    repaint();
+}
 
 // TODO: update this function to take care of more advanced audio clip
 // operations (like trimming, and offsetting)

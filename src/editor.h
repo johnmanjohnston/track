@@ -22,7 +22,7 @@ class AudioPluginAudioProcessorEditor : public juce::AudioProcessorEditor,
     track::TrackViewport trackViewport;
 
     // track::track _track;
-    track::TrackComponent _trackComponent;
+    // track::TrackComponent _trackComponent;
 
     // track::TimelineComponent timelineComponent;
 

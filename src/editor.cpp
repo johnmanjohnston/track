@@ -6,8 +6,9 @@
 
 AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
     AudioPluginAudioProcessor &p)
-    : AudioProcessorEditor(&p), processorRef(p),
-      _trackComponent(&processorRef.tracks[0]) {
+    : AudioProcessorEditor(&p), processorRef(p)
+// _trackComponent(&processorRef.tracks[0])
+{
 
     juce::ignoreUnused(processorRef);
 
@@ -31,8 +32,10 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
 
     // tracks
     tracklist.setBounds(0, 60, 170 - 10, 2000);
-    tracklist.addAndMakeVisible(_trackComponent);
-    _trackComponent.setBounds(10, 10, 100, 100);
+    // tracklist.addAndMakeVisible(_trackComponent);
+    // _trackComponent.setBounds(10, 10, 100, 100);
+    tracklist.processor = (void *)&processorRef;
+    tracklist.createTrackComponents();
 
     trackViewport.setViewedComponent(&tracklist, false);
     trackViewport.setBounds(0, 60, 170, 650);
