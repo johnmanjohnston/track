@@ -59,7 +59,7 @@ void track::TimelineComponent::paint(juce::Graphics &g) {
     for (auto &&clip : this->clipComponents) {
         clip->setBounds(
             clip->correspondingClip->startPositionSample / 41000.0 * 32.0,
-            clip->correspondingClip->trackIndex * trackHeight,
+            clip->trackIndex * trackHeight,
             clip->correspondingClip->buffer.getNumSamples() / 41000.0 * 32.0,
             trackHeight);
     }
@@ -81,18 +81,12 @@ void track::TimelineComponent::updateClipComponents() {
 
     clipComponents.clear();
 
-    for (auto &t : processorRef->tracks) {
-        for (auto &c : t.clips) {
-            /*
-            ClipComponent *cc = new ClipComponent(&c);
-            this->clipComponents.emplace_back(*cc);
-            addAndMakeVisible(cc);
-            */
-
-            // this->clipComponents.push_back(cc);
-            // ClipComponent *cc = new ClipComponent(&c);
+    for (std::vector<track>::size_type i = 0; i < processorRef->tracks.size();
+         ++i) {
+        for (auto &c : processorRef->tracks[i].clips) {
 
             ClipComponent *cc = new ClipComponent(&c);
+            cc->trackIndex = i;
             this->clipComponents.push_back(std::unique_ptr<ClipComponent>(cc));
 
             addAndMakeVisible(cc);

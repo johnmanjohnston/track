@@ -110,7 +110,6 @@ void AudioPluginAudioProcessor::prepareToPlay(double sampleRate,
     c->startPositionSample = startSample;
     c->path = path;
     c->updateBuffer();
-    c->trackIndex = tracks.size();
 
     t->clips.push_back(*c);
     tracks.push_back(*t);
@@ -123,7 +122,6 @@ void AudioPluginAudioProcessor::prepareToPlay(double sampleRate,
     // c2.path = "/home/johnston/Downloads/jldn.wav";
     c2.path = path;
     c2.updateBuffer();
-    c2.trackIndex = tracks.size();
     t2.clips.push_back(c2);
     tracks.push_back(t2);
 

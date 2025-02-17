@@ -7,14 +7,13 @@ class clip {
     juce::String path;
 
     int startPositionSample = -1; // absolute sample position within host
-    int endPositionSample = -1; // relative to audio file start, irrespective of looping
+    int endPositionSample =
+        -1; // relative to audio file start, irrespective of looping
     int endPositionSampleWithLooping; // absolute sample position within host
     bool isLooping;
 
     juce::AudioBuffer<float> buffer; // irrespective of looping
     void updateBuffer();
-
-    int trackIndex = -1;
 };
 
 class ClipComponent : public juce::Component {
@@ -29,6 +28,7 @@ class ClipComponent : public juce::Component {
     clip *correspondingClip = nullptr;
 
     void paint(juce::Graphics &g) override;
+    int trackIndex = -1;
 
     // moving clips
     void mouseDrag(const juce::MouseEvent &event) override;
