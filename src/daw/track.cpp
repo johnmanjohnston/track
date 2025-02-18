@@ -26,11 +26,14 @@ void track::ClipComponent::paint(juce::Graphics &g) {
     else {
         if (isBeingDragged) {
             g.fillAll(juce::Colours::blue);
+        } else {
+            g.setColour(juce::Colour(0xFF33587F));
+            g.fillRoundedRectangle(getLocalBounds().toFloat(), 2.f);
         }
 
-        g.setColour(juce ::Colours::pink);
+        g.setColour(juce::Colour(0xFFAECBED));
         thumbnail.drawChannels(g, getLocalBounds(), 0,
-                               thumbnail.getTotalLength(), 1.f);
+                               thumbnail.getTotalLength(), .7f);
     }
 }
 
@@ -112,6 +115,12 @@ void track::Tracklist::createTrackComponents() {
 // operations (like trimming, and offsetting)
 void track::clip::updateBuffer() {
     juce::File file(path);
+
+    if (!file.exists()) {
+        DBG("updateBuffer() called--file " << path << " does not exist");
+        return;
+    }
+
     juce::AudioFormatManager afm;
     afm.registerBasicFormats();
 
