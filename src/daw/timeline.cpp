@@ -113,7 +113,7 @@ void track::TimelineComponent::filesDropped(const juce::StringArray &files,
 
     std::unique_ptr<clip> c(new clip());
     c->path = files[0];
-    c->startPositionSample = x * 32;
+    c->startPositionSample = x * 32 * 40;
     c->updateBuffer();
 
     processorRef->tracks[trackIndex].clips.push_back(*c);
