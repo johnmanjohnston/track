@@ -1,4 +1,7 @@
 #include "timeline.h"
+#include <memory>
+
+// TODO: organize this file
 
 track::TimelineComponent::TimelineComponent() : juce::Component() {
     setSize(9000, 2000);
@@ -76,6 +79,8 @@ void track::TimelineComponent::paint(juce::Graphics &g) {
     }
 }
 
+// TODO: i don't think this function is memory safe. checking memory safety and
+// all that is now a problem for future me
 void track::TimelineComponent::updateClipComponents() {
     clipComponentsUpdated = true;
 
@@ -92,4 +97,26 @@ void track::TimelineComponent::updateClipComponents() {
             addAndMakeVisible(cc);
         }
     }
+}
+
+bool track::TimelineComponent::isInterestedInFileDrag(
+    const juce::StringArray &files) {
+    return true;
+}
+
+void track::TimelineComponent::filesDropped(const juce::StringArray &files,
+                                            int x, int y) {
+    // DBG("files dropped; x: " << x << "; y: " << y);
+
+    int trackIndex = y / 130;
+    DBG("track index is " << trackIndex);
+
+    std::unique_ptr<clip> c(new clip());
+    c->path = files[0];
+    c->startPositionSample = x * 32;
+    c->updateBuffer();
+
+    processorRef->tracks[trackIndex].clips.push_back(*c);
+
+    updateClipComponents();
 }

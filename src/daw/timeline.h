@@ -1,6 +1,6 @@
 #pragma once
-#include "track.h"
 #include "../processor.h"
+#include "track.h"
 #include <JuceHeader.h>
 
 namespace track {
@@ -13,17 +13,21 @@ class TimelineViewport : public juce::Viewport {
     TrackViewport *trackViewport = nullptr;
 };
 
-class TimelineComponent : public juce::Component {
+class TimelineComponent : public juce::Component,
+                          public juce::FileDragAndDropTarget {
   public:
     TimelineComponent();
     ~TimelineComponent();
+
+    bool isInterestedInFileDrag(const juce::StringArray &files) override;
+    void filesDropped(const juce::StringArray &files, int x, int y) override;
 
     void paint(juce::Graphics &g) override;
 
     TimelineViewport *viewport = nullptr;
     AudioPluginAudioProcessor *processorRef = nullptr;
 
-   // std::vector<ClipComponent*> clipComponents;
+    // std::vector<ClipComponent*> clipComponents;
     std::vector<std::unique_ptr<ClipComponent>> clipComponents;
     void updateClipComponents();
 
