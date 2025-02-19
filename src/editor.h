@@ -21,6 +21,9 @@ class AudioPluginAudioProcessorEditor : public juce::AudioProcessorEditor,
     track::Tracklist tracklist;
     track::TrackViewport trackViewport;
 
+    std::unique_ptr<track::TimelineComponent> timelineComponent =
+        std::make_unique<track::TimelineComponent>();
+
     // track::track _track;
     // track::TrackComponent _trackComponent;
 

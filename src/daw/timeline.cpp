@@ -79,8 +79,6 @@ void track::TimelineComponent::paint(juce::Graphics &g) {
     }
 }
 
-// TODO: i don't think this function is memory safe. checking memory safety and
-// all that is now a problem for future me
 void track::TimelineComponent::updateClipComponents() {
     clipComponentsUpdated = true;
 
@@ -90,11 +88,19 @@ void track::TimelineComponent::updateClipComponents() {
          ++i) {
         for (auto &c : processorRef->tracks[i].clips) {
 
+            /*
             ClipComponent *cc = new ClipComponent(&c);
             cc->trackIndex = i;
             this->clipComponents.push_back(std::unique_ptr<ClipComponent>(cc));
 
             addAndMakeVisible(cc);
+            */
+
+            this->clipComponents.push_back(std::make_unique<ClipComponent>(&c));
+            addAndMakeVisible(*clipComponents.back());
+
+            auto &cc = clipComponents.back();
+            cc->trackIndex = i;
         }
     }
 }

@@ -23,10 +23,9 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
     // addAndMakeVisible(clipComponent);
 
     // TimelineViewport holds TimelineComponent
-    track::TimelineComponent *x = new track::TimelineComponent;
-    x->viewport = &timelineViewport;
-    x->processorRef = &processorRef;
-    timelineViewport.setViewedComponent(x, true);
+    timelineComponent->viewport = &timelineViewport;
+    timelineComponent->processorRef = &processorRef;
+    timelineViewport.setViewedComponent(timelineComponent.get(), true);
     timelineViewport.setBounds(170, 60, 1110 - 1, 650);
     addAndMakeVisible(timelineViewport);
 
