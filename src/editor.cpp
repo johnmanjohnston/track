@@ -42,9 +42,13 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
 
     trackViewport.timelineViewport = &timelineViewport;
     timelineViewport.trackViewport = &trackViewport;
+
+    setLookAndFeel(&lnf);
 }
 
-AudioPluginAudioProcessorEditor::~AudioPluginAudioProcessorEditor() {}
+AudioPluginAudioProcessorEditor::~AudioPluginAudioProcessorEditor() {
+    setLookAndFeel(nullptr);
+}
 
 void AudioPluginAudioProcessorEditor::paint(juce::Graphics &g) {
     // (Our component is opaque, so we must completely fill the background with
@@ -125,7 +129,7 @@ void AudioPluginAudioProcessorEditor::paint(juce::Graphics &g) {
     // === TOP BAR ===
     int topBarHeight = 50;
 
-    g.setFont(getRobotoMonoThin());
+    g.setFont(lnf.getRobotoMonoThin());
 
     // draw top bar bg
     g.setColour(juce::Colour(0xFFCBCBCB));
@@ -167,11 +171,4 @@ void AudioPluginAudioProcessorEditor::paint(juce::Graphics &g) {
 void AudioPluginAudioProcessorEditor::resized() {
     // This is generally where you'll want to lay out the positions of any
     // subcomponents in your editor..
-}
-
-juce::Font AudioPluginAudioProcessorEditor::getRobotoMonoThin() {
-    auto typeface = juce::Typeface::createSystemTypefaceFor(
-        BinaryData::RobotoMonoThin_ttf, BinaryData::RobotoMonoThin_ttfSize);
-
-    return juce::Font(juce::FontOptions(typeface).withHeight(16.f));
 }
