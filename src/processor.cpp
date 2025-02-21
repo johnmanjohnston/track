@@ -217,11 +217,22 @@ void AudioPluginAudioProcessor::processBlock(juce::AudioBuffer<float> &buffer,
                             outputBufferLength - outputOffset,
                             c.buffer.getNumSamples() - clipBufferStart);
 
-                        for (int channel = 0; channel < buffer.getNumChannels();
-                             ++channel) {
-                            buffer.addFrom(channel, outputOffset, c.buffer,
-                                           channel % totalNumInputChannels,
-                                           clipBufferStart, samplesToCopy);
+                        if (c.buffer.getNumChannels() > 1) {
+                            for (int channel = 0;
+                                channel < buffer.getNumChannels(); ++channel) {
+                                buffer.addFrom(channel, outputOffset, c.buffer,
+                                               channel % totalNumInputChannels,
+                                               clipBufferStart, samplesToCopy);
+                            }
+                        }
+
+                        else {
+                            for (int channel = 0;
+                                channel < buffer.getNumChannels(); ++channel) {
+                                buffer.addFrom(channel, outputOffset, c.buffer,
+                                               0,
+                                               clipBufferStart, samplesToCopy);
+                            }
                         }
                     }
                 }
