@@ -119,6 +119,17 @@ void track::TimelineComponent::filesDropped(const juce::StringArray &files,
 
     std::unique_ptr<clip> c(new clip());
     c->path = files[0];
+
+    // remove directories leading up to the actual file name we want, and strip file extension
+    if (files[0].contains("/")) {
+        c->name = files[0].fromLastOccurrenceOf(
+            "/", false, true); // for REAL operating systems.
+    }
+    else {
+        c->name = files[0].fromLastOccurrenceOf("\\", false, true);
+    }
+    c->name = c->name.upToLastOccurrenceOf(".", false, true);
+
     c->startPositionSample = x * 32 * 40;
     c->updateBuffer();
 

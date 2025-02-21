@@ -5,6 +5,7 @@ namespace track {
 class clip {
   public:
     juce::String path;
+    juce::String name = "untitled clip";
 
     int startPositionSample = -1; // absolute sample position within host
     int endPositionSample =

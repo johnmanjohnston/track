@@ -32,9 +32,17 @@ void track::ClipComponent::paint(juce::Graphics &g) {
         }
 
         g.setColour(juce::Colour(0xFFAECBED));
-        thumbnail.drawChannels(g, getLocalBounds(), 0,
+   
+        int thumbnailTopMargin = 12;
+        juce::Rectangle<int> thumbnailBounds = getLocalBounds();
+        thumbnailBounds.setHeight(thumbnailBounds.getHeight() - thumbnailTopMargin);
+        thumbnailBounds.setY(thumbnailBounds.getY() + thumbnailTopMargin);
+
+        thumbnail.drawChannels(g, thumbnailBounds, 0,
                                thumbnail.getTotalLength(), .7f);
     }
+
+    g.drawText(this->correspondingClip->name, 0, 0, getWidth(), 20, juce::Justification::left, true);
 }
 
 void track::ClipComponent::mouseDrag(const juce::MouseEvent &event) {
