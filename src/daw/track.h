@@ -15,6 +15,7 @@ class clip {
 
     juce::AudioBuffer<float> buffer; // irrespective of looping
     void updateBuffer();
+    void reverse();
 };
 
 class ClipComponent : public juce::Component {
@@ -32,6 +33,7 @@ class ClipComponent : public juce::Component {
     int trackIndex = -1;
 
     // moving clips
+    void mouseDown(const juce::MouseEvent &event) override;
     void mouseDrag(const juce::MouseEvent &event) override;
     void mouseUp(const juce::MouseEvent &event) override;
     bool isBeingDragged = false;

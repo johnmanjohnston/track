@@ -45,6 +45,26 @@ void track::ClipComponent::paint(juce::Graphics &g) {
     g.drawText(this->correspondingClip->name, 0, 0, getWidth(), 20, juce::Justification::left, true);
 }
 
+void track::ClipComponent::mouseDown(const juce::MouseEvent &event) {
+    if (event.mods.isRightButtonDown()) {
+        DBG("rmb down"); 
+
+        juce::PopupMenu contextMenu;
+        contextMenu.addItem(1, "Reverse");
+
+        contextMenu.showMenuAsync(
+            juce::PopupMenu::Options(), [this](int result) {
+                if (result == 1) {
+                    this->correspondingClip->reverse();
+                    thumbnailCache.clear();
+                    thumbnail.setSource(&correspondingClip->buffer, 44100.0, 2);
+                    repaint();
+                }      
+            }
+        );
+    }
+}
+
 void track::ClipComponent::mouseDrag(const juce::MouseEvent &event) {
     // DBG("dragging is happening");
     isBeingDragged = true;
@@ -137,4 +157,8 @@ void track::clip::updateBuffer() {
         juce::AudioBuffer<float>(reader->numChannels, reader->lengthInSamples);
 
     reader->read(&buffer, 0, buffer.getNumSamples(), 0, true, true);
+}
+
+void track::clip::reverse() {
+    buffer.reverse(0, buffer.getNumSamples());
 }
