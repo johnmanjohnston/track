@@ -51,6 +51,7 @@ void track::ClipComponent::mouseDown(const juce::MouseEvent &event) {
 
         juce::PopupMenu contextMenu;
         contextMenu.addItem(1, "Reverse");
+        contextMenu.addItem(2, "Cut");
 
         contextMenu.showMenuAsync(
             juce::PopupMenu::Options(), [this](int result) {
@@ -60,6 +61,13 @@ void track::ClipComponent::mouseDown(const juce::MouseEvent &event) {
                     thumbnail.setSource(&correspondingClip->buffer, 44100.0, 2);
                     repaint();
                 }      
+             
+                else if (result == 2) {
+                    TimelineComponent *tc =
+                        (TimelineComponent *)getParentComponent();
+
+                    tc->deleteClip(correspondingClip, trackIndex);
+                }     
             }
         );
     }

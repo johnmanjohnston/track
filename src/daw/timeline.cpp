@@ -105,6 +105,33 @@ void track::TimelineComponent::updateClipComponents() {
     }
 }
 
+void track::TimelineComponent::deleteClip(clip *c, int trackIndex) { 
+    int clipIndex = 0;
+
+    for (auto &clip : processorRef->tracks[trackIndex].clips) {
+        if (clip.startPositionSample == c->startPositionSample) {
+            break;  
+        }
+        ++clipIndex;
+    }
+ 
+    DBG("clipIndex is " << clipIndex << "; trackIndex is " << trackIndex);
+
+    if (trackIndex != 0) {
+        processorRef->tracks[trackIndex].clips.erase(
+            processorRef->tracks[trackIndex].clips.begin() + clipIndex);
+    } else {
+        // for some reason when removing the leftmost clip of the first track,
+        // the program crashes; so instead of removing clips on the first track, just get rid of its data and 
+        // move it to the left so that we cannot see it
+        processorRef->tracks[trackIndex].clips[clipIndex].buffer.setSize(0, 1);
+        processorRef->tracks[trackIndex].clips[clipIndex].startPositionSample =
+            -10;
+    }
+
+    updateClipComponents(); 
+}
+
 bool track::TimelineComponent::isInterestedInFileDrag(
     const juce::StringArray &files) {
     return true;

@@ -32,6 +32,7 @@ class TimelineComponent : public juce::Component,
     void updateClipComponents();
 
     bool clipComponentsUpdated = false;
+    void deleteClip(clip* c, int trackIndex);
 
     // std::vector<ClipComponent> clipComponents;
 
