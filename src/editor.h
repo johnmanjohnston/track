@@ -32,6 +32,8 @@ class AudioPluginAudioProcessorEditor : public juce::AudioProcessorEditor,
 
     // track::TimelineComponent timelineComponent;
 
+    juce::Slider masterSlider;
+    juce::SliderParameterAttachment masterSliderAttachment;
 
     void timerCallback() override { repaint(); }
 

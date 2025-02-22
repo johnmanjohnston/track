@@ -41,6 +41,7 @@ class AudioPluginAudioProcessor : public juce::AudioProcessor {
 
     std::vector<track::track> tracks;
 
+    juce::AudioParameterFloat *masterGain;
   private:
     juce::Random random;
 

@@ -6,9 +6,7 @@
 
 AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
     AudioPluginAudioProcessor &p)
-    : AudioProcessorEditor(&p), processorRef(p)
-// _trackComponent(&processorRef.tracks[0])
-{
+    : AudioProcessorEditor(&p), processorRef(p), masterSliderAttachment(*p.masterGain, masterSlider) {
 
     juce::ignoreUnused(processorRef);
 
@@ -44,6 +42,8 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
     timelineViewport.trackViewport = &trackViewport;
 
     setLookAndFeel(&lnf);
+
+    addAndMakeVisible(masterSlider);
 }
 
 AudioPluginAudioProcessorEditor::~AudioPluginAudioProcessorEditor() {
@@ -169,6 +169,5 @@ void AudioPluginAudioProcessorEditor::paint(juce::Graphics &g) {
 }
 
 void AudioPluginAudioProcessorEditor::resized() {
-    // This is generally where you'll want to lay out the positions of any
-    // subcomponents in your editor..
+    masterSlider.setBounds((getWidth() / 3) * 2, 2, 250, 70);
 }

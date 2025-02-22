@@ -13,6 +13,7 @@ AudioPluginAudioProcessor::AudioPluginAudioProcessor()
               .withOutput("Output", juce::AudioChannelSet::stereo(), true)
 #endif
       ) {
+    addParameter(masterGain = new juce::AudioParameterFloat("master", "Master", 0.f, 6.f, 1.f));
 }
 
 AudioPluginAudioProcessor::~AudioPluginAudioProcessor() {}
@@ -244,6 +245,8 @@ void AudioPluginAudioProcessor::processBlock(juce::AudioBuffer<float> &buffer,
         auto *channelData = buffer.getWritePointer(channel);
         juce::ignoreUnused(channelData);
     }
+
+    buffer.applyGain(*masterGain);
 }
 
 bool AudioPluginAudioProcessor::hasEditor() const {
