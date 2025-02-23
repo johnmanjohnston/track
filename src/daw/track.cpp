@@ -32,22 +32,27 @@ void track::ClipComponent::paint(juce::Graphics &g) {
         }
 
         g.setColour(juce::Colour(0xFFAECBED));
-   
-        int thumbnailTopMargin = 12;
+
+        int thumbnailTopMargin = 18;
         juce::Rectangle<int> thumbnailBounds = getLocalBounds();
-        thumbnailBounds.setHeight(thumbnailBounds.getHeight() - thumbnailTopMargin);
+        thumbnailBounds.setHeight(thumbnailBounds.getHeight() -
+                                  thumbnailTopMargin);
         thumbnailBounds.setY(thumbnailBounds.getY() + thumbnailTopMargin);
 
         thumbnail.drawChannels(g, thumbnailBounds, 0,
                                thumbnail.getTotalLength(), .7f);
+
+        g.fillRect(0, 0, getWidth(), thumbnailTopMargin);
     }
 
-    g.drawText(this->correspondingClip->name, 0, 0, getWidth(), 20, juce::Justification::left, true);
+    g.setColour(juce::Colour(0xFF33587F));
+    g.drawText(this->correspondingClip->name, 2, 0, getWidth(), 20,
+               juce::Justification::left, true);
 }
 
 void track::ClipComponent::mouseDown(const juce::MouseEvent &event) {
     if (event.mods.isRightButtonDown()) {
-        DBG("rmb down"); 
+        DBG("rmb down");
 
         juce::PopupMenu contextMenu;
         contextMenu.addItem(1, "Reverse");
@@ -60,16 +65,15 @@ void track::ClipComponent::mouseDown(const juce::MouseEvent &event) {
                     thumbnailCache.clear();
                     thumbnail.setSource(&correspondingClip->buffer, 44100.0, 2);
                     repaint();
-                }      
-             
+                }
+
                 else if (result == 2) {
                     TimelineComponent *tc =
                         (TimelineComponent *)getParentComponent();
 
                     tc->deleteClip(correspondingClip, trackIndex);
-                }     
-            }
-        );
+                }
+            });
     }
 }
 
@@ -167,6 +171,4 @@ void track::clip::updateBuffer() {
     reader->read(&buffer, 0, buffer.getNumSamples(), 0, true, true);
 }
 
-void track::clip::reverse() {
-    buffer.reverse(0, buffer.getNumSamples());
-}
+void track::clip::reverse() { buffer.reverse(0, buffer.getNumSamples()); }
