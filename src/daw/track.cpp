@@ -149,7 +149,7 @@ void track::Tracklist::createTrackComponents() {
         tc->setBounds(0,
                       UI_TRACK_VERTICAL_OFFSET + (UI_TRACK_HEIGHT * counter) +
                           (UI_TRACK_VERTICAL_MARGIN * counter),
-                      170, UI_TRACK_HEIGHT);
+                      UI_TRACK_WIDTH, UI_TRACK_HEIGHT);
 
         counter++;
         // DBG("added track component for track with name " << t.trackName);

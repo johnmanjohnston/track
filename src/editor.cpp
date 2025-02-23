@@ -1,12 +1,14 @@
 #include "editor.h"
 #include "BinaryData.h"
+#include "daw/defs.h"
 #include "daw/timeline.h"
 #include "daw/track.h"
 #include "processor.h"
 
 AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
     AudioPluginAudioProcessor &p)
-    : AudioProcessorEditor(&p), processorRef(p), masterSliderAttachment(*p.masterGain, masterSlider) {
+    : AudioProcessorEditor(&p), processorRef(p),
+      masterSliderAttachment(*p.masterGain, masterSlider) {
 
     juce::ignoreUnused(processorRef);
 
@@ -24,18 +26,20 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
     timelineComponent->viewport = &timelineViewport;
     timelineComponent->processorRef = &processorRef;
     timelineViewport.setViewedComponent(timelineComponent.get(), true);
-    timelineViewport.setBounds(170, 60, 1110 - 1, 650);
+    timelineViewport.setBounds(track::UI_TRACK_WIDTH, 55,
+                               getWidth() - track::UI_TRACK_WIDTH, 665);
     addAndMakeVisible(timelineViewport);
 
     // tracks
-    tracklist.setBounds(0, 60, 170 - 10, 2000);
+    tracklist.setBounds(0, 60, track::UI_TRACK_WIDTH, 2000);
     // tracklist.addAndMakeVisible(_trackComponent);
     // _trackComponent.setBounds(10, 10, 100, 100);
     tracklist.processor = (void *)&processorRef;
     tracklist.createTrackComponents();
 
     trackViewport.setViewedComponent(&tracklist, false);
-    trackViewport.setBounds(0, 60, 170, 650);
+    trackViewport.setBounds(0, 60, track::UI_TRACK_WIDTH, 655);
+    trackViewport.setScrollBarsShown(true, false);
     addAndMakeVisible(trackViewport);
 
     trackViewport.timelineViewport = &timelineViewport;
@@ -51,10 +55,7 @@ AudioPluginAudioProcessorEditor::~AudioPluginAudioProcessorEditor() {
 }
 
 void AudioPluginAudioProcessorEditor::paint(juce::Graphics &g) {
-    // (Our component is opaque, so we must completely fill the background with
-    // a solid colour)
-    g.fillAll(
-        getLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId));
+    g.fillAll(juce::Colour(0xFF3D3D3D));
 
     g.setColour(juce::Colours::white);
     g.setFont(15.0f);

@@ -35,7 +35,7 @@ void track::TimelineViewport::scrollBarMoved(juce::ScrollBar *bar,
 }
 
 void track::TimelineComponent::paint(juce::Graphics &g) {
-    g.fillAll(juce::Colours::black);
+    g.fillAll(juce::Colour(0xFF2E2E2E));
 
     g.setColour(juce::Colours::white);
     for (int i = 0; i < (getBounds().getWidth() / 100); ++i) {
