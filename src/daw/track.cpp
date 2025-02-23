@@ -1,4 +1,5 @@
 #include "track.h"
+#include "defs.h"
 #include "timeline.h"
 
 track::ClipComponent::ClipComponent(clip *c)
@@ -107,12 +108,15 @@ track::TrackComponent::TrackComponent(track *t) : juce::Component() {
 track::TrackComponent::~TrackComponent() {}
 
 void track::TrackComponent::paint(juce::Graphics &g) {
-    g.fillAll(juce::Colours::green);
+    g.fillAll(juce::Colour(0xFF5F5F5F));   // bg
+    g.setColour(juce::Colour(0xFF535353)); // outline
+    g.drawRect(getLocalBounds(), 2);
 
     juce::String trackName = correspondingTrack == nullptr
                                  ? "null track"
                                  : correspondingTrack->trackName;
 
+    g.setColour(juce::Colour(0xFFDFDFDF));
     g.drawText(trackName, getLocalBounds(), juce::Justification::left, true);
 }
 
@@ -142,7 +146,10 @@ void track::Tracklist::createTrackComponents() {
         addAndMakeVisible(*trackComponents.back());
 
         auto &tc = trackComponents.back();
-        tc->setBounds(10, 10 + (100 * counter), 100, 100);
+        tc->setBounds(0,
+                      UI_TRACK_VERTICAL_OFFSET + (UI_TRACK_HEIGHT * counter) +
+                          (UI_TRACK_VERTICAL_MARGIN * counter),
+                      170, UI_TRACK_HEIGHT);
 
         counter++;
         // DBG("added track component for track with name " << t.trackName);

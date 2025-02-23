@@ -1,4 +1,5 @@
 #include "timeline.h"
+#include "defs.h"
 #include <memory>
 
 // TODO: organize this file
@@ -58,13 +59,13 @@ void track::TimelineComponent::paint(juce::Graphics &g) {
         updateClipComponents();
 
     // draw clips
-    int trackHeight = 128;
     for (auto &&clip : this->clipComponents) {
         clip->setBounds(
             clip->correspondingClip->startPositionSample / 41000.0 * 32.0,
-            clip->trackIndex * trackHeight,
+            UI_TRACK_VERTICAL_OFFSET + (clip->trackIndex * UI_TRACK_HEIGHT) +
+                (UI_TRACK_VERTICAL_MARGIN * clip->trackIndex),
             clip->correspondingClip->buffer.getNumSamples() / 41000.0 * 32.0,
-            trackHeight);
+            UI_TRACK_HEIGHT);
     }
 
     // draw playhead
@@ -105,16 +106,16 @@ void track::TimelineComponent::updateClipComponents() {
     }
 }
 
-void track::TimelineComponent::deleteClip(clip *c, int trackIndex) { 
+void track::TimelineComponent::deleteClip(clip *c, int trackIndex) {
     int clipIndex = 0;
 
     for (auto &clip : processorRef->tracks[trackIndex].clips) {
         if (clip.startPositionSample == c->startPositionSample) {
-            break;  
+            break;
         }
         ++clipIndex;
     }
- 
+
     DBG("clipIndex is " << clipIndex << "; trackIndex is " << trackIndex);
 
     if (trackIndex != 0) {
@@ -122,14 +123,15 @@ void track::TimelineComponent::deleteClip(clip *c, int trackIndex) {
             processorRef->tracks[trackIndex].clips.begin() + clipIndex);
     } else {
         // for some reason when removing the leftmost clip of the first track,
-        // the program crashes; so instead of removing clips on the first track, just get rid of its data and 
-        // move it to the left so that we cannot see it
+        // the program crashes; so instead of removing clips on the first track,
+        // just get rid of its data and move it to the left so that we cannot
+        // see it
         processorRef->tracks[trackIndex].clips[clipIndex].buffer.setSize(0, 1);
         processorRef->tracks[trackIndex].clips[clipIndex].startPositionSample =
             -10;
     }
 
-    updateClipComponents(); 
+    updateClipComponents();
 }
 
 bool track::TimelineComponent::isInterestedInFileDrag(
@@ -147,12 +149,12 @@ void track::TimelineComponent::filesDropped(const juce::StringArray &files,
     std::unique_ptr<clip> c(new clip());
     c->path = files[0];
 
-    // remove directories leading up to the actual file name we want, and strip file extension
+    // remove directories leading up to the actual file name we want, and strip
+    // file extension
     if (files[0].contains("/")) {
         c->name = files[0].fromLastOccurrenceOf(
             "/", false, true); // for REAL operating systems.
-    }
-    else {
+    } else {
         c->name = files[0].fromLastOccurrenceOf("\\", false, true);
     }
     c->name = c->name.upToLastOccurrenceOf(".", false, true);
