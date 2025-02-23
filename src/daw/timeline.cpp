@@ -1,5 +1,6 @@
 #include "timeline.h"
 #include "defs.h"
+#include "juce_gui_basics/juce_gui_basics.h"
 #include <memory>
 
 // TODO: organize this file
@@ -32,6 +33,26 @@ void track::TimelineViewport::scrollBarMoved(juce::ScrollBar *bar,
     } else {
         setViewPosition(newRangeStart, getViewPositionY());
     }
+}
+
+void track::TimelineViewport::mouseWheelMove(
+    const juce::MouseEvent &ev,
+    const juce::MouseWheelDetails &mouseWheelDetails) {
+
+    if (juce::ModifierKeys::currentModifiers.isAltDown()) {
+        if (mouseWheelDetails.deltaY < 0) {
+            UI_TRACK_HEIGHT -= 5;
+        } else if (mouseWheelDetails.deltaY > 0) {
+            UI_TRACK_HEIGHT += 5;
+        }
+
+        tracklist->setTrackComponentBounds();
+        trackViewport->repaint();
+    }
+
+    if (ev.eventComponent == this)
+        if (!useMouseWheelMoveIfNeeded(ev, mouseWheelDetails))
+            Component::mouseWheelMove(ev, mouseWheelDetails);
 }
 
 void track::TimelineComponent::paint(juce::Graphics &g) {

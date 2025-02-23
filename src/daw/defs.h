@@ -1,6 +1,8 @@
+// stores constants/shared variables
+
 namespace track {
-constexpr int UI_TRACK_HEIGHT = 60;
+extern int UI_TRACK_HEIGHT;
 constexpr int UI_TRACK_VERTICAL_MARGIN = 2;
 constexpr int UI_TRACK_VERTICAL_OFFSET = 18;
-constexpr int UI_TRACK_WIDTH = 200;
+constexpr int UI_TRACK_WIDTH = 260;
 } // namespace track

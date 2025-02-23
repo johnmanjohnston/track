@@ -72,6 +72,8 @@ class Tracklist : public juce::Component {
 
     std::vector<std::unique_ptr<TrackComponent>> trackComponents;
     void createTrackComponents();
+    void setTrackComponentBounds();
+
     void *processor = nullptr;
 };
 

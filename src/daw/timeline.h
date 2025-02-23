@@ -9,8 +9,12 @@ class TimelineViewport : public juce::Viewport {
     TimelineViewport();
     ~TimelineViewport();
 
+    void
+    mouseWheelMove(const juce::MouseEvent &ev,
+                   const juce::MouseWheelDetails &mouseWheelDetails) override;
     void scrollBarMoved(juce::ScrollBar *bar, double newRangeStart) override;
     TrackViewport *trackViewport = nullptr;
+    Tracklist *tracklist = nullptr;
 };
 
 class TimelineComponent : public juce::Component,
@@ -32,7 +36,7 @@ class TimelineComponent : public juce::Component,
     void updateClipComponents();
 
     bool clipComponentsUpdated = false;
-    void deleteClip(clip* c, int trackIndex);
+    void deleteClip(clip *c, int trackIndex);
 
     // std::vector<ClipComponent> clipComponents;
 

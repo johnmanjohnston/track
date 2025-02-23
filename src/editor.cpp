@@ -44,6 +44,7 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
 
     trackViewport.timelineViewport = &timelineViewport;
     timelineViewport.trackViewport = &trackViewport;
+    timelineViewport.tracklist = &tracklist;
 
     setLookAndFeel(&lnf);
 

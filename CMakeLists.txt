@@ -30,6 +30,7 @@ target_sources(track PRIVATE
     src/editor.cpp
     src/daw/track.cpp
     src/daw/timeline.cpp
+    src/daw/defs.cpp
     src/lookandfeel.cpp)
 
 target_compile_definitions(track PRIVATE

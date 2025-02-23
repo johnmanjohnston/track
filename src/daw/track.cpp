@@ -140,11 +140,11 @@ void track::Tracklist::createTrackComponents() {
     AudioPluginAudioProcessor *p =
         (AudioPluginAudioProcessor *)(this->processor);
 
-    int counter = 0;
     for (track &t : p->tracks) {
         this->trackComponents.push_back(std::make_unique<TrackComponent>(&t));
         addAndMakeVisible(*trackComponents.back());
 
+        /*
         auto &tc = trackComponents.back();
         tc->setBounds(0,
                       UI_TRACK_VERTICAL_OFFSET + (UI_TRACK_HEIGHT * counter) +
@@ -152,10 +152,33 @@ void track::Tracklist::createTrackComponents() {
                       UI_TRACK_WIDTH, UI_TRACK_HEIGHT);
 
         counter++;
+        */
         // DBG("added track component for track with name " << t.trackName);
     }
 
+    setTrackComponentBounds();
     repaint();
+}
+
+void track::Tracklist::setTrackComponentBounds() {
+    int counter = 0;
+    for (auto &tc : trackComponents) {
+        tc->setBounds(0,
+                      UI_TRACK_VERTICAL_OFFSET + (UI_TRACK_HEIGHT * counter) +
+                          (UI_TRACK_VERTICAL_MARGIN * counter),
+                      UI_TRACK_WIDTH, UI_TRACK_HEIGHT);
+
+        counter++;
+        tc->resized();
+        tc->repaint();
+    }
+
+    DBG("setTrackComponentBounds() called");
+
+    repaint();
+
+    if (getParentComponent())
+        getParentComponent()->repaint();
 }
 
 // TODO: update this function to take care of more advanced audio clip
