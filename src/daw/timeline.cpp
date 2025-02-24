@@ -1,5 +1,6 @@
 #include "timeline.h"
 #include "defs.h"
+#include "juce_core/juce_core.h"
 #include "juce_gui_basics/juce_gui_basics.h"
 #include <memory>
 
@@ -164,7 +165,8 @@ void track::TimelineComponent::filesDropped(const juce::StringArray &files,
                                             int x, int y) {
     // DBG("files dropped; x: " << x << "; y: " << y);
 
-    int trackIndex = y / 130;
+    int trackIndex = juce::jmin(trackIndex = y / UI_TRACK_HEIGHT,
+                                (int)processorRef->tracks.size() - 1);
     DBG("track index is " << trackIndex);
 
     std::unique_ptr<clip> c(new clip());
