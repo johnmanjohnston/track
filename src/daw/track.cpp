@@ -4,16 +4,22 @@
 
 track::ClipComponent::ClipComponent(clip *c)
     : juce::Component(), thumbnailCache(5),
-      thumbnail(512, afm, thumbnailCache) {
+      thumbnail(256, afm, thumbnailCache) {
     if (c == nullptr) {
         DBG("JOHN WARNING: ClipComponent initialized with no clip provided");
         return;
     }
 
     this->correspondingClip = c;
-    thumbnail.setSource(&correspondingClip->buffer, 41000.0, 2);
+    thumbnail.setSource(&correspondingClip->buffer, 44100.0, 2);
+
+    thumbnail.addChangeListener(this);
 }
-track::ClipComponent::~ClipComponent() {}
+track::ClipComponent::~ClipComponent() { thumbnail.removeAllChangeListeners(); }
+
+void track::ClipComponent::changeListenerCallback(ChangeBroadcaster *source) {
+    repaint();
+}
 
 void track::ClipComponent::paint(juce::Graphics &g) {
     if (thumbnail.getNumChannels() == 0) {
@@ -95,6 +101,7 @@ void track::ClipComponent::mouseUp(const juce::MouseEvent &event) {
     }
 
     DBG(event.getDistanceFromDragStartX());
+    repaint();
 }
 
 track::TrackComponent::TrackComponent(track *t) : juce::Component() {

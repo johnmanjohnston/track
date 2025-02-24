@@ -1,5 +1,4 @@
 #include "editor.h"
-#include "BinaryData.h"
 #include "daw/defs.h"
 #include "daw/timeline.h"
 #include "daw/track.h"
@@ -17,7 +16,7 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
     setResizeLimits(540, 360, 1280, 720);
     setSize(1280, 720);
 
-    startTimer(20);
+    // startTimer(120);
 
     // clipComponent.setBounds(200, 200, 200, 200);
     // addAndMakeVisible(clipComponent);

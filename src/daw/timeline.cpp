@@ -49,6 +49,8 @@ void track::TimelineViewport::mouseWheelMove(
 
         tracklist->setTrackComponentBounds();
         trackViewport->repaint();
+
+        repaint();
     }
 
     if (ev.eventComponent == this)
@@ -90,8 +92,8 @@ void track::TimelineComponent::paint(juce::Graphics &g) {
             UI_TRACK_HEIGHT);
     }
 
-    // draw playhead
-    // DBG("paint() for timeline component called");
+    // FIXME:: playhead no longer updates smoothly because we removed the 20ms
+    // repaint() timer in the editor (to save CPU usage) draw playhead
     g.setColour(juce::Colours::white);
     if (processorRef->getPlayHead() != nullptr &&
         processorRef->getPlayHead()->getPosition()->getBpm().hasValue()) {

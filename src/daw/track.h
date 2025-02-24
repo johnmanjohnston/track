@@ -18,7 +18,7 @@ class clip {
     void reverse();
 };
 
-class ClipComponent : public juce::Component {
+class ClipComponent : public juce::Component, public juce::ChangeListener {
   public:
     ClipComponent(clip *c);
     ~ClipComponent();
@@ -26,6 +26,7 @@ class ClipComponent : public juce::Component {
     juce::AudioThumbnailCache thumbnailCache;
     juce::AudioThumbnail thumbnail;
     juce::AudioFormatManager afm;
+    void changeListenerCallback(ChangeBroadcaster *source) override;
 
     clip *correspondingClip = nullptr;
 
