@@ -9,11 +9,15 @@ TODO
 
 ## Building
 ### Downloading Source and Dependencies
-Clone this git repository, `cd` into it, then clone the JUCE repository, then run CMake
 ```bash
+# clone this repo and cd into it
 git clone https://github.com/johnmanjohnston/track.git
 cd track
+
+# clone JUCE
 git clone https://github.com/juce-framework/JUCE.git
+
+# generate build files with CMake
 cmake .
 ```
 
