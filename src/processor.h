@@ -47,9 +47,7 @@ class AudioPluginAudioProcessor : public juce::AudioProcessor {
     juce::Random random;
 
     juce::AudioFormatManager afm;
-    // juce::String path = "/home/johnston/Downloads/tracktest.wav";
     juce::AudioBuffer<float> fileBuffer;
-    // int position = 0;
     int startSample = 88200;
 
     bool prepared = false;

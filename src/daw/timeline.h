@@ -38,8 +38,6 @@ class TimelineComponent : public juce::Component,
     bool clipComponentsUpdated = false;
     void deleteClip(clip *c, int trackIndex);
 
-    // std::vector<ClipComponent> clipComponents;
-
     /*
     //forum.juce.com/t/creating-arrays-vectors-of-components-copy-move-semantics/47054/5
     std::vector<std::unique_ptr<TrackComponent>> trackComponents;

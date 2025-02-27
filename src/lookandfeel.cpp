@@ -111,7 +111,4 @@ void track::ui::CustomLookAndFeel::drawLinearSlider(
                         maxSliderPos - sr, trackWidth * 2.0f, pointerColour, 3);
         }
     }
-
-    // if (slider.isBar())
-    // drawLinearSliderOutline(g, x, y, width, height, style, slider);
 }

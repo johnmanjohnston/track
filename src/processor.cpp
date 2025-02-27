@@ -13,7 +13,8 @@ AudioPluginAudioProcessor::AudioPluginAudioProcessor()
               .withOutput("Output", juce::AudioChannelSet::stereo(), true)
 #endif
       ) {
-    addParameter(masterGain = new juce::AudioParameterFloat("master", "Master", 0.f, 6.f, 1.f));
+    addParameter(masterGain = new juce::AudioParameterFloat("master", "Master",
+                                                            0.f, 6.f, 1.f));
 }
 
 AudioPluginAudioProcessor::~AudioPluginAudioProcessor() {}
@@ -220,7 +221,7 @@ void AudioPluginAudioProcessor::processBlock(juce::AudioBuffer<float> &buffer,
 
                         if (c.buffer.getNumChannels() > 1) {
                             for (int channel = 0;
-                                channel < buffer.getNumChannels(); ++channel) {
+                                 channel < buffer.getNumChannels(); ++channel) {
                                 buffer.addFrom(channel, outputOffset, c.buffer,
                                                channel % totalNumInputChannels,
                                                clipBufferStart, samplesToCopy);
@@ -229,10 +230,10 @@ void AudioPluginAudioProcessor::processBlock(juce::AudioBuffer<float> &buffer,
 
                         else {
                             for (int channel = 0;
-                                channel < buffer.getNumChannels(); ++channel) {
+                                 channel < buffer.getNumChannels(); ++channel) {
                                 buffer.addFrom(channel, outputOffset, c.buffer,
-                                               0,
-                                               clipBufferStart, samplesToCopy);
+                                               0, clipBufferStart,
+                                               samplesToCopy);
                             }
                         }
                     }

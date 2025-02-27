@@ -8,14 +8,6 @@
 
 track::TimelineComponent::TimelineComponent() : juce::Component() {
     setSize(9000, 2000);
-
-    /*
-    track *t = new track();
-    trackComponents.emplace_back(new TrackComponent(t));
-
-    addAndMakeVisible(*trackComponents[0]);
-    trackComponents[0]->setBounds(0, 50, 300, 50);
-    */
 };
 track::TimelineComponent::~TimelineComponent(){};
 
@@ -112,15 +104,6 @@ void track::TimelineComponent::updateClipComponents() {
     for (std::vector<track>::size_type i = 0; i < processorRef->tracks.size();
          ++i) {
         for (auto &c : processorRef->tracks[i].clips) {
-
-            /*
-            ClipComponent *cc = new ClipComponent(&c);
-            cc->trackIndex = i;
-            this->clipComponents.push_back(std::unique_ptr<ClipComponent>(cc));
-
-            addAndMakeVisible(cc);
-            */
-
             this->clipComponents.push_back(std::make_unique<ClipComponent>(&c));
             addAndMakeVisible(*clipComponents.back());
 

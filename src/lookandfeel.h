@@ -13,4 +13,4 @@ class CustomLookAndFeel : public juce::LookAndFeel_V4 {
                           float maxSliderPos, const Slider::SliderStyle style,
                           Slider &slider) override;
 };
-}
+} // namespace track::ui

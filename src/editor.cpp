@@ -16,11 +16,6 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
     setResizeLimits(540, 360, 1280, 720);
     setSize(1280, 720);
 
-    // startTimer(120);
-
-    // clipComponent.setBounds(200, 200, 200, 200);
-    // addAndMakeVisible(clipComponent);
-
     // TimelineViewport holds TimelineComponent
     timelineComponent->viewport = &timelineViewport;
     timelineComponent->processorRef = &processorRef;
@@ -31,8 +26,6 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
 
     // tracks
     tracklist.setBounds(0, 60, track::UI_TRACK_WIDTH, 2000);
-    // tracklist.addAndMakeVisible(_trackComponent);
-    // _trackComponent.setBounds(10, 10, 100, 100);
     tracklist.processor = (void *)&processorRef;
     tracklist.createTrackComponents();
 
@@ -60,15 +53,6 @@ void AudioPluginAudioProcessorEditor::paint(juce::Graphics &g) {
     g.setColour(juce::Colours::white);
     g.setFont(15.0f);
 
-    juce::String tmp;
-
-    /*
-    if (isPlaying)
-        tmp = "is playing";
-    else
-        tmp = "NOT playing";
-    */
-
     // TODO: timing calculations don't work properly for some time signatures
     // like 6/8; that's now a problem for future me
     int ppq = -1;
@@ -89,9 +73,6 @@ void AudioPluginAudioProcessorEditor::paint(juce::Graphics &g) {
     // reason, leading to segfault
     if (processorRef.getPlayHead() != nullptr &&
         processorRef.getPlayHead()->getPosition()->getBpm().hasValue()) {
-        tmp = juce::String(
-            *processorRef.getPlayHead()->getPosition()->getTimeInSamples());
-
         // yoink data from host DAW
         curSample =
             *processorRef.getPlayHead()->getPosition()->getTimeInSamples();
@@ -124,8 +105,6 @@ void AudioPluginAudioProcessorEditor::paint(juce::Graphics &g) {
         int divisionPerBar = timeSignature.numerator * 2;
         division = (totalDivisions % divisionPerBar) + 1;
     }
-
-    g.drawFittedText(tmp, getLocalBounds(), juce::Justification::centred, 1);
 
     // === TOP BAR ===
     int topBarHeight = 50;

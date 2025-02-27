@@ -150,17 +150,6 @@ void track::Tracklist::createTrackComponents() {
     for (track &t : p->tracks) {
         this->trackComponents.push_back(std::make_unique<TrackComponent>(&t));
         addAndMakeVisible(*trackComponents.back());
-
-        /*
-        auto &tc = trackComponents.back();
-        tc->setBounds(0,
-                      UI_TRACK_VERTICAL_OFFSET + (UI_TRACK_HEIGHT * counter) +
-                          (UI_TRACK_VERTICAL_MARGIN * counter),
-                      UI_TRACK_WIDTH, UI_TRACK_HEIGHT);
-
-        counter++;
-        */
-        // DBG("added track component for track with name " << t.trackName);
     }
 
     setTrackComponentBounds();
