@@ -2,6 +2,7 @@
 #include "daw/defs.h"
 #include "daw/timeline.h"
 #include "daw/track.h"
+#include "juce_gui_extra/misc/juce_PushNotifications.h"
 #include "processor.h"
 
 AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
@@ -41,6 +42,11 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
     setLookAndFeel(&lnf);
 
     addAndMakeVisible(masterSlider);
+
+    transportStatus.processorRef = &processorRef;
+    addAndMakeVisible(transportStatus);
+
+    startTimerHz(20);
 }
 
 AudioPluginAudioProcessorEditor::~AudioPluginAudioProcessorEditor() {
@@ -53,67 +59,12 @@ void AudioPluginAudioProcessorEditor::paint(juce::Graphics &g) {
     g.setColour(juce::Colours::white);
     g.setFont(15.0f);
 
-    // TODO: timing calculations don't work properly for some time signatures
-    // like 6/8; that's now a problem for future me
-    int ppq = -1;
-    int timeInSeconds = -1;
-    int tempo = -1;
-
-    int bar = -1;
-    int beat = -1;
-    int division = -1;
-    juce::AudioPlayHead::TimeSignature timeSignature;
-
-    double sampleRate = processorRef.getSampleRate();
-    double curSample = -1;
-    double curSecond = -1;
-
-    // check if host DAW supplies tempo to make sure that the host DAW actually
-    // exists, because getPlayHead() doesn't return nullptr sometimes for some
-    // reason, leading to segfault
-    if (processorRef.getPlayHead() != nullptr &&
-        processorRef.getPlayHead()->getPosition()->getBpm().hasValue()) {
-        // yoink data from host DAW
-        curSample =
-            *processorRef.getPlayHead()->getPosition()->getTimeInSamples();
-        curSecond =
-            *processorRef.getPlayHead()->getPosition()->getTimeInSeconds();
-        tempo = *processorRef.getPlayHead()->getPosition()->getBpm();
-        timeInSeconds =
-            *processorRef.getPlayHead()->getPosition()->getTimeInSeconds();
-        timeSignature =
-            *processorRef.getPlayHead()->getPosition()->getTimeSignature();
-        ppq = *processorRef.getPlayHead()->getPosition()->getPpqPosition();
-
-        // bar, beat, division calculations
-        // https://music.stackexchange.com/questions/109729/how-to-figure-out-the-length-time-in-ms-of-a-bar-from-bpm-and-time-signature
-        // 4 * N / D = length of bar in quarter notes (@Bavi_H's answer)
-        int barLength = 4 * timeSignature.numerator / timeSignature.denominator;
-        bar = static_cast<int>(ppq / barLength) + 1;
-        beat = (ppq % timeSignature.numerator) + 1;
-
-        // calculate 8th note divisions from sample counts
-        float eigthNoteLengthInSeconds = (60.f * 1.f / tempo) * .5f;
-        float beatDuration = 60.f / tempo;
-
-        float mul = 4.f / timeSignature.denominator;
-        float effectiveBeatDuration = beatDuration * mul;
-
-        float elapsedTime = curSample / sampleRate;
-
-        int totalDivisions = ((elapsedTime / effectiveBeatDuration) * 2);
-        int divisionPerBar = timeSignature.numerator * 2;
-        division = (totalDivisions % divisionPerBar) + 1;
-    }
-
     // === TOP BAR ===
-    int topBarHeight = 50;
-
     g.setFont(lnf.getRobotoMonoThin());
 
     // draw top bar bg
     g.setColour(juce::Colour(0xFFCBCBCB));
-    g.fillRect(0, 0, getWidth(), topBarHeight);
+    g.fillRect(0, 0, getWidth(), track::UI_TOPBAR_HEIGHT);
 
     // draw "track" logo
     g.setColour(juce::Colour(0xFF727272));
@@ -121,15 +72,16 @@ void AudioPluginAudioProcessorEditor::paint(juce::Graphics &g) {
     g.drawFittedText("track", juce::Rectangle<int>(34, 1, 100, 50),
                      juce::Justification::left, 1);
 
+    /*
     // draw time info bg
     g.setColour(juce::Colour(0xFF1B1E2D));
     int timeInfoBgWidth = 350;
     int timeInfoBgHeight = 40;
 
-    juce::Rectangle<int> timeInfoRectangle =
-        juce::Rectangle<int>((getWidth() / 2) - (timeInfoBgWidth / 2),
-                             (topBarHeight / 2) - (timeInfoBgHeight / 2),
-                             timeInfoBgWidth, timeInfoBgHeight);
+    juce::Rectangle<int> timeInfoRectangle = juce::Rectangle<int>(
+        (getWidth() / 2) - (timeInfoBgWidth / 2),
+        (track::UI_TOPBAR_HEIGHT / 2) - (timeInfoBgHeight / 2), timeInfoBgWidth,
+        timeInfoBgHeight);
     g.fillRoundedRectangle(timeInfoRectangle.toFloat(), 4.f);
 
     // draw text for time info
@@ -146,8 +98,20 @@ void AudioPluginAudioProcessorEditor::paint(juce::Graphics &g) {
     timeInfoTextRectangle.setX(timeInfoTextRectangle.getX() + 10);
     g.drawFittedText(tempoInformationToDisplay, timeInfoTextRectangle,
                      juce::Justification::left, 1);
+    */
 }
 
 void AudioPluginAudioProcessorEditor::resized() {
     masterSlider.setBounds((getWidth() / 3) * 2, 2, 250, 70);
+
+    int timeInfoBgWidth = 350;
+    int timeInfoBgHeight = 40;
+
+    juce::Rectangle<int> timeInfoRectangle = juce::Rectangle<int>(
+        (getWidth() / 2) - (timeInfoBgWidth / 2),
+        (track::UI_TOPBAR_HEIGHT / 2) - (timeInfoBgHeight / 2), timeInfoBgWidth,
+        timeInfoBgHeight);
+
+    // transportStatus.setBounds(10, 10, timeInfoBgWidth, timeInfoBgHeight);
+    transportStatus.setBounds(timeInfoRectangle);
 }
