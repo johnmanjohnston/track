@@ -2,7 +2,6 @@
 #include "daw/defs.h"
 #include "daw/timeline.h"
 #include "daw/track.h"
-#include "juce_gui_extra/misc/juce_PushNotifications.h"
 #include "processor.h"
 
 AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
@@ -47,6 +46,8 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
     addAndMakeVisible(transportStatus);
 
     startTimerHz(20);
+
+    addAndMakeVisible(playhead);
 }
 
 AudioPluginAudioProcessorEditor::~AudioPluginAudioProcessorEditor() {

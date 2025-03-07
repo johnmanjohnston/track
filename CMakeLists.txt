@@ -32,6 +32,7 @@ target_sources(track PRIVATE
     src/daw/timeline.cpp
     src/daw/defs.cpp
     src/daw/transport_status.cpp
+    src/daw/playhead.cpp
     src/lookandfeel.cpp)
 
 target_compile_definitions(track PRIVATE

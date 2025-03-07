@@ -1,4 +1,5 @@
 #pragma once
+#include "daw/playhead.h"
 #include "daw/timeline.h"
 #include "daw/track.h"
 #include "daw/transport_status.h"
@@ -25,6 +26,8 @@ class AudioPluginAudioProcessorEditor : public juce::AudioProcessorEditor,
 
     std::unique_ptr<track::TimelineComponent> timelineComponent =
         std::make_unique<track::TimelineComponent>();
+
+    track::PlayheadComponent playhead;
 
     track::ui::CustomLookAndFeel lnf;
 
