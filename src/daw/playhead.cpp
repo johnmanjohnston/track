@@ -7,6 +7,9 @@ track::PlayheadComponent::PlayheadComponent() : juce::Component() {
 track::PlayheadComponent::~PlayheadComponent() {}
 
 void track::PlayheadComponent::paint(juce::Graphics &g) {
+    if (getBounds().getX() < UI_TRACK_WIDTH)
+        return;
+
     g.fillAll(juce::Colours::orange);
 }
 
@@ -23,6 +26,6 @@ void track::PlayheadComponent::updateBounds() {
 
     setBounds((curSample / 41000.0 * 32.0) + UI_TRACK_WIDTH -
                   tv->getViewPositionX(),
-              UI_TOPBAR_HEIGHT, 2, 1080);
+              UI_TOPBAR_HEIGHT, 1, 1080);
     repaint();
 }
