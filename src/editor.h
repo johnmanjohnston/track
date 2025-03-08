@@ -34,7 +34,10 @@ class AudioPluginAudioProcessorEditor : public juce::AudioProcessorEditor,
     juce::Slider masterSlider;
     juce::SliderParameterAttachment masterSliderAttachment;
 
-    void timerCallback() override { transportStatus.repaint(); }
+    void timerCallback() override {
+        transportStatus.repaint();
+        playhead.updateBounds();
+    }
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(
         AudioPluginAudioProcessorEditor)

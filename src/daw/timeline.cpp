@@ -84,6 +84,7 @@ void track::TimelineComponent::paint(juce::Graphics &g) {
             UI_TRACK_HEIGHT);
     }
 
+    /*
     // FIXME:: playhead no longer updates smoothly because we removed the 20ms
     // repaint() timer in the editor (to save CPU usage) draw playhead
     g.setColour(juce::Colours::white);
@@ -94,6 +95,7 @@ void track::TimelineComponent::paint(juce::Graphics &g) {
 
         g.drawRect(curSample / 41000.0 * 32.0, 0, 2, getHeight(), 2);
     }
+    */
 }
 
 void track::TimelineComponent::updateClipComponents() {

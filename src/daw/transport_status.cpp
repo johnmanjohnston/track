@@ -6,7 +6,7 @@ track::TransportStatusComponent::TransportStatusComponent()
 track::TransportStatusComponent::~TransportStatusComponent(){};
 
 void track::TransportStatusComponent::paint(juce::Graphics &g) {
-    DBG("transport status paint() called");
+    // DBG("transport status paint() called");
     // get time info
     // TODO: timing calculations don't work properly for some time signatures
     // like 6/8; that's now a problem for future me

@@ -8,7 +8,9 @@ class PlayheadComponent : public juce::Component {
     ~PlayheadComponent();
 
     TimelineViewport *tv = nullptr;
+    AudioPluginAudioProcessor *processor = nullptr;
 
+    void updateBounds();
     void paint(juce::Graphics &g) override;
 };
 } // namespace track
