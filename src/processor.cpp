@@ -77,11 +77,16 @@ void AudioPluginAudioProcessor::prepareToPlay(double sampleRate,
     // initialisation that you need..
     juce::ignoreUnused(sampleRate, samplesPerBlock);
 
+    // this is for hosting sub plugins; revisit this later
+    /*
         juce::String pluginPath =
-            juce::File("C:\\Program Files\\Common Files\\VST3\\MeldaProduction\\EQ\\MEqualizer.vst3").getFullPathName();
+            // juce::File("C:\\Program Files\\Common Files\\VST3\\MeldaProduction\\EQ\\MEqualizer.vst3").getFullPathName();
+            juce::File("C:\\Program Files\\Common Files\\VST3\\ValhallaSupermassive.vst3").getFullPathName();
     OwnedArray<PluginDescription> pluginDescriptions;
     KnownPluginList plist;
-    pluginFormatManager.addDefaultFormats();
+
+    if (!prepared)
+        pluginFormatManager.addDefaultFormats(); // only add default formats once, otherwise you fail an assertion
 
     for (int i = 0; i < pluginFormatManager.getNumFormats(); ++i)
         plist.scanAndAddFile(pluginPath, true, pluginDescriptions,
@@ -91,12 +96,9 @@ void AudioPluginAudioProcessor::prepareToPlay(double sampleRate,
     plugin = pluginFormatManager.createPluginInstance(
         *pluginDescriptions[0], sampleRate, samplesPerBlock, msg);
 
+    plugin->setPlayConfigDetails(2, 2, sampleRate, samplesPerBlock);
     plugin.get()->prepareToPlay(sampleRate, samplesPerBlock);
-
-    DBG(pluginDescriptions.size() << " plugin descs loaded");
-    DBG("logging error message");
-    DBG(msg);
-
+    */
 
     if (prepared)
         return;
@@ -158,8 +160,8 @@ void AudioPluginAudioProcessor::prepareToPlay(double sampleRate,
 void AudioPluginAudioProcessor::releaseResources() {
     // When playback stops, you can use this as an opportunity to free up any
     // spare memory, etc.
-    if (plugin != nullptr)
-        plugin->releaseResources();
+    // if (plugin != nullptr)
+        // plugin->releaseResources();
 }
 
 bool AudioPluginAudioProcessor::isBusesLayoutSupported(
@@ -222,46 +224,18 @@ void AudioPluginAudioProcessor::processBlock(juce::AudioBuffer<float> &buffer,
             int currentSample = *playhead->getPosition()->getTimeInSamples();
             int outputBufferLength = buffer.getNumSamples();
 
+            // process tracks; tracks populate their internal buffer
             for (track::track &t : tracks) {
-                for (track::clip &c : t.clips) {
-                    int clipStart = c.startPositionSample;
-                    int clipEnd =
-                        c.startPositionSample + c.buffer.getNumSamples();
+                t.process(buffer.getNumSamples(), currentSample);
+            }
 
-                    // bounds check
-                    if (clipEnd > currentSample &&
-                        clipStart < currentSample + outputBufferLength) {
-                        // where in buffer should clip start?
-                        int outputOffset = (clipStart < currentSample)
-                                               ? 0
-                                               : clipStart - currentSample;
-                        // starting point in clip's buffer?
-                        int clipBufferStart = (clipStart < currentSample)
-                                                  ? currentSample - clipStart
-                                                  : 0;
-                        // how many samples can we safely copy?
-                        int samplesToCopy = juce::jmin(
-                            outputBufferLength - outputOffset,
-                            c.buffer.getNumSamples() - clipBufferStart);
+            // sum track buffers
+            for (track::track &t : tracks) {
+                for (int channel = 0; channel < totalNumOutputChannels;
+                     ++channel) {
 
-                        if (c.buffer.getNumChannels() > 1) {
-                            for (int channel = 0;
-                                 channel < buffer.getNumChannels(); ++channel) {
-                                buffer.addFrom(channel, outputOffset, c.buffer,
-                                               channel % totalNumInputChannels,
-                                               clipBufferStart, samplesToCopy);
-                            }
-                        }
-
-                        else {
-                            for (int channel = 0;
-                                 channel < buffer.getNumChannels(); ++channel) {
-                                buffer.addFrom(channel, outputOffset, c.buffer,
-                                               0, clipBufferStart,
-                                               samplesToCopy);
-                            }
-                        }
-                    }
+                    buffer.addFrom(channel, 0, t.buffer, channel, 0,
+                                   buffer.getNumSamples());
                 }
             }
         }
@@ -272,25 +246,7 @@ void AudioPluginAudioProcessor::processBlock(juce::AudioBuffer<float> &buffer,
         juce::ignoreUnused(channelData);
     }
 
-    juce::MidiBuffer mb;
-
     /*
-    if (plugin != nullptr) {
-        plugin.get()->setPlayHead(getPlayHead());
-        plugin.get()->processBlock(buffer, mb);
-    } 
-    
-    else {
-        DBG("PLUGIN NOT LOADEDF ASDKLFJASDKL;FJALSDKFJADF");
-    }
-
-    if (plugin != nullptr) {
-        DBG(plugin.get()->getName()
-            << " has channels: " << plugin.get()->getTotalNumInputChannels()
-            << plugin.get()->getTotalNumOutputChannels());
-    }
-    */
-
     if (plugin != nullptr) {
         plugin.get()->setPlayHead(getPlayHead()); 
         plugin.get()->processBlock(buffer, mb);
@@ -299,6 +255,7 @@ void AudioPluginAudioProcessor::processBlock(juce::AudioBuffer<float> &buffer,
     if (plugin == nullptr) {
         DBG("plugin is null. msg says " << msg); 
     }
+    */
     
     buffer.applyGain(*masterGain);
 }
@@ -308,10 +265,9 @@ bool AudioPluginAudioProcessor::hasEditor() const {
 }
 
 juce::AudioProcessorEditor *AudioPluginAudioProcessor::createEditor() {
-    if (plugin != nullptr)
-        return plugin->createEditorIfNeeded();
+    // if (plugin != nullptr)
+       // return plugin->createEditorIfNeeded();
 
-    DBG("PLUGIN IS NULL :((((((((((");
     return new AudioPluginAudioProcessorEditor(*this);
 }
 
@@ -331,7 +287,9 @@ void AudioPluginAudioProcessor::setStateInformation(const void *data,
     juce::ignoreUnused(data, sizeInBytes);
 }
 
-void AudioPluginAudioProcessor::reset() { if (plugin != nullptr) plugin.reset(); }
+void AudioPluginAudioProcessor::reset() { 
+    // if (plugin != nullptr) plugin.reset(); 
+}
 
 // This creates new instances of the plugin.
 // This function definition must be in the global namespace.

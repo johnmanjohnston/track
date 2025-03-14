@@ -111,6 +111,13 @@ track::TrackComponent::TrackComponent(track *t) : juce::Component() {
     }
 
     this->correspondingTrack = t;
+
+    addAndMakeVisible(muteBtn);
+    muteBtn.setButtonText("M");
+
+    muteBtn.onClick = [this] {
+        this->correspondingTrack->m = !this->correspondingTrack->m; 
+    };
 }
 track::TrackComponent::~TrackComponent() {}
 
@@ -124,7 +131,20 @@ void track::TrackComponent::paint(juce::Graphics &g) {
                                  : correspondingTrack->trackName;
 
     g.setColour(juce::Colour(0xFFDFDFDF));
-    g.drawText(trackName, getLocalBounds(), juce::Justification::left, true);
+
+    juce::Rectangle<int> textBounds = getLocalBounds();
+    textBounds.setX(getLocalBounds().getX() + 10);
+
+    g.drawText(trackName, textBounds, juce::Justification::left, true);
+}
+
+void track::TrackComponent::resized() {
+    int btnHeight = 30;
+    juce::Rectangle<int> btnBounds = juce::Rectangle<int>(UI_TRACK_WIDTH - 100, 
+                                                          (UI_TRACK_HEIGHT / 2) - (btnHeight / 2),
+                                                          30, btnHeight);
+
+    muteBtn.setBounds(btnBounds);
 }
 
 // ASJAJSAJSJAS
@@ -198,3 +218,61 @@ void track::clip::updateBuffer() {
 }
 
 void track::clip::reverse() { buffer.reverse(0, buffer.getNumSamples()); }
+
+void track::track::process(int numSamples, int currentSample) {
+    if (m) {
+        buffer.clear();
+        return; 
+    }
+
+    if (buffer.getNumSamples() != numSamples)
+        buffer.setSize(2, numSamples, false, false, true);
+
+    buffer.clear();
+
+    int outputBufferLength = numSamples;
+    int totalNumInputChannels = 2;
+
+     for (clip &c : clips) {
+        int clipStart = c.startPositionSample;
+        int clipEnd = c.startPositionSample + c.buffer.getNumSamples();
+
+        // bounds check
+        if (clipEnd > currentSample &&
+            clipStart < currentSample + outputBufferLength) {
+            // where in buffer should clip start?
+            int outputOffset =
+                (clipStart < currentSample) ? 0 : clipStart - currentSample;
+            // starting point in clip's buffer?
+            int clipBufferStart =
+                (clipStart < currentSample) ? currentSample - clipStart : 0;
+            // how many samples can we safely copy?
+            int samplesToCopy =
+                juce::jmin(outputBufferLength - outputOffset,
+                           c.buffer.getNumSamples() - clipBufferStart);
+
+            if (c.buffer.getNumChannels() > 1) {
+                for (int channel = 0; channel < buffer.getNumChannels();
+                     ++channel) {
+                    buffer.addFrom(channel, outputOffset, c.buffer,
+                                   channel % totalNumInputChannels,
+                                   clipBufferStart, samplesToCopy);
+                }
+            }
+
+            else {
+                for (int channel = 0; channel < buffer.getNumChannels();
+                     ++channel) {
+                    buffer.addFrom(channel, outputOffset, c.buffer, 0,
+                                   clipBufferStart, samplesToCopy);
+                }
+            }
+        }
+     }
+}
+
+/*
+void track::group::process(juce::AudioBuffer<float> buffer, int currentSample) {
+    DBG("trac::group::process() CALLED BUT NOT IMPLEMENTED YET");
+}
+*/

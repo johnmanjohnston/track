@@ -50,6 +50,18 @@ class track {
     // future john, have fun trying to implement hosting audio plugins :skull:
 
     std::vector<clip> clips;
+ 
+    void process(int numSamples, int currentSample);
+    juce::AudioBuffer<float> buffer;
+};
+
+class group {
+  public:
+    bool s = false;
+    bool m = false;
+
+    // void process(juce::AudioBuffer<float> buffer, int currentSample);
+    // juce::AudioBuffer<float> internalBuffer;
 };
 
 class TrackComponent : public juce::Component {
@@ -57,13 +69,16 @@ class TrackComponent : public juce::Component {
     TrackComponent(track *t);
     ~TrackComponent();
 
-    void paint(juce::Graphics &g);
+    void paint(juce::Graphics &g) override;
+    void resized() override;
 
     // instances of TrackComponent are responsible for only handling the UI for
     // an indiviaul track (only the left section which shows track name, volume
     // controls, mute/soloing control). The actual CLIPS of audio will be
     // handles in the TimelineComponent class
     track *correspondingTrack = nullptr;
+
+    juce::TextButton muteBtn;
 };
 
 class Tracklist : public juce::Component {

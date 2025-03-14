@@ -45,12 +45,14 @@ class AudioPluginAudioProcessor : public juce::AudioProcessor {
 
     juce::AudioParameterFloat *masterGain;
 
+    /*
     AudioPluginFormatManager pluginFormatManager;
     juce::OwnedArray<PluginDescription> foundPlugins;
     KnownPluginList pluginList;
     bool active = false;
     std::unique_ptr<juce::AudioPluginInstance> plugin;
     juce::String msg;
+    */
 
   private:
     juce::Random random;
