@@ -77,6 +77,27 @@ void AudioPluginAudioProcessor::prepareToPlay(double sampleRate,
     // initialisation that you need..
     juce::ignoreUnused(sampleRate, samplesPerBlock);
 
+        juce::String pluginPath =
+            juce::File("C:\\Program Files\\Common Files\\VST3\\MeldaProduction\\EQ\\MEqualizer.vst3").getFullPathName();
+    OwnedArray<PluginDescription> pluginDescriptions;
+    KnownPluginList plist;
+    pluginFormatManager.addDefaultFormats();
+
+    for (int i = 0; i < pluginFormatManager.getNumFormats(); ++i)
+        plist.scanAndAddFile(pluginPath, true, pluginDescriptions,
+                             *pluginFormatManager.getFormat(i));
+
+    jassert(pluginDescriptions.size() > 0);
+    plugin = pluginFormatManager.createPluginInstance(
+        *pluginDescriptions[0], sampleRate, samplesPerBlock, msg);
+
+    plugin.get()->prepareToPlay(sampleRate, samplesPerBlock);
+
+    DBG(pluginDescriptions.size() << " plugin descs loaded");
+    DBG("logging error message");
+    DBG(msg);
+
+
     if (prepared)
         return;
 
@@ -137,6 +158,8 @@ void AudioPluginAudioProcessor::prepareToPlay(double sampleRate,
 void AudioPluginAudioProcessor::releaseResources() {
     // When playback stops, you can use this as an opportunity to free up any
     // spare memory, etc.
+    if (plugin != nullptr)
+        plugin->releaseResources();
 }
 
 bool AudioPluginAudioProcessor::isBusesLayoutSupported(
@@ -170,6 +193,8 @@ void AudioPluginAudioProcessor::processBlock(juce::AudioBuffer<float> &buffer,
     juce::ScopedNoDenormals noDenormals;
     auto totalNumInputChannels = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
+
+    // DBG(foundPlugins[0]->name);
 
     // In case we have more outputs than inputs, this code clears any output
     // channels that didn't contain input data, (because these aren't
@@ -247,6 +272,34 @@ void AudioPluginAudioProcessor::processBlock(juce::AudioBuffer<float> &buffer,
         juce::ignoreUnused(channelData);
     }
 
+    juce::MidiBuffer mb;
+
+    /*
+    if (plugin != nullptr) {
+        plugin.get()->setPlayHead(getPlayHead());
+        plugin.get()->processBlock(buffer, mb);
+    } 
+    
+    else {
+        DBG("PLUGIN NOT LOADEDF ASDKLFJASDKL;FJALSDKFJADF");
+    }
+
+    if (plugin != nullptr) {
+        DBG(plugin.get()->getName()
+            << " has channels: " << plugin.get()->getTotalNumInputChannels()
+            << plugin.get()->getTotalNumOutputChannels());
+    }
+    */
+
+    if (plugin != nullptr) {
+        plugin.get()->setPlayHead(getPlayHead()); 
+        plugin.get()->processBlock(buffer, mb);
+    }
+
+    if (plugin == nullptr) {
+        DBG("plugin is null. msg says " << msg); 
+    }
+    
     buffer.applyGain(*masterGain);
 }
 
@@ -255,6 +308,10 @@ bool AudioPluginAudioProcessor::hasEditor() const {
 }
 
 juce::AudioProcessorEditor *AudioPluginAudioProcessor::createEditor() {
+    if (plugin != nullptr)
+        return plugin->createEditorIfNeeded();
+
+    DBG("PLUGIN IS NULL :((((((((((");
     return new AudioPluginAudioProcessorEditor(*this);
 }
 
@@ -273,6 +330,8 @@ void AudioPluginAudioProcessor::setStateInformation(const void *data,
     // call.
     juce::ignoreUnused(data, sizeInBytes);
 }
+
+void AudioPluginAudioProcessor::reset() { if (plugin != nullptr) plugin.reset(); }
 
 // This creates new instances of the plugin.
 // This function definition must be in the global namespace.

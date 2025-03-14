@@ -35,6 +35,8 @@ class AudioPluginAudioProcessor : public juce::AudioProcessor {
     void getStateInformation(juce::MemoryBlock &destData) override;
     void setStateInformation(const void *data, int sizeInBytes) override;
 
+    void reset() override;
+
     juce::String path =
     "C:/Users/USER/Downloads/hyperpop-trap-drums_151bpm_B_major.wav";
     // juce::String path = "/home/johnston/Downloads/tracktest.wav";
@@ -42,6 +44,13 @@ class AudioPluginAudioProcessor : public juce::AudioProcessor {
     std::vector<track::track> tracks;
 
     juce::AudioParameterFloat *masterGain;
+
+    AudioPluginFormatManager pluginFormatManager;
+    juce::OwnedArray<PluginDescription> foundPlugins;
+    KnownPluginList pluginList;
+    bool active = false;
+    std::unique_ptr<juce::AudioPluginInstance> plugin;
+    juce::String msg;
 
   private:
     juce::Random random;
