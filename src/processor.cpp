@@ -80,13 +80,16 @@ void AudioPluginAudioProcessor::prepareToPlay(double sampleRate,
     // this is for hosting sub plugins; revisit this later
     /*
         juce::String pluginPath =
-            // juce::File("C:\\Program Files\\Common Files\\VST3\\MeldaProduction\\EQ\\MEqualizer.vst3").getFullPathName();
-            juce::File("C:\\Program Files\\Common Files\\VST3\\ValhallaSupermassive.vst3").getFullPathName();
+            // juce::File("C:\\Program Files\\Common
+    Files\\VST3\\MeldaProduction\\EQ\\MEqualizer.vst3").getFullPathName();
+            juce::File("C:\\Program Files\\Common
+    Files\\VST3\\ValhallaSupermassive.vst3").getFullPathName();
     OwnedArray<PluginDescription> pluginDescriptions;
     KnownPluginList plist;
 
     if (!prepared)
-        pluginFormatManager.addDefaultFormats(); // only add default formats once, otherwise you fail an assertion
+        pluginFormatManager.addDefaultFormats(); // only add default formats
+    once, otherwise you fail an assertion
 
     for (int i = 0; i < pluginFormatManager.getNumFormats(); ++i)
         plist.scanAndAddFile(pluginPath, true, pluginDescriptions,
@@ -161,7 +164,7 @@ void AudioPluginAudioProcessor::releaseResources() {
     // When playback stops, you can use this as an opportunity to free up any
     // spare memory, etc.
     // if (plugin != nullptr)
-        // plugin->releaseResources();
+    // plugin->releaseResources();
 }
 
 bool AudioPluginAudioProcessor::isBusesLayoutSupported(
@@ -248,15 +251,15 @@ void AudioPluginAudioProcessor::processBlock(juce::AudioBuffer<float> &buffer,
 
     /*
     if (plugin != nullptr) {
-        plugin.get()->setPlayHead(getPlayHead()); 
+        plugin.get()->setPlayHead(getPlayHead());
         plugin.get()->processBlock(buffer, mb);
     }
 
     if (plugin == nullptr) {
-        DBG("plugin is null. msg says " << msg); 
+        DBG("plugin is null. msg says " << msg);
     }
     */
-    
+
     buffer.applyGain(*masterGain);
 }
 
@@ -266,7 +269,7 @@ bool AudioPluginAudioProcessor::hasEditor() const {
 
 juce::AudioProcessorEditor *AudioPluginAudioProcessor::createEditor() {
     // if (plugin != nullptr)
-       // return plugin->createEditorIfNeeded();
+    // return plugin->createEditorIfNeeded();
 
     return new AudioPluginAudioProcessorEditor(*this);
 }
@@ -287,8 +290,8 @@ void AudioPluginAudioProcessor::setStateInformation(const void *data,
     juce::ignoreUnused(data, sizeInBytes);
 }
 
-void AudioPluginAudioProcessor::reset() { 
-    // if (plugin != nullptr) plugin.reset(); 
+void AudioPluginAudioProcessor::reset() {
+    // if (plugin != nullptr) plugin.reset();
 }
 
 // This creates new instances of the plugin.

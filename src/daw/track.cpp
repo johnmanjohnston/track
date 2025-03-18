@@ -104,19 +104,26 @@ void track::ClipComponent::mouseUp(const juce::MouseEvent &event) {
     repaint();
 }
 
-track::TrackComponent::TrackComponent(track *t) : juce::Component() {
-    if (t == nullptr) {
-        DBG("JOHN WARNING: TrackComponent initialized with no track provided");
-        return;
+track::track *track::TrackComponent::TrackComponent::getCorrespondingTrack() {
+    if (processor == nullptr) {
+        DBG("TrackComponent's processor is nullptr");
     }
+    if (trackIndex == -1)
+        DBG("TrackComponent's trackIndex is -1");
 
-    this->correspondingTrack = t;
+    AudioPluginAudioProcessor *p = (AudioPluginAudioProcessor *)processor;
+    return &(p->tracks[trackIndex]);
+}
+
+track::TrackComponent::TrackComponent(int trackIndex) : juce::Component() {
 
     addAndMakeVisible(muteBtn);
     muteBtn.setButtonText("M");
 
+    this->trackIndex = trackIndex;
+
     muteBtn.onClick = [this] {
-        this->correspondingTrack->m = !this->correspondingTrack->m; 
+        getCorrespondingTrack()->m = !(getCorrespondingTrack()->m);
     };
 }
 track::TrackComponent::~TrackComponent() {}
@@ -126,9 +133,9 @@ void track::TrackComponent::paint(juce::Graphics &g) {
     g.setColour(juce::Colour(0xFF535353)); // outline
     g.drawRect(getLocalBounds(), 2);
 
-    juce::String trackName = correspondingTrack == nullptr
-                                 ? "null track"
-                                 : correspondingTrack->trackName;
+    juce::String trackName = getCorrespondingTrack() == nullptr
+                                 ? "null trackk"
+                                 : getCorrespondingTrack()->trackName;
 
     g.setColour(juce::Colour(0xFFDFDFDF));
 
@@ -140,9 +147,9 @@ void track::TrackComponent::paint(juce::Graphics &g) {
 
 void track::TrackComponent::resized() {
     int btnHeight = 30;
-    juce::Rectangle<int> btnBounds = juce::Rectangle<int>(UI_TRACK_WIDTH - 100, 
-                                                          (UI_TRACK_HEIGHT / 2) - (btnHeight / 2),
-                                                          30, btnHeight);
+    juce::Rectangle<int> btnBounds = juce::Rectangle<int>(
+        UI_TRACK_WIDTH - 100, (UI_TRACK_HEIGHT / 2) - (btnHeight / 2), 30,
+        btnHeight);
 
     muteBtn.setBounds(btnBounds);
 }
@@ -161,15 +168,40 @@ void track::TrackViewport::scrollBarMoved(juce::ScrollBar *bar,
     }
 }
 
-track::Tracklist::Tracklist() : juce::Component() {}
+track::Tracklist::Tracklist() : juce::Component() {
+    addAndMakeVisible(newTrackBtn);
+    newTrackBtn.setButtonText("create new track");
+
+    newTrackBtn.onClick = [this] {
+        // this is annoying
+        DBG("new track button clicked");
+
+        auto p = (AudioPluginAudioProcessor *)this->processor;
+        p->tracks.emplace_back();
+        auto &t = p->tracks.back();
+
+        int i = p->tracks.size() - 1;
+        this->trackComponents.push_back(std::make_unique<TrackComponent>(i));
+        trackComponents.back().get()->processor = processor;
+        addAndMakeVisible(*trackComponents.back());
+
+        DBG("track component added. will set track components bounds now");
+        setTrackComponentBounds();
+        repaint();
+    };
+}
 track::Tracklist::~Tracklist() {}
 void track::Tracklist::createTrackComponents() {
     AudioPluginAudioProcessor *p =
         (AudioPluginAudioProcessor *)(this->processor);
 
+    int i = 0;
     for (track &t : p->tracks) {
-        this->trackComponents.push_back(std::make_unique<TrackComponent>(&t));
+        this->trackComponents.push_back(std::make_unique<TrackComponent>(i));
+        trackComponents.back().get()->processor = processor;
         addAndMakeVisible(*trackComponents.back());
+
+        i++;
     }
 
     setTrackComponentBounds();
@@ -188,6 +220,12 @@ void track::Tracklist::setTrackComponentBounds() {
         tc->resized();
         tc->repaint();
     }
+
+    newTrackBtn.setBounds(0,
+                          UI_TRACK_VERTICAL_OFFSET +
+                              (UI_TRACK_HEIGHT * counter) +
+                              (UI_TRACK_VERTICAL_MARGIN * counter),
+                          UI_TRACK_WIDTH, UI_TRACK_HEIGHT);
 
     DBG("setTrackComponentBounds() called");
 
@@ -222,7 +260,7 @@ void track::clip::reverse() { buffer.reverse(0, buffer.getNumSamples()); }
 void track::track::process(int numSamples, int currentSample) {
     if (m) {
         buffer.clear();
-        return; 
+        return;
     }
 
     if (buffer.getNumSamples() != numSamples)
@@ -233,7 +271,7 @@ void track::track::process(int numSamples, int currentSample) {
     int outputBufferLength = numSamples;
     int totalNumInputChannels = 2;
 
-     for (clip &c : clips) {
+    for (clip &c : clips) {
         int clipStart = c.startPositionSample;
         int clipEnd = c.startPositionSample + c.buffer.getNumSamples();
 
@@ -268,7 +306,7 @@ void track::track::process(int numSamples, int currentSample) {
                 }
             }
         }
-     }
+    }
 }
 
 /*
