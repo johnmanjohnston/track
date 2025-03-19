@@ -44,6 +44,7 @@ class track {
   public:
     bool s = false;
     bool m = false;
+    float gain = 1.f;
 
     juce::String trackName = "Untitled Track";
 
@@ -72,6 +73,7 @@ class TrackComponent : public juce::Component {
 
     void paint(juce::Graphics &g) override;
     void resized() override;
+    void initializeGainSlider();
 
     // instances of TrackComponent are responsible for only handling the UI for
     // an indiviaul track (only the left section which shows track name, volume
@@ -83,6 +85,7 @@ class TrackComponent : public juce::Component {
     int trackIndex = -1;
 
     juce::TextButton muteBtn;
+    juce::Slider gainSlider;
 };
 
 class Tracklist : public juce::Component {

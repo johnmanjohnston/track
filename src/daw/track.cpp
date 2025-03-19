@@ -106,21 +106,44 @@ void track::ClipComponent::mouseUp(const juce::MouseEvent &event) {
 
 track::track *track::TrackComponent::TrackComponent::getCorrespondingTrack() {
     if (processor == nullptr) {
+        DBG("! TRACK COMPONENT'S getCorrespondingTrack() RETURNED nullptr");
         DBG("TrackComponent's processor is nullptr");
+        return nullptr;
     }
-    if (trackIndex == -1)
+    if (trackIndex == -1) {
+        DBG("! TRACK COMPONENT'S getCorrespondingTrack() RETURNED nullptr");
         DBG("TrackComponent's trackIndex is -1");
+        return nullptr;
+    }
 
     AudioPluginAudioProcessor *p = (AudioPluginAudioProcessor *)processor;
     return &(p->tracks[trackIndex]);
 }
 
+void track::TrackComponent::initializeGainSlider() {
+    DBG("intiailizGainSlider() called");
+    DBG("track's gain is " << getCorrespondingTrack()->gain);
+    gainSlider.setValue(getCorrespondingTrack()->gain);
+}
+
 track::TrackComponent::TrackComponent(int trackIndex) : juce::Component() {
+    this->trackIndex = trackIndex;
 
     addAndMakeVisible(muteBtn);
     muteBtn.setButtonText("M");
 
-    this->trackIndex = trackIndex;
+    // gainSlider.hideTextBox(true);
+    // gainSlider.setValue(getCorrespondingTrack()->gain);
+    gainSlider.setTextBoxStyle(juce::Slider::TextEntryBoxPosition::NoTextBox,
+                               true, 0, 0);
+
+    gainSlider.onDragEnd = [this] {
+        DBG("setting new gain for track; " << gainSlider.getValue());
+        getCorrespondingTrack()->gain = gainSlider.getValue();
+    };
+
+    addAndMakeVisible(gainSlider);
+    gainSlider.setRange(0.0, 1.0);
 
     muteBtn.onClick = [this] {
         getCorrespondingTrack()->m = !(getCorrespondingTrack()->m);
@@ -158,6 +181,8 @@ void track::TrackComponent::resized() {
         btnHeight);
 
     muteBtn.setBounds(btnBounds);
+
+    gainSlider.setBounds(UI_TRACK_WIDTH - 150, UI_TRACK_HEIGHT / 2, 150, 30);
 }
 
 // ASJAJSAJSJAS
@@ -189,6 +214,7 @@ track::Tracklist::Tracklist() : juce::Component() {
         int i = p->tracks.size() - 1;
         this->trackComponents.push_back(std::make_unique<TrackComponent>(i));
         trackComponents.back().get()->processor = processor;
+        trackComponents.back().get()->initializeGainSlider();
         addAndMakeVisible(*trackComponents.back());
 
         DBG("track component added. will set track components bounds now");
@@ -205,6 +231,7 @@ void track::Tracklist::createTrackComponents() {
     for (track &t : p->tracks) {
         this->trackComponents.push_back(std::make_unique<TrackComponent>(i));
         trackComponents.back().get()->processor = processor;
+        trackComponents.back().get()->initializeGainSlider();
         addAndMakeVisible(*trackComponents.back());
 
         i++;
@@ -313,6 +340,8 @@ void track::track::process(int numSamples, int currentSample) {
             }
         }
     }
+
+    buffer.applyGain(gain);
 }
 
 /*
