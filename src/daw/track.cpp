@@ -124,6 +124,7 @@ track::TrackComponent::TrackComponent(int trackIndex) : juce::Component() {
 
     muteBtn.onClick = [this] {
         getCorrespondingTrack()->m = !(getCorrespondingTrack()->m);
+        repaint();
     };
 }
 track::TrackComponent::~TrackComponent() {}
@@ -137,10 +138,15 @@ void track::TrackComponent::paint(juce::Graphics &g) {
                                  ? "null trackk"
                                  : getCorrespondingTrack()->trackName;
 
-    g.setColour(juce::Colour(0xFFDFDFDF));
-
     juce::Rectangle<int> textBounds = getLocalBounds();
     textBounds.setX(getLocalBounds().getX() + 10);
+
+    // gray out muted track names
+    juce::Colour trackNameColour = juce::Colour(0xFFDFDFDF);
+    if (getCorrespondingTrack()->m)
+        g.setColour(trackNameColour.withAlpha(.5f));
+    else
+        g.setColour(trackNameColour);
 
     g.drawText(trackName, textBounds, juce::Justification::left, true);
 }
