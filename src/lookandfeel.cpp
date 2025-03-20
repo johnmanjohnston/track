@@ -7,6 +7,25 @@ const juce::Font track::ui::CustomLookAndFeel::getRobotoMonoThin() {
     return Font(typeface);
 }
 
+void track::ui::CustomLookAndFeel::drawButtonBackground(
+    Graphics &g, Button &b, const Colour &backgroundColour,
+    bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) {
+
+    // fill
+    auto c = findColour(0x1004011);
+    if (shouldDrawButtonAsHighlighted) {
+        g.setColour(c.brighter(0.1f));
+    } else {
+        g.setColour(c);
+    }
+
+    g.fillRect(b.getLocalBounds());
+
+    // outline
+    g.setColour(c.darker(0.4f));
+    g.drawRect(b.getLocalBounds(), 2);
+}
+
 void track::ui::CustomLookAndFeel::drawLinearSlider(
     Graphics &g, int x, int y, int width, int height, float sliderPos,
     float minSliderPos, float maxSliderPos, const Slider::SliderStyle style,
