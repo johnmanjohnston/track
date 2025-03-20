@@ -162,7 +162,8 @@ void track::TrackComponent::paint(juce::Graphics &g) {
                                  : getCorrespondingTrack()->trackName;
 
     juce::Rectangle<int> textBounds = getLocalBounds();
-    textBounds.setX(getLocalBounds().getX() + 10);
+    textBounds.setX(getLocalBounds().getX() + 14);
+    textBounds.setY(getLocalBounds().getY() - 8);
 
     // gray out muted track names
     juce::Colour trackNameColour = juce::Colour(0xFFDFDFDF);
@@ -175,14 +176,22 @@ void track::TrackComponent::paint(juce::Graphics &g) {
 }
 
 void track::TrackComponent::resized() {
-    int btnHeight = 30;
+    int btnSize = 24;
+    int btnHeight = btnSize;
+    int btnWidth = btnSize;
+
     juce::Rectangle<int> btnBounds = juce::Rectangle<int>(
-        UI_TRACK_WIDTH - 100, (UI_TRACK_HEIGHT / 2) - (btnHeight / 2), 30,
+        UI_TRACK_WIDTH - 100, (UI_TRACK_HEIGHT / 2) - (btnHeight / 2), btnWidth,
         btnHeight);
 
     muteBtn.setBounds(btnBounds);
 
-    gainSlider.setBounds(UI_TRACK_WIDTH - 150, UI_TRACK_HEIGHT / 2, 150, 30);
+    int sliderHeight = 20;
+    int sliderWidth = 140;
+    gainSlider.setBounds(8,
+                         (UI_TRACK_HEIGHT / 2) - (sliderHeight / 2) +
+                             (int)(UI_TRACK_HEIGHT * .2f),
+                         sliderWidth, sliderHeight);
 }
 
 // ASJAJSAJSJAS
