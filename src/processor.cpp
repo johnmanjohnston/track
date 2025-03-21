@@ -282,18 +282,110 @@ juce::AudioProcessorEditor *AudioPluginAudioProcessor::createEditor() {
 
 void AudioPluginAudioProcessor::getStateInformation(
     juce::MemoryBlock &destData) {
-    // You should use this method to store your parameters in the memory block.
-    // You could do that either as raw data, or use the XML or ValueTree classes
-    // as intermediaries to make it easy to save and load complex data.
-    juce::ignoreUnused(destData);
+    auto state = apvts.copyState();
+    std::unique_ptr<juce::XmlElement> xml(state.createXml());
+
+    DBG("getStateInformation() called");
+
+    /*
+    xml->addChildElement(new juce::XmlElement("huzzah"));
+    xml->getChildByName("huzzah")->setAttribute("val",
+                                                "wowowiw this is a string");
+                                                */
+
+    /*
+    <track name="Jarvis" index="0">
+        <clip 
+            path="/clearly/you/dont/have/an/airfryer.wav" 
+            start="44100"
+            name="ironman">
+        </clip>
+    </track>
+    */
+    for (int i = 0; i < tracks.size(); ++i) {
+        juce::XmlElement *trackElement = new juce::XmlElement("track");
+        trackElement->setAttribute("name", tracks[i].trackName);
+        trackElement->setAttribute("index", i);
+
+        for (int j = 0; j < tracks[i].clips.size(); ++j) {
+            juce::XmlElement *clipElement = new juce::XmlElement("clip");
+            track::clip *c = &tracks[i].clips[j];
+
+            clipElement->setAttribute("path", c->path);
+            clipElement->setAttribute("start", c->startPositionSample);
+            clipElement->setAttribute("name", c->name);
+
+            trackElement->addChildElement(clipElement);
+        }
+
+        xml->addChildElement(trackElement);
+    }
+
+    copyXmlToBinary(*xml, destData);
 }
 
 void AudioPluginAudioProcessor::setStateInformation(const void *data,
                                                     int sizeInBytes) {
-    // You should use this method to restore your parameters from this memory
-    // block, whose contents will have been created by the getStateInformation()
-    // call.
-    juce::ignoreUnused(data, sizeInBytes);
+    std::unique_ptr<juce::XmlElement> xmlState(
+        getXmlFromBinary(data, sizeInBytes));
+    if (xmlState.get() != nullptr) {
+        if (xmlState->hasTagName(apvts.state.getType()))
+            apvts.replaceState(juce::ValueTree::fromXml(*xmlState));
+
+        /*
+        DBG("setStateInformation() called");
+        auto a = xmlState.get()->getChildByName("huzzah");
+        if (a == nullptr)
+            DBG("! a IS NULL :(((");
+        else {
+            DBG("a is NOT null :)");
+            auto &x = a->getAttributeValue(0);
+            DBG(x);
+        }
+        */
+
+        /*
+        auto a = xmlState->getChildByName("track");
+        jassert(a != nullptr);
+        auto &v = a->getAttributeValue(0);
+        DBG("v = " << v);
+        */
+
+        tracks.clear();
+
+        juce::XmlElement *trackElement = xmlState->getChildByName("track");
+        while (trackElement != nullptr) {
+            // get track data
+            juce::String trackName = trackElement->getStringAttribute("name");
+            // DBG("FOUND TRACK " << trackName);
+            juce::XmlElement *clipElement =
+                trackElement->getChildByName("clip");
+
+            // create track instance
+            tracks.emplace_back();
+            track::track *t = &tracks.back();
+            t->trackName = trackName;
+
+            while (clipElement != nullptr) {
+                // get clip data
+                juce::String path = clipElement->getStringAttribute("path");
+                juce::String clipName = clipElement->getStringAttribute("name");
+                int start = clipElement->getIntAttribute("start");
+
+                // create clip instance
+                t->clips.emplace_back(); 
+                track::clip *c = &t->clips.back();
+                c->path = path;
+                c->name = clipName;
+                c->startPositionSample = start;
+                c->updateBuffer();
+
+                clipElement = clipElement->getNextElement(); 
+            }
+
+            trackElement = trackElement->getNextElementWithTagName("track");
+        }
+    }
 }
 
 void AudioPluginAudioProcessor::reset() {
