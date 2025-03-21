@@ -12,9 +12,15 @@ AudioPluginAudioProcessor::AudioPluginAudioProcessor()
 #endif
               .withOutput("Output", juce::AudioChannelSet::stereo(), true)
 #endif
-      ) {
-    addParameter(masterGain = new juce::AudioParameterFloat("master", "Master",
-                                                            0.f, 6.f, 1.f));
+              ),
+      apvts(*this, nullptr, juce::Identifier("track"),
+      { 
+            std::make_unique<juce::AudioParameterFloat>("master", "Master", 0.f, 6.f, 1.f)
+      }) 
+{
+    // addParameter(masterGain = new juce::AudioParameterFloat("master", "Master",
+                                                            //0.f, 6.f, 1.f));
+
 }
 
 AudioPluginAudioProcessor::~AudioPluginAudioProcessor() {}
@@ -260,7 +266,7 @@ void AudioPluginAudioProcessor::processBlock(juce::AudioBuffer<float> &buffer,
     }
     */
 
-    buffer.applyGain(*masterGain);
+    buffer.applyGain(apvts.getParameter("master")->getValue());
 }
 
 bool AudioPluginAudioProcessor::hasEditor() const {

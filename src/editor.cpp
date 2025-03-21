@@ -7,7 +7,7 @@
 AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
     AudioPluginAudioProcessor &p)
     : AudioProcessorEditor(&p), processorRef(p),
-      masterSliderAttachment(*p.masterGain, masterSlider) {
+      masterSliderAttachment(p.apvts, "master", masterSlider) {
 
     juce::ignoreUnused(processorRef);
 

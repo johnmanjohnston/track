@@ -32,7 +32,7 @@ class AudioPluginAudioProcessorEditor : public juce::AudioProcessorEditor,
     track::ui::CustomLookAndFeel lnf;
 
     juce::Slider masterSlider;
-    juce::SliderParameterAttachment masterSliderAttachment;
+    juce::AudioProcessorValueTreeState::SliderAttachment masterSliderAttachment;
 
     void timerCallback() override {
         transportStatus.repaint();
