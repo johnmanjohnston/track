@@ -165,12 +165,22 @@ void track::TrackComponent::paint(juce::Graphics &g) {
     textBounds.setX(getLocalBounds().getX() + 14);
     textBounds.setY(getLocalBounds().getY() - 8);
 
-    // gray out muted track names
+    // gray out muted track names, and draw yellow square around mute button if needed
     juce::Colour trackNameColour = juce::Colour(0xFFDFDFDF);
-    if (getCorrespondingTrack()->m)
+    if (getCorrespondingTrack()->m) {
+        // draw yellow square
+        g.setColour(juce::Colours::yellow);
+        g.setOpacity(0.5f);
+        auto btnBounds = muteBtn.getBounds();
+        btnBounds.expand(1, 1);
+        g.drawRect(btnBounds);
+
         g.setColour(trackNameColour.withAlpha(.5f));
-    else
+    } 
+    
+    else {
         g.setColour(trackNameColour);
+    }
 
     g.drawText(trackName, textBounds, juce::Justification::left, true);
 }
