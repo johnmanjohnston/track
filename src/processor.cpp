@@ -285,6 +285,8 @@ void AudioPluginAudioProcessor::getStateInformation(
     auto state = apvts.copyState();
     std::unique_ptr<juce::XmlElement> xml(state.createXml());
 
+    xml->deleteAllChildElementsWithTagName("track");
+
     DBG("getStateInformation() called");
 
     /*
@@ -322,6 +324,8 @@ void AudioPluginAudioProcessor::getStateInformation(
     }
 
     copyXmlToBinary(*xml, destData);
+
+    DBG(xml->createDocument(""));
 }
 
 void AudioPluginAudioProcessor::setStateInformation(const void *data,
@@ -380,12 +384,14 @@ void AudioPluginAudioProcessor::setStateInformation(const void *data,
                 c->startPositionSample = start;
                 c->updateBuffer();
 
-                clipElement = clipElement->getNextElement();
+                clipElement = clipElement->getNextElementWithTagName("clip");
             }
 
             trackElement = trackElement->getNextElementWithTagName("track");
         }
     }
+
+    DBG(xmlState->createDocument(""));
 }
 
 void AudioPluginAudioProcessor::reset() {
