@@ -14,13 +14,11 @@ AudioPluginAudioProcessor::AudioPluginAudioProcessor()
 #endif
               ),
       apvts(*this, nullptr, juce::Identifier("track"),
-      { 
-            std::make_unique<juce::AudioParameterFloat>("master", "Master", 0.f, 6.f, 1.f)
-      }) 
-{
-    // addParameter(masterGain = new juce::AudioParameterFloat("master", "Master",
-                                                            //0.f, 6.f, 1.f));
-
+            {std::make_unique<juce::AudioParameterFloat>("master", "Master",
+                                                         0.f, 6.f, 1.f)}) {
+    // addParameter(masterGain = new juce::AudioParameterFloat("master",
+    // "Master",
+    // 0.f, 6.f, 1.f));
 }
 
 AudioPluginAudioProcessor::~AudioPluginAudioProcessor() {}
@@ -135,6 +133,7 @@ void AudioPluginAudioProcessor::prepareToPlay(double sampleRate,
         DBG("reader not created");
     }
 
+    /*
     // initialize tracks
     // first track
     track::track t;
@@ -158,6 +157,7 @@ void AudioPluginAudioProcessor::prepareToPlay(double sampleRate,
     c2.updateBuffer();
     t2.clips.push_back(c2);
     tracks.push_back(t2);
+    */
 
     DBG("prepareToPlay() called with sample rate " << sampleRate);
     DBG("total outputs: " << getTotalNumOutputChannels());
@@ -295,8 +295,8 @@ void AudioPluginAudioProcessor::getStateInformation(
 
     /*
     <track name="Jarvis" index="0">
-        <clip 
-            path="/clearly/you/dont/have/an/airfryer.wav" 
+        <clip
+            path="/clearly/you/dont/have/an/airfryer.wav"
             start="44100"
             name="ironman">
         </clip>
@@ -373,14 +373,14 @@ void AudioPluginAudioProcessor::setStateInformation(const void *data,
                 int start = clipElement->getIntAttribute("start");
 
                 // create clip instance
-                t->clips.emplace_back(); 
+                t->clips.emplace_back();
                 track::clip *c = &t->clips.back();
                 c->path = path;
                 c->name = clipName;
                 c->startPositionSample = start;
                 c->updateBuffer();
 
-                clipElement = clipElement->getNextElement(); 
+                clipElement = clipElement->getNextElement();
             }
 
             trackElement = trackElement->getNextElementWithTagName("track");

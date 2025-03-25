@@ -67,10 +67,6 @@ void track::TimelineComponent::paint(juce::Graphics &g) {
                    false);
     }
 
-    g.drawText(
-        juce::String(processorRef->tracks[0].clips[0].buffer.getNumChannels()),
-        10, 10, 50, 20, juce::Justification::left, false);
-
     if (clipComponentsUpdated == false)
         updateClipComponents();
 
