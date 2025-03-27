@@ -1,5 +1,6 @@
 #include "track.h"
 #include "defs.h"
+#include "juce_dsp/juce_dsp.h"
 #include "timeline.h"
 
 track::ClipComponent::ClipComponent(clip *c)
@@ -149,6 +150,19 @@ track::TrackComponent::TrackComponent(int trackIndex) : juce::Component() {
         getCorrespondingTrack()->m = !(getCorrespondingTrack()->m);
         repaint();
     };
+
+    panSlider.setTextBoxStyle(juce::Slider::TextEntryBoxPosition::NoTextBox,
+                              true, 0, 0);
+    panSlider.setSliderStyle(
+        juce::Slider::SliderStyle::RotaryHorizontalVerticalDrag);
+
+    addAndMakeVisible(panSlider);
+    panSlider.setRange(-1.f, 1.f);
+
+    panSlider.onValueChange = [this] {
+        getCorrespondingTrack()->pan = panSlider.getValue();
+        DBG("new pan value is " << panSlider.getValue());
+    };
 }
 track::TrackComponent::~TrackComponent() {}
 
@@ -165,7 +179,8 @@ void track::TrackComponent::paint(juce::Graphics &g) {
     textBounds.setX(getLocalBounds().getX() + 14);
     textBounds.setY(getLocalBounds().getY() - 8);
 
-    // gray out muted track names, and draw yellow square around mute button if needed
+    // gray out muted track names, and draw yellow square around mute button if
+    // needed
     juce::Colour trackNameColour = juce::Colour(0xFFDFDFDF);
     if (getCorrespondingTrack()->m) {
         // draw yellow square
@@ -176,8 +191,8 @@ void track::TrackComponent::paint(juce::Graphics &g) {
         g.drawRect(btnBounds);
 
         g.setColour(trackNameColour.withAlpha(.5f));
-    } 
-    
+    }
+
     else {
         g.setColour(trackNameColour);
     }
@@ -195,6 +210,14 @@ void track::TrackComponent::resized() {
         btnHeight);
 
     muteBtn.setBounds(btnBounds);
+
+    // set pan slider bounds
+    float panSliderSizeMultiplier = 1.8f;
+    juce::Rectangle<int> panSliderBounds = juce::Rectangle<int>(
+        btnBounds.getX() + 30, btnBounds.getY() - 10,
+        btnSize * panSliderSizeMultiplier, btnSize * panSliderSizeMultiplier);
+
+    panSlider.setBounds(panSliderBounds);
 
     int sliderHeight = 20;
     int sliderWidth = 140;
@@ -323,6 +346,7 @@ void track::track::process(int numSamples, int currentSample) {
     int outputBufferLength = numSamples;
     int totalNumInputChannels = 2;
 
+    // add sample data to buffer
     for (clip &c : clips) {
         int clipStart = c.startPositionSample;
         int clipEnd = c.startPositionSample + c.buffer.getNumSamples();
@@ -360,6 +384,17 @@ void track::track::process(int numSamples, int currentSample) {
         }
     }
 
+    // pan audio
+    float normalisedPan = (0.5f) * (pan + 1.f);
+
+    float l = juce::jmin(0.5f, 1.f - normalisedPan);
+    float r = juce::jmin(0.5f, normalisedPan);
+    float boost = 2.f;
+
+    buffer.applyGain(0, 0, buffer.getNumSamples(), l * boost);
+    buffer.applyGain(1, 0, buffer.getNumSamples(), r * boost);
+
+    // main audio processing is done; add gain as final step
     buffer.applyGain(gain);
 }
 

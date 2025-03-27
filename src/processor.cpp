@@ -159,6 +159,17 @@ void AudioPluginAudioProcessor::prepareToPlay(double sampleRate,
     tracks.push_back(t2);
     */
 
+    track::track t;
+    t.trackName = "beans";
+
+    track::clip c;
+    c.startPositionSample = startSample;
+    c.path = path;
+    c.updateBuffer();
+
+    t.clips.push_back(c);
+    tracks.push_back(t);
+
     DBG("prepareToPlay() called with sample rate " << sampleRate);
     DBG("total outputs: " << getTotalNumOutputChannels());
     DBG("total inputs: " << getTotalNumInputChannels());

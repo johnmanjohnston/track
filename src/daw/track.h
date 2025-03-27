@@ -45,6 +45,7 @@ class track {
     bool s = false;
     bool m = false;
     float gain = 1.f;
+    float pan = 0.f;
 
     juce::String trackName = "Untitled Track";
 
@@ -86,6 +87,7 @@ class TrackComponent : public juce::Component {
 
     juce::TextButton muteBtn;
     juce::Slider gainSlider;
+    juce::Slider panSlider;
 };
 
 class Tracklist : public juce::Component {
