@@ -214,7 +214,7 @@ void track::TrackComponent::resized() {
     // set pan slider bounds
     float panSliderSizeMultiplier = 1.8f;
     juce::Rectangle<int> panSliderBounds = juce::Rectangle<int>(
-        btnBounds.getX() + 30, btnBounds.getY() - 10,
+        btnBounds.getX() + 30, btnBounds.getY() - 8,
         btnSize * panSliderSizeMultiplier, btnSize * panSliderSizeMultiplier);
 
     panSlider.setBounds(panSliderBounds);

@@ -15,6 +15,10 @@ class CustomLookAndFeel : public juce::LookAndFeel_V4 {
         //
         // button bg
         setColour(0x1004011, juce::Colour(0xFF'535353));
+
+        // future john here. i forgot the enum names correspond to the color IDs
+        setColour(Slider::rotarySliderFillColourId, juce::Colour(0xFF'67FF76));
+        setColour(Slider::thumbColourId, juce::Colour(0xFF'67FF76));
     }
 
     static const juce::Font getRobotoMonoThin();
@@ -23,6 +27,10 @@ class CustomLookAndFeel : public juce::LookAndFeel_V4 {
                           float sliderPos, float minSliderPos,
                           float maxSliderPos, const Slider::SliderStyle style,
                           Slider &slider) override;
+
+    void drawRotarySlider(Graphics &, int x, int y, int width, int height,
+                          float sliderPosProportional, float rotaryStartAngle,
+                          float rotaryEndAngle, Slider &) override;
 
     void drawButtonBackground(Graphics &g, Button &b,
                               const Colour &backgroundColour,
