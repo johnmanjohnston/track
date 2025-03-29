@@ -1,4 +1,5 @@
 #include "lookandfeel.h"
+#include "juce_core/juce_core.h"
 
 const juce::Font track::ui::CustomLookAndFeel::getRobotoMonoThin() {
     static auto typeface = Typeface::createSystemTypefaceFor(
@@ -33,9 +34,10 @@ void track::ui::CustomLookAndFeel::drawRotarySlider(
 
     if (slider.isEnabled()) {
         Path valueArc;
+        float pi = juce::MathConstants<float>::pi;
         valueArc.addCentredArc(bounds.getCentreX(), bounds.getCentreY(),
-                               arcRadius, arcRadius, 0.0f, rotaryStartAngle,
-                               toAngle, true);
+                               arcRadius, arcRadius, 0.0f, 2 * pi, toAngle,
+                               true);
 
         g.setColour(fill);
         g.strokePath(valueArc, PathStrokeType(lineW, PathStrokeType::curved,
@@ -59,7 +61,7 @@ void track::ui::CustomLookAndFeel::drawRotarySlider(
     centerToThumbLine.startNewSubPath(bounds.getCentre().toFloat());
     centerToThumbLine.lineTo(thumbPoint);
     centerToThumbLine.closeSubPath();
-    g.strokePath(centerToThumbLine, PathStrokeType(2.f));
+    g.strokePath(centerToThumbLine, PathStrokeType(1.7f));
 }
 
 void track::ui::CustomLookAndFeel::drawButtonBackground(
