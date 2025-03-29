@@ -30,7 +30,7 @@ void track::ui::CustomLookAndFeel::drawRotarySlider(
 
     g.setColour(outline);
     g.strokePath(backgroundArc, PathStrokeType(lineW, PathStrokeType::curved,
-                                               PathStrokeType::rounded));
+                                               PathStrokeType::square));
 
     if (slider.isEnabled()) {
         Path valueArc;
@@ -41,7 +41,7 @@ void track::ui::CustomLookAndFeel::drawRotarySlider(
 
         g.setColour(fill);
         g.strokePath(valueArc, PathStrokeType(lineW, PathStrokeType::curved,
-                                              PathStrokeType::rounded));
+                                              PathStrokeType::square));
     }
 
     auto thumbWidth = lineW * 1.0f;
@@ -56,12 +56,19 @@ void track::ui::CustomLookAndFeel::drawRotarySlider(
         Rectangle<float>(thumbWidth, thumbWidth).withCentre(thumbPoint));
 
     // draw line from center to the thumb
-    g.setColour(findColour(Slider::rotarySliderFillColourId));
+    g.setColour(findColour(Slider::backgroundColourId));
     Path centerToThumbLine;
-    centerToThumbLine.startNewSubPath(bounds.getCentre().toFloat());
-    centerToThumbLine.lineTo(thumbPoint);
+
+    juce::Line<float> line;
+    line.setStart(bounds.getCentre());
+    line.setEnd(thumbPoint);
+    line = line.withShortenedStart(4.f);
+    line = line.withShortenedEnd(.4f);
+
+    centerToThumbLine.startNewSubPath(line.getStart());
+    centerToThumbLine.lineTo(line.getEnd());
     centerToThumbLine.closeSubPath();
-    g.strokePath(centerToThumbLine, PathStrokeType(1.7f));
+    g.strokePath(centerToThumbLine, PathStrokeType(2.f));
 }
 
 void track::ui::CustomLookAndFeel::drawButtonBackground(
