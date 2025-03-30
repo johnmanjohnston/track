@@ -149,6 +149,17 @@ void track::TimelineComponent::filesDropped(const juce::StringArray &files,
     std::unique_ptr<clip> c(new clip());
     c->path = files[0];
 
+    // check if file is valid audio
+    juce::File file(c->path);
+    juce::AudioFormatManager afm;
+    afm.registerBasicFormats();
+    std::unique_ptr<juce::AudioFormatReader> reader(afm.createReaderFor(file));
+
+    if (reader == nullptr) {
+        DBG("INVALID AUDIO FILE DRAGGED");
+        return;
+    }
+
     // remove directories leading up to the actual file name we want, and strip
     // file extension
     if (files[0].contains("/")) {
