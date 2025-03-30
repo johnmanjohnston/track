@@ -24,7 +24,7 @@ void track::ClipComponent::changeListenerCallback(ChangeBroadcaster *source) {
 
 void track::ClipComponent::paint(juce::Graphics &g) {
     if (thumbnail.getNumChannels() == 0) {
-        g.fillAll(juce::Colours::blue);
+        g.fillAll(juce::Colours::grey);
         g.setColour(juce::Colours::white);
         g.setFont(12.f);
         g.drawText("SAMPLE OFFLINE", getLocalBounds(),
@@ -316,6 +316,7 @@ void track::clip::updateBuffer() {
     juce::File file(path);
 
     if (!file.exists()) {
+        buffer.setSize(0, 0);
         DBG("updateBuffer() called--file " << path << " does not exist");
         return;
     }

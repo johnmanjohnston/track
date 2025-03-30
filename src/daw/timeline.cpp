@@ -78,20 +78,14 @@ void track::TimelineComponent::paint(juce::Graphics &g) {
                 (UI_TRACK_VERTICAL_MARGIN * clip->trackIndex),
             clip->correspondingClip->buffer.getNumSamples() / 41000.0 * 32.0,
             UI_TRACK_HEIGHT);
-    }
 
-    /*
-    // FIXME:: playhead no longer updates smoothly because we removed the 20ms
-    // repaint() timer in the editor (to save CPU usage) draw playhead
-    g.setColour(juce::Colours::white);
-    if (processorRef->getPlayHead() != nullptr &&
-        processorRef->getPlayHead()->getPosition()->getBpm().hasValue()) {
-        int curSample =
-            *processorRef->getPlayHead()->getPosition()->getTimeInSamples();
-
-        g.drawRect(curSample / 41000.0 * 32.0, 0, 2, getHeight(), 2);
+        // handle offline clips
+        if (clip->correspondingClip->buffer.getNumSamples() == 0) {
+            juce::Rectangle<int> offlineClipBounds = clip->getBounds();
+            offlineClipBounds.setWidth(110);
+            clip->setBounds(offlineClipBounds);
+        }
     }
-    */
 }
 
 void track::TimelineComponent::updateClipComponents() {
@@ -133,7 +127,7 @@ void track::TimelineComponent::deleteClip(clip *c, int trackIndex) {
         // see it
         processorRef->tracks[trackIndex].clips[clipIndex].buffer.setSize(0, 1);
         processorRef->tracks[trackIndex].clips[clipIndex].startPositionSample =
-            -10;
+            -999999999;
     }
 
     updateClipComponents();
