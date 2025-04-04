@@ -179,6 +179,9 @@ track::TrackComponent::TrackComponent(int trackIndex) : juce::Component() {
         getCorrespondingTrack()->pan = panSlider.getValue();
         DBG("new pan value is " << panSlider.getValue());
     };
+
+    fxBtn.setButtonText("FX");
+    addAndMakeVisible(fxBtn);
 }
 track::TrackComponent::~TrackComponent() {}
 
@@ -222,7 +225,7 @@ void track::TrackComponent::resized() {
     int btnWidth = btnSize;
 
     juce::Rectangle<int> btnBounds = juce::Rectangle<int>(
-        UI_TRACK_WIDTH - 100, (UI_TRACK_HEIGHT / 2) - (btnHeight / 2), btnWidth,
+        UI_TRACK_WIDTH - 115, (UI_TRACK_HEIGHT / 2) - (btnHeight / 2), btnWidth,
         btnHeight);
 
     muteBtn.setBounds(btnBounds);
@@ -230,13 +233,17 @@ void track::TrackComponent::resized() {
     // set pan slider bounds
     float panSliderSizeMultiplier = 1.8f;
     juce::Rectangle<int> panSliderBounds = juce::Rectangle<int>(
-        btnBounds.getX() + 30, btnBounds.getY() - 8,
+        btnBounds.getX() + 20, btnBounds.getY() - 8,
         btnSize * panSliderSizeMultiplier, btnSize * panSliderSizeMultiplier);
 
     panSlider.setBounds(panSliderBounds);
 
+    juce::Rectangle<int> fxBounds = juce::Rectangle<int>(
+        panSliderBounds.getX() + 38, btnBounds.getY(), btnSize * 1.2f, btnSize);
+    fxBtn.setBounds(fxBounds);
+
     int sliderHeight = 20;
-    int sliderWidth = 140;
+    int sliderWidth = 130;
     gainSlider.setBounds(8,
                          (UI_TRACK_HEIGHT / 2) - (sliderHeight / 2) +
                              (int)(UI_TRACK_HEIGHT * .2f),

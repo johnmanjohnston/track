@@ -87,6 +87,7 @@ class TrackComponent : public juce::Component {
     int trackIndex = -1;
 
     juce::TextButton muteBtn;
+    juce::TextButton fxBtn; // like in REAPER
     juce::Slider gainSlider;
     juce::Slider panSlider;
 };
