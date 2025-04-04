@@ -12,6 +12,7 @@ class clip {
         -1; // relative to audio file start, irrespective of looping
     int endPositionSampleWithLooping; // absolute sample position within host
     bool isLooping;
+    bool active = true;
 
     juce::AudioBuffer<float> buffer; // irrespective of looping
     void updateBuffer();

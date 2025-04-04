@@ -35,11 +35,16 @@ void track::ClipComponent::paint(juce::Graphics &g) {
         if (isBeingDragged) {
             g.fillAll(juce::Colours::blue);
         } else {
-            g.setColour(juce::Colour(0xFF33587F));
-            g.fillRoundedRectangle(getLocalBounds().toFloat(), 2.f);
+            if (this->correspondingClip->active) {
+                g.setColour(juce::Colour(0xFF33587F));
+                g.fillRoundedRectangle(getLocalBounds().toFloat(), 2.f);
+            }
         }
 
-        g.setColour(juce::Colour(0xFFAECBED));
+        if (this->correspondingClip->active)
+            g.setColour(juce::Colour(0xFFAECBED));
+        else
+            g.setColour(juce::Colour(0xFF'696969));
 
         int thumbnailTopMargin = 18;
         juce::Rectangle<int> thumbnailBounds = getLocalBounds();
@@ -53,7 +58,11 @@ void track::ClipComponent::paint(juce::Graphics &g) {
         g.fillRect(0, 0, getWidth(), thumbnailTopMargin);
     }
 
-    g.setColour(juce::Colour(0xFF33587F));
+    if (this->correspondingClip->active)
+        g.setColour(juce::Colour(0xFF33587F));
+    else
+        g.setColour(juce::Colour(0xFF'9B9B9B));
+
     g.drawText(this->correspondingClip->name, 2, 0, getWidth(), 20,
                juce::Justification::left, true);
 }
@@ -65,6 +74,7 @@ void track::ClipComponent::mouseDown(const juce::MouseEvent &event) {
         juce::PopupMenu contextMenu;
         contextMenu.addItem(1, "Reverse");
         contextMenu.addItem(2, "Cut");
+        contextMenu.addItem(3, "Toggle activate/deactive clip");
 
         contextMenu.showMenuAsync(
             juce::PopupMenu::Options(), [this](int result) {
@@ -80,6 +90,12 @@ void track::ClipComponent::mouseDown(const juce::MouseEvent &event) {
                         (TimelineComponent *)getParentComponent();
 
                     tc->deleteClip(correspondingClip, trackIndex);
+                }
+
+                else if (result == 3) {
+                    this->correspondingClip->active =
+                        !this->correspondingClip->active;
+                    repaint();
                 }
             });
     }
@@ -349,6 +365,9 @@ void track::track::process(int numSamples, int currentSample) {
 
     // add sample data to buffer
     for (clip &c : clips) {
+        if (!c.active)
+            continue;
+
         int clipStart = c.startPositionSample;
         int clipEnd = c.startPositionSample + c.buffer.getNumSamples();
 

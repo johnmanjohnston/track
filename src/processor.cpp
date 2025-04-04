@@ -326,6 +326,7 @@ void AudioPluginAudioProcessor::getStateInformation(
             juce::XmlElement *clipElement = new juce::XmlElement("clip");
             track::clip *c = &tracks[i].clips[j];
 
+            clipElement->setAttribute("active", c->active);
             clipElement->setAttribute("path", c->path);
             clipElement->setAttribute("start", c->startPositionSample);
             clipElement->setAttribute("name", c->name);
@@ -388,10 +389,12 @@ void AudioPluginAudioProcessor::setStateInformation(const void *data,
                 juce::String path = clipElement->getStringAttribute("path");
                 juce::String clipName = clipElement->getStringAttribute("name");
                 int start = clipElement->getIntAttribute("start");
+                bool active = clipElement->getIntAttribute("active");
 
                 // create clip instance
                 t->clips.emplace_back();
                 track::clip *c = &t->clips.back();
+                c->active = active;
                 c->path = path;
                 c->name = clipName;
                 c->startPositionSample = start;
