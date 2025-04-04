@@ -19,6 +19,7 @@ class CustomLookAndFeel : public juce::LookAndFeel_V4 {
         // future john here. i forgot the enum names correspond to the color IDs
         setColour(Slider::rotarySliderFillColourId, juce::Colour(0xFF'67FF76));
         setColour(Slider::thumbColourId, juce::Colour(0xFF'67FF76));
+        setColour(Slider::trackColourId, juce::Colour(0xFF'303030));
     }
 
     static const juce::Font getRobotoMonoThin();

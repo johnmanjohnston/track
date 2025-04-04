@@ -23,6 +23,14 @@ void track::ui::CustomLookAndFeel::drawRotarySlider(
     auto lineW = 2;
     auto arcRadius = radius - lineW * 0.5f;
 
+    // background circle
+    g.setColour(juce::Colour(0xFF'818181));
+    g.fillEllipse(
+        bounds.getX() + 2, bounds.getY() + 2, (arcRadius * 1.7f) + 1.f,
+        arcRadius * 1.7f); // probably not the best way to position the cirlce
+                           // but i couldn't be bothered to implement a better
+                           // way. this is now a problem for you, future john
+
     Path backgroundArc;
     backgroundArc.addCentredArc(bounds.getCentreX(), bounds.getCentreY(),
                                 arcRadius, arcRadius, 0.0f, rotaryStartAngle,
