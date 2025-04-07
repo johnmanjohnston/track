@@ -6,9 +6,7 @@
 
 // TODO: organize this file
 
-track::TimelineComponent::TimelineComponent() : juce::Component() {
-    setSize(9000, 2000);
-};
+track::TimelineComponent::TimelineComponent() : juce::Component(){};
 track::TimelineComponent::~TimelineComponent(){};
 
 track::TimelineViewport::TimelineViewport() : juce::Viewport() {}
@@ -33,14 +31,24 @@ void track::TimelineViewport::mouseWheelMove(
     const juce::MouseWheelDetails &mouseWheelDetails) {
 
     if (juce::ModifierKeys::currentModifiers.isAltDown()) {
-        if (mouseWheelDetails.deltaY < 0) {
+        if (mouseWheelDetails.deltaY < 0 &&
+            UI_TRACK_HEIGHT > UI_MINIMUM_TRACK_HEIGHT) {
             UI_TRACK_HEIGHT -= 5;
-        } else if (mouseWheelDetails.deltaY > 0) {
+        } else if (mouseWheelDetails.deltaY > 0 &&
+                   UI_TRACK_HEIGHT < UI_MAXIMUM_TRACK_HEIGHT) {
             UI_TRACK_HEIGHT += 5;
         }
 
         tracklist->setTrackComponentBounds();
         trackViewport->repaint();
+
+        TimelineComponent *timelineComponent =
+            (TimelineComponent *)getViewedComponent();
+        int tcHeight =
+            (tracklist->trackComponents.size() + 2) * (size_t)UI_TRACK_HEIGHT;
+        timelineComponent->setSize(timelineComponent->getWidth(),
+                                   juce::jmax(tcHeight, this->getHeight()));
+        timelineComponent->repaint();
 
         repaint();
     }

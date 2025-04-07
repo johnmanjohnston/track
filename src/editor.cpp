@@ -30,7 +30,7 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
     tracklist.createTrackComponents();
 
     trackViewport.setViewedComponent(&tracklist, false);
-    trackViewport.setBounds(0, 60, track::UI_TRACK_WIDTH, 655);
+    trackViewport.setBounds(0, 55, track::UI_TRACK_WIDTH, 655);
     trackViewport.setScrollBarsShown(true, false);
     addAndMakeVisible(trackViewport);
 
@@ -50,6 +50,10 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
     addAndMakeVisible(playhead);
 
     startTimerHz(20);
+
+    int tcHeight = processorRef.tracks.size() * (size_t)track::UI_TRACK_HEIGHT;
+    timelineComponent->setSize(
+        4000, juce::jmax(tcHeight, timelineViewport.getHeight()) - 4);
 }
 
 AudioPluginAudioProcessorEditor::~AudioPluginAudioProcessorEditor() {

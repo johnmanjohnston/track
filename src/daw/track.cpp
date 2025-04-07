@@ -327,6 +327,12 @@ void track::Tracklist::setTrackComponentBounds() {
 
     DBG("setTrackComponentBounds() called");
 
+    if (getParentComponent()) {
+        int newTracklistHeight = juce::jmax((counter + 2) * UI_TRACK_HEIGHT,
+                                            getParentComponent()->getHeight());
+        this->setSize(getWidth(), newTracklistHeight);
+    }
+
     repaint();
 
     if (getParentComponent())
