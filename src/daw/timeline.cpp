@@ -50,6 +50,12 @@ void track::TimelineViewport::mouseWheelMove(
                                    juce::jmax(tcHeight, this->getHeight()));
         timelineComponent->repaint();
 
+        if (timelineComponent->getHeight() <= this->getHeight()) {
+            setScrollBarsShown(false, true);
+        } else {
+            setScrollBarsShown(true, true);
+        }
+
         repaint();
     }
 

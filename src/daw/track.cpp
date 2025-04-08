@@ -182,6 +182,13 @@ track::TrackComponent::TrackComponent(int trackIndex) : juce::Component() {
 
     fxBtn.setButtonText("FX");
     addAndMakeVisible(fxBtn);
+
+    fxBtn.onClick = [this] {
+        DBG("FX button clicked");
+        Tracklist *tracklist = (Tracklist *)getParentComponent();
+        jassert(tracklist != nullptr);
+        tracklist->openFxChain(this->trackIndex);
+    };
 }
 track::TrackComponent::~TrackComponent() {}
 
@@ -304,6 +311,12 @@ void track::Tracklist::createTrackComponents() {
 
     setTrackComponentBounds();
     repaint();
+}
+
+void track::Tracklist::openFxChain(int trackIndex) {
+    pluginChainComponent = std::make_unique<PluginChainComponent>();
+    pluginChainComponent->setPaintingIsUnclipped(false);
+    getParentComponent()->addAndMakeVisible(*pluginChainComponent);
 }
 
 void track::Tracklist::setTrackComponentBounds() {

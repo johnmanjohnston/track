@@ -33,6 +33,7 @@ target_sources(track PRIVATE
     src/daw/defs.cpp
     src/daw/transport_status.cpp
     src/daw/playhead.cpp
+    src/daw/plugin_chain.cpp
     src/lookandfeel.cpp)
 
 target_compile_definitions(track PRIVATE

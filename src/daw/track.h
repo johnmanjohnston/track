@@ -1,4 +1,5 @@
 #pragma once
+#include "plugin_chain.h"
 #include <JuceHeader.h>
 
 namespace track {
@@ -100,6 +101,9 @@ class Tracklist : public juce::Component {
     std::vector<std::unique_ptr<TrackComponent>> trackComponents;
     void createTrackComponents();
     void setTrackComponentBounds();
+
+    std::unique_ptr<PluginChainComponent> pluginChainComponent;
+    void openFxChain(int trackIndex);
 
     void *processor = nullptr;
 
