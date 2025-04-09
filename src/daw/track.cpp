@@ -2,6 +2,7 @@
 #include "defs.h"
 #include "juce_dsp/juce_dsp.h"
 #include "timeline.h"
+#include "../editor.h"
 
 track::ClipComponent::ClipComponent(clip *c)
     : juce::Component(), thumbnailCache(5),
@@ -185,9 +186,10 @@ track::TrackComponent::TrackComponent(int trackIndex) : juce::Component() {
 
     fxBtn.onClick = [this] {
         DBG("FX button clicked");
-        Tracklist *tracklist = (Tracklist *)getParentComponent();
-        jassert(tracklist != nullptr);
-        tracklist->openFxChain(this->trackIndex);
+
+        AudioPluginAudioProcessorEditor *editor =
+            this->findParentComponentOfClass<AudioPluginAudioProcessorEditor>();
+        editor->openFxChain(this->trackIndex);
     };
 }
 track::TrackComponent::~TrackComponent() {}
@@ -311,12 +313,6 @@ void track::Tracklist::createTrackComponents() {
 
     setTrackComponentBounds();
     repaint();
-}
-
-void track::Tracklist::openFxChain(int trackIndex) {
-    pluginChainComponent = std::make_unique<PluginChainComponent>();
-    pluginChainComponent->setPaintingIsUnclipped(false);
-    getParentComponent()->addAndMakeVisible(*pluginChainComponent);
 }
 
 void track::Tracklist::setTrackComponentBounds() {

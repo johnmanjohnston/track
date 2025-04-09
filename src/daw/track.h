@@ -102,9 +102,6 @@ class Tracklist : public juce::Component {
     void createTrackComponents();
     void setTrackComponentBounds();
 
-    std::unique_ptr<PluginChainComponent> pluginChainComponent;
-    void openFxChain(int trackIndex);
-
     void *processor = nullptr;
 
     juce::TextButton newTrackBtn;

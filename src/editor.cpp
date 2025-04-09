@@ -54,6 +54,9 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
     int tcHeight = processorRef.tracks.size() * (size_t)track::UI_TRACK_HEIGHT;
     timelineComponent->setSize(
         4000, juce::jmax(tcHeight, timelineViewport.getHeight()) - 4);
+
+    //addAndMakeVisible(pluginChainComponent);
+    //pluginChainComponent.setBounds(1, 1, 1, 1);
 }
 
 AudioPluginAudioProcessorEditor::~AudioPluginAudioProcessorEditor() {
@@ -92,4 +95,12 @@ void AudioPluginAudioProcessorEditor::resized() {
         timeInfoBgHeight);
 
     transportStatus.setBounds(timeInfoRectangle);
+}
+
+void AudioPluginAudioProcessorEditor::openFxChain(int trackIndex) {
+    DBG("editor's openFxChain() called for track " << trackIndex);
+    pluginChainComponent = std::make_unique<track::PluginChainComponent>();
+    addAndMakeVisible(*pluginChainComponent);
+    pluginChainComponent->setBounds(10, 10, 900, 200);
+    repaint();
 }

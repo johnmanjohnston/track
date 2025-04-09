@@ -15,6 +15,9 @@ class AudioPluginAudioProcessorEditor : public juce::AudioProcessorEditor,
     void paint(juce::Graphics &) override;
     void resized() override;
 
+    //track::PluginChainComponent pluginChainComponent;
+    std::unique_ptr<track::PluginChainComponent> pluginChainComponent;
+    void openFxChain(int trackIndex);
   private:
     AudioPluginAudioProcessor &processorRef;
 
