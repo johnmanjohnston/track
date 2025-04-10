@@ -1,4 +1,5 @@
 #include "../processor.h"
+#include "BinaryData.h"
 #include "track.h"
 #include <JuceHeader.h>
 
@@ -17,5 +18,14 @@ class PluginChainComponent : public juce::Component {
     int trackIndex = -1;
     AudioPluginAudioProcessor *processor = nullptr;
     track *getCorrespondingTrack();
+
+    // TODO: this shouldn't belong in this class
+    static const juce::Font getInterBoldItalic() {
+        static auto typeface = Typeface::createSystemTypefaceFor(
+            BinaryData::Inter_18ptBoldItalic_ttf,
+            BinaryData::Inter_18ptBoldItalic_ttfSize);
+
+        return typeface;
+    }
 };
 } // namespace track

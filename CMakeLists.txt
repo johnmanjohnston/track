@@ -22,6 +22,8 @@ juce_add_plugin(track
 
 juce_add_binary_data(trackBinaryData SOURCES
     assets/RobotoMono-Thin.ttf
+    assets/Inter_18pt-BoldItalic.ttf
+    assets/Inter_18pt-Regular.ttf
     assets/FX.png
 )
 
