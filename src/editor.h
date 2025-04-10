@@ -1,5 +1,6 @@
 #pragma once
 #include "daw/playhead.h"
+#include "daw/plugin_chain.h"
 #include "daw/timeline.h"
 #include "daw/track.h"
 #include "daw/transport_status.h"
@@ -15,9 +16,10 @@ class AudioPluginAudioProcessorEditor : public juce::AudioProcessorEditor,
     void paint(juce::Graphics &) override;
     void resized() override;
 
-    //track::PluginChainComponent pluginChainComponent;
+    // track::PluginChainComponent pluginChainComponent;
     std::unique_ptr<track::PluginChainComponent> pluginChainComponent;
     void openFxChain(int trackIndex);
+
   private:
     AudioPluginAudioProcessor &processorRef;
 

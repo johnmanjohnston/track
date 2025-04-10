@@ -1,5 +1,4 @@
 #pragma once
-#include "plugin_chain.h"
 #include <JuceHeader.h>
 
 namespace track {

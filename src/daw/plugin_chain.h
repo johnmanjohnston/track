@@ -1,3 +1,5 @@
+#include "../processor.h"
+#include "track.h"
 #include <JuceHeader.h>
 
 namespace track {
@@ -11,5 +13,9 @@ class PluginChainComponent : public juce::Component {
     juce::Rectangle<int> dragStartBounds;
 
     void paint(juce::Graphics &g) override;
+
+    int trackIndex = -1;
+    AudioPluginAudioProcessor *processor = nullptr;
+    track *getCorrespondingTrack();
 };
 } // namespace track

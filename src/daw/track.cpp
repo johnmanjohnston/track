@@ -1,8 +1,8 @@
 #include "track.h"
+#include "../editor.h"
 #include "defs.h"
 #include "juce_dsp/juce_dsp.h"
 #include "timeline.h"
-#include "../editor.h"
 
 track::ClipComponent::ClipComponent(clip *c)
     : juce::Component(), thumbnailCache(5),
