@@ -22,6 +22,7 @@ juce_add_plugin(track
 
 juce_add_binary_data(trackBinaryData SOURCES
     assets/RobotoMono-Thin.ttf
+    assets/FX.png
 )
 
 juce_generate_juce_header(track)
