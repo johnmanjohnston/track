@@ -19,6 +19,8 @@ class PluginChainComponent : public juce::Component {
     AudioPluginAudioProcessor *processor = nullptr;
     track *getCorrespondingTrack();
 
+    juce::TextButton closeBtn;
+
     // TODO: this shouldn't belong in this class
     static const juce::Font getInterBoldItalic() {
         static auto typeface = Typeface::createSystemTypefaceFor(

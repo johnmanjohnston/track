@@ -2,6 +2,7 @@
 
 track::PluginChainComponent::PluginChainComponent() : juce::Component() {
     // setSize(500, 500);
+    addAndMakeVisible(closeBtn);
 }
 
 track::PluginChainComponent::~PluginChainComponent() {}
@@ -21,26 +22,15 @@ void track::PluginChainComponent::paint(juce::Graphics &g) {
 
     g.setFont(this->getInterBoldItalic().withHeight(19.f));
     g.setColour(juce::Colour(0xFF'A7A7A7)); // track name text color
-    juce::String x = juce::String(getCorrespondingTrack()->clips.size());
-    g.drawText(getCorrespondingTrack()->trackName + x,
-               titlebarBounds.withLeft(50).withTop(2),
+    // juce::String x = juce::String(getCorrespondingTrack()->clips.size());
+    g.drawText(getCorrespondingTrack()->trackName,
+               titlebarBounds.withLeft(37).withTop(2),
                juce::Justification::left);
 
     // fx logo
-    /*
-    int fxLogoDivider = 7;
-    int fxLogoImageHeight = 100 / fxLogoDivider;
-    int fxLogoImageWidth = 200 / fxLogoDivider;
-
-    juce::Image fxLogo = juce::ImageCache::getFromMemory(
-        BinaryData::FX_png, BinaryData::FX_pngSize);
-    g.drawImageWithin(fxLogo, 6, 6, fxLogoImageWidth, fxLogoImageHeight,
-                      juce::RectanglePlacement::yMid, false);
-    */
-
     // outline
     juce::Rectangle<int> fxLogoBounds =
-        juce::Rectangle<int>(10, 2, 30, titlebarBounds.getHeight());
+        juce::Rectangle<int>(8, 1, 30, titlebarBounds.getHeight());
 
     juce::Path textPath;
     juce::GlyphArrangement glyphs;
@@ -58,11 +48,21 @@ void track::PluginChainComponent::paint(juce::Graphics &g) {
 
     // gradient text fill
     // g.setFont(24.f);
-    g.setFont(this->getInterBoldItalic().withHeight(22.f));
-    juce::ColourGradient gradient = juce::ColourGradient::vertical(
-        juce::Colours::white, .3f, juce::Colours::black,
-        titlebarBounds.getHeight());
+
+    // gradient stops
+    juce::Colour g1 = juce::Colour(0xFF'3B3B3B);
+    juce::Colour g2 = juce::Colour(0xFF'565656);
+    juce::Colour g3 = juce::Colour(0xFF'313131);
+
+    juce::ColourGradient gradient =
+        juce::ColourGradient::vertical(g1, 0.f, g1, titlebarBounds.getHeight());
+    gradient.addColour(.3f, g2);
+    gradient.addColour(.4f, g3);
+    gradient.addColour(.6f, g3);
+    gradient.addColour(0.9f, g2);
+
     g.setGradientFill(gradient);
+    g.setFont(this->getInterBoldItalic().withHeight(22.f));
     g.drawText("FX", fxLogoBounds, juce::Justification::left, false);
 
     // border
