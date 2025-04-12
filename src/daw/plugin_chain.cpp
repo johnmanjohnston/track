@@ -101,6 +101,8 @@ void track::PluginChainComponent::mouseDrag(const juce::MouseEvent &event) {
 void track::PluginChainComponent::mouseDown(const juce::MouseEvent &event) {
     if (juce::ModifierKeys::currentModifiers.isAltDown())
         dragStartBounds = getBounds();
+
+    this->toFront(true);
 }
 
 track::track *track::PluginChainComponent::getCorrespondingTrack() {

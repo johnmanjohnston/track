@@ -116,6 +116,10 @@ void track::ClipComponent::mouseUp(const juce::MouseEvent &event) {
 
         this->correspondingClip->startPositionSample +=
             distanceMovedHorizontally * 1100;
+
+        TimelineComponent *tc = (TimelineComponent *)getParentComponent();
+        jassert(tc != nullptr);
+        tc->resizeTimelineComponent();
     }
 
     DBG(event.getDistanceFromDragStartX());

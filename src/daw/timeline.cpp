@@ -1,6 +1,7 @@
 #include "timeline.h"
 #include "defs.h"
 #include "juce_core/juce_core.h"
+#include "juce_graphics/native/juce_EventTracing.h"
 #include "juce_gui_basics/juce_gui_basics.h"
 #include <memory>
 
@@ -117,6 +118,28 @@ void track::TimelineComponent::updateClipComponents() {
             cc->trackIndex = i;
         }
     }
+
+    resizeTimelineComponent();
+}
+
+void track::TimelineComponent::resizeTimelineComponent() {
+    int largestEnd = -1;
+
+    for (track &t : processorRef->tracks) {
+        for (clip &c : t.clips) {
+            if ((c.buffer.getNumSamples() + c.startPositionSample) >
+                largestEnd) {
+                largestEnd = c.buffer.getNumSamples() + c.startPositionSample;
+            }
+        }
+    }
+
+    DBG("largestEnd is " << largestEnd);
+    largestEnd /= 1281; // 41000 / 32
+    largestEnd += 1000;
+    DBG("now, largestEnd is " << largestEnd);
+
+    this->setSize(juce::jmax(getWidth(), largestEnd), getHeight());
 }
 
 void track::TimelineComponent::deleteClip(clip *c, int trackIndex) {
