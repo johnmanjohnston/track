@@ -2,7 +2,24 @@
 
 track::PluginChainComponent::PluginChainComponent() : juce::Component() {
     // setSize(500, 500);
+
+    closeBtn.setButtonText("X");
+    // closeBtn.setColour(0x1004011, juce::Colours::red);
+    // closeBtn.getLookAndFeel().setColour(0x1004011, juce::Colours::red);
+    closeBtn.setLookAndFeel(nullptr);
     addAndMakeVisible(closeBtn);
+
+    closeBtn.onClick = [this] {
+        getParentComponent()->removeChildComponent(this);
+    };
+}
+
+void track::PluginChainComponent::resized() {
+    this->titlebarHeight = getLocalBounds().getHeight() / 7;
+
+    int closeBtnSize = titlebarHeight + 2;
+    closeBtn.setBounds(getWidth() - closeBtnSize, 0, closeBtnSize,
+                       closeBtnSize);
 }
 
 track::PluginChainComponent::~PluginChainComponent() {}
@@ -15,7 +32,7 @@ void track::PluginChainComponent::paint(juce::Graphics &g) {
 
     // titlebar
     juce::Rectangle<int> titlebarBounds = getLocalBounds();
-    titlebarBounds.setHeight(titlebarBounds.getHeight() / 7);
+    titlebarBounds.setHeight(titlebarHeight);
     titlebarBounds.reduce(margin, 0);
     g.setColour(juce::Colours::green);
     // g.fillRect(titlebarBounds);

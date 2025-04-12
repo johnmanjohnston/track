@@ -99,10 +99,14 @@ void AudioPluginAudioProcessorEditor::resized() {
 
 void AudioPluginAudioProcessorEditor::openFxChain(int trackIndex) {
     DBG("editor's openFxChain() called for track " << trackIndex);
-    pluginChainComponent = std::make_unique<track::PluginChainComponent>();
-    pluginChainComponent->trackIndex = trackIndex;
-    pluginChainComponent->processor = &processorRef;
-    addAndMakeVisible(*pluginChainComponent);
-    pluginChainComponent->setBounds(10, 10, 900, 200);
+
+    pluginChainComponents.emplace_back(new track::PluginChainComponent());
+    std::unique_ptr<track::PluginChainComponent> &pcc =
+        pluginChainComponents.back();
+
+    pcc->trackIndex = trackIndex;
+    pcc->processor = &processorRef;
+    addAndMakeVisible(*pcc);
+    pcc->setBounds(10, 10, 900, 200);
     repaint();
 }

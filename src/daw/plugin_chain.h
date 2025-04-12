@@ -9,11 +9,14 @@ class PluginChainComponent : public juce::Component {
     PluginChainComponent();
     ~PluginChainComponent();
 
+    int titlebarHeight = -1;
+
     void mouseDown(const juce::MouseEvent &event) override;
     void mouseDrag(const juce::MouseEvent &event) override;
     juce::Rectangle<int> dragStartBounds;
 
     void paint(juce::Graphics &g) override;
+    void resized() override;
 
     int trackIndex = -1;
     AudioPluginAudioProcessor *processor = nullptr;
