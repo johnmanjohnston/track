@@ -246,8 +246,8 @@ void track::TrackComponent::paint(juce::Graphics &g) {
 }
 
 void track::TrackComponent::resized() {
-    trackNameLabel.setBounds(getLocalBounds().getX() + 14,
-                             getLocalBounds().getY() + 8, 100, 20);
+    trackNameLabel.setBounds(getLocalBounds().getX() + 10,
+                             (UI_TRACK_HEIGHT / 4) - 5, 100, 20);
 
     int btnSize = 24;
     int btnHeight = btnSize;
