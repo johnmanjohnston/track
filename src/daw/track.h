@@ -90,6 +90,8 @@ class TrackComponent : public juce::Component {
     juce::TextButton fxBtn; // like in REAPER
     juce::Slider gainSlider;
     juce::Slider panSlider;
+
+    juce::Label trackNameLabel;
 };
 
 class Tracklist : public juce::Component {

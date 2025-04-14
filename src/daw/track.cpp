@@ -2,6 +2,7 @@
 #include "../editor.h"
 #include "defs.h"
 #include "juce_dsp/juce_dsp.h"
+#include "juce_events/juce_events.h"
 #include "timeline.h"
 
 track::ClipComponent::ClipComponent(clip *c)
@@ -149,6 +150,16 @@ void track::TrackComponent::initializeGainSlider() {
 }
 
 track::TrackComponent::TrackComponent(int trackIndex) : juce::Component() {
+    // starting text for track name label is set when TrackComponent is created
+    // in createTrackComponents()
+    trackNameLabel.setBounds(0, 0, 100, 20);
+    trackNameLabel.setEditable(true);
+    addAndMakeVisible(trackNameLabel);
+
+    trackNameLabel.onTextChange = [this] {
+        this->getCorrespondingTrack()->trackName = trackNameLabel.getText(true);
+    };
+
     this->trackIndex = trackIndex;
 
     addAndMakeVisible(muteBtn);
@@ -211,6 +222,7 @@ void track::TrackComponent::paint(juce::Graphics &g) {
     textBounds.setX(getLocalBounds().getX() + 14);
     textBounds.setY(getLocalBounds().getY() - 8);
 
+    /*
     // gray out muted track names, and draw yellow square around mute button if
     // needed
     juce::Colour trackNameColour = juce::Colour(0xFFDFDFDF);
@@ -230,9 +242,13 @@ void track::TrackComponent::paint(juce::Graphics &g) {
     }
 
     g.drawText(trackName, textBounds, juce::Justification::left, true);
+    */
 }
 
 void track::TrackComponent::resized() {
+    trackNameLabel.setBounds(getLocalBounds().getX() + 14,
+                             getLocalBounds().getY() + 8, 100, 20);
+
     int btnSize = 24;
     int btnHeight = btnSize;
     int btnWidth = btnSize;
@@ -293,6 +309,12 @@ track::Tracklist::Tracklist() : juce::Component() {
         this->trackComponents.push_back(std::make_unique<TrackComponent>(i));
         trackComponents.back().get()->processor = processor;
         trackComponents.back().get()->initializeGainSlider();
+
+        // set track label text
+        trackComponents.back().get()->trackNameLabel.setText(
+            trackComponents.back().get()->getCorrespondingTrack()->trackName,
+            juce::NotificationType::dontSendNotification);
+
         addAndMakeVisible(*trackComponents.back());
 
         DBG("track component added. will set track components bounds now");
@@ -310,6 +332,8 @@ void track::Tracklist::createTrackComponents() {
         this->trackComponents.push_back(std::make_unique<TrackComponent>(i));
         trackComponents.back().get()->processor = processor;
         trackComponents.back().get()->initializeGainSlider();
+        trackComponents.back().get()->trackNameLabel.setText(
+            t.trackName, juce::NotificationType::dontSendNotification);
         addAndMakeVisible(*trackComponents.back());
 
         i++;
