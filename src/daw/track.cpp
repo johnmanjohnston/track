@@ -17,6 +17,18 @@ track::ClipComponent::ClipComponent(clip *c)
     thumbnail.setSource(&correspondingClip->buffer, 44100.0, 2);
 
     thumbnail.addChangeListener(this);
+
+    clipNameLabel.setColour(juce::Label::textColourId, juce::Colours::black);
+    clipNameLabel.setEditable(true);
+    clipNameLabel.setText(c->name,
+                          juce::NotificationType::dontSendNotification);
+    clipNameLabel.setBounds(getLocalBounds().getX() + 2,
+                            getLocalBounds().getY(), 300, 20);
+    addAndMakeVisible(clipNameLabel);
+
+    clipNameLabel.onTextChange = [this] {
+        correspondingClip->name = clipNameLabel.getText(true);
+    };
 }
 track::ClipComponent::~ClipComponent() { thumbnail.removeAllChangeListeners(); }
 
@@ -60,6 +72,7 @@ void track::ClipComponent::paint(juce::Graphics &g) {
         g.fillRect(0, 0, getWidth(), thumbnailTopMargin);
     }
 
+    /*
     if (this->correspondingClip->active)
         g.setColour(juce::Colour(0xFF33587F));
     else
@@ -67,6 +80,7 @@ void track::ClipComponent::paint(juce::Graphics &g) {
 
     g.drawText(this->correspondingClip->name, 2, 0, getWidth(), 20,
                juce::Justification::left, true);
+    */
 }
 
 void track::ClipComponent::mouseDown(const juce::MouseEvent &event) {

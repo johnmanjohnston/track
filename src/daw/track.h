@@ -39,6 +39,8 @@ class ClipComponent : public juce::Component, public juce::ChangeListener {
     void mouseDrag(const juce::MouseEvent &event) override;
     void mouseUp(const juce::MouseEvent &event) override;
     bool isBeingDragged = false;
+
+    juce::Label clipNameLabel;
 };
 
 class track {
