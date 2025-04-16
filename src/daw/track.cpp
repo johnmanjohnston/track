@@ -22,13 +22,15 @@ track::ClipComponent::ClipComponent(clip *c)
     clipNameLabel.setEditable(true);
     clipNameLabel.setText(c->name,
                           juce::NotificationType::dontSendNotification);
-    clipNameLabel.setBounds(getLocalBounds().getX() + 2,
-                            getLocalBounds().getY(), 300, 20);
+    clipNameLabel.setBounds(getLocalBounds().getX(), getLocalBounds().getY(),
+                            300, 20);
     addAndMakeVisible(clipNameLabel);
 
     clipNameLabel.onTextChange = [this] {
         correspondingClip->name = clipNameLabel.getText(true);
     };
+
+    setBufferedToImage(true);
 }
 track::ClipComponent::~ClipComponent() { thumbnail.removeAllChangeListeners(); }
 

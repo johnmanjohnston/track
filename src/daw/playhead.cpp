@@ -21,10 +21,10 @@ void track::PlayheadComponent::updateBounds() {
     if (processor->getPlayHead() != nullptr &&
         processor->getPlayHead()->getPosition()->getBpm().hasValue()) {
         curSample =
-            *processor->getPlayHead()->getPosition()->getTimeInSamples(); 
+            *processor->getPlayHead()->getPosition()->getTimeInSamples();
     }
 
-    setBounds((curSample / 41000.0 * 32.0) + UI_TRACK_WIDTH -
+    setBounds((curSample / 41000.0 * UI_ZOOM_MULTIPLIER) + UI_TRACK_WIDTH -
                   tv->getViewPositionX(),
               UI_TOPBAR_HEIGHT, 1, 1080);
     repaint();

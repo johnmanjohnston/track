@@ -57,6 +57,10 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
 
     // addAndMakeVisible(pluginChainComponent);
     // pluginChainComponent.setBounds(1, 1, 1, 1);
+    //
+
+    masterSlider.setTextBoxStyle(juce::Slider::TextEntryBoxPosition::NoTextBox,
+                                 true, 0, 0);
 }
 
 AudioPluginAudioProcessorEditor::~AudioPluginAudioProcessorEditor() {

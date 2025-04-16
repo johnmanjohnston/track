@@ -31,6 +31,18 @@ void track::TimelineViewport::mouseWheelMove(
     const juce::MouseEvent &ev,
     const juce::MouseWheelDetails &mouseWheelDetails) {
 
+    if (juce::ModifierKeys::currentModifiers.isCtrlDown() ||
+        juce::ModifierKeys::currentModifiers.isCommandDown()) {
+
+        if (mouseWheelDetails.deltaY < 0) {
+            UI_ZOOM_MULTIPLIER -= 2;
+        } else if (mouseWheelDetails.deltaY > 0) {
+            UI_ZOOM_MULTIPLIER += 2;
+        }
+
+        repaint();
+    }
+
     if (juce::ModifierKeys::currentModifiers.isAltDown()) {
         if (mouseWheelDetails.deltaY < 0 &&
             UI_TRACK_HEIGHT > UI_MINIMUM_TRACK_HEIGHT) {
@@ -66,6 +78,7 @@ void track::TimelineViewport::mouseWheelMove(
 }
 
 void track::TimelineComponent::paint(juce::Graphics &g) {
+    DBG("timelineComponent paint called");
     g.fillAll(juce::Colour(0xFF2E2E2E));
 
     g.setColour(juce::Colours::white);
@@ -87,12 +100,14 @@ void track::TimelineComponent::paint(juce::Graphics &g) {
 
     // draw clips
     for (auto &&clip : this->clipComponents) {
-        clip->setBounds(
-            clip->correspondingClip->startPositionSample / 41000.0 * 32.0,
-            UI_TRACK_VERTICAL_OFFSET + (clip->trackIndex * UI_TRACK_HEIGHT) +
-                (UI_TRACK_VERTICAL_MARGIN * clip->trackIndex),
-            clip->correspondingClip->buffer.getNumSamples() / 41000.0 * 32.0,
-            UI_TRACK_HEIGHT);
+        clip->setBounds(clip->correspondingClip->startPositionSample / 41000.0 *
+                            UI_ZOOM_MULTIPLIER,
+                        UI_TRACK_VERTICAL_OFFSET +
+                            (clip->trackIndex * UI_TRACK_HEIGHT) +
+                            (UI_TRACK_VERTICAL_MARGIN * clip->trackIndex),
+                        clip->correspondingClip->buffer.getNumSamples() /
+                            41000.0 * UI_ZOOM_MULTIPLIER,
+                        UI_TRACK_HEIGHT);
 
         // handle offline clips
         if (clip->correspondingClip->buffer.getNumSamples() == 0) {
@@ -154,6 +169,8 @@ void track::TimelineComponent::deleteClip(clip *c, int trackIndex) {
 
     DBG("clipIndex is " << clipIndex << "; trackIndex is " << trackIndex);
 
+    // TODO: turns out i was being a donut. this bug _shouldn't_ be happening
+    // anymore
     if (trackIndex != 0) {
         processorRef->tracks[trackIndex].clips.erase(
             processorRef->tracks[trackIndex].clips.begin() + clipIndex);
