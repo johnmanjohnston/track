@@ -132,7 +132,7 @@ void track::ClipComponent::mouseUp(const juce::MouseEvent &event) {
         int distanceMovedHorizontally = event.getDistanceFromDragStartX();
 
         this->correspondingClip->startPositionSample +=
-            distanceMovedHorizontally * 1100;
+            (distanceMovedHorizontally * 41000) / UI_ZOOM_MULTIPLIER;
 
         TimelineComponent *tc = (TimelineComponent *)getParentComponent();
         jassert(tc != nullptr);

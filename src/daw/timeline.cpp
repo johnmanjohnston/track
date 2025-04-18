@@ -34,11 +34,14 @@ void track::TimelineViewport::mouseWheelMove(
     if (juce::ModifierKeys::currentModifiers.isCtrlDown() ||
         juce::ModifierKeys::currentModifiers.isCommandDown()) {
 
-        if (mouseWheelDetails.deltaY < 0) {
+        if (mouseWheelDetails.deltaY < 0 && UI_ZOOM_MULTIPLIER > UI_MINIMUM_ZOOM_MULTIPLIER) {
             UI_ZOOM_MULTIPLIER -= 2;
-        } else if (mouseWheelDetails.deltaY > 0) {
+        } else if (mouseWheelDetails.deltaY > 0 && UI_ZOOM_MULTIPLIER < UI_MAXIMUM_ZOOM_MULTIPLIER) {
             UI_ZOOM_MULTIPLIER += 2;
         }
+
+        TimelineComponent *tc = (TimelineComponent*)getViewedComponent();
+        tc->resizeTimelineComponent();
 
         repaint();
     }
@@ -150,11 +153,13 @@ void track::TimelineComponent::resizeTimelineComponent() {
     }
 
     DBG("largestEnd is " << largestEnd);
-    largestEnd /= 1281; // 41000 / 32
-    largestEnd += 1000;
+    jassert(UI_ZOOM_MULTIPLIER > 0);
+    largestEnd /= 41000 / UI_ZOOM_MULTIPLIER;
+    largestEnd += 2000;
     DBG("now, largestEnd is " << largestEnd);
 
-    this->setSize(juce::jmax(getWidth(), largestEnd), getHeight());
+    //this->setSize(juce::jmax(getWidth(), largestEnd), getHeight());
+    this->setSize(largestEnd, getHeight());
 }
 
 void track::TimelineComponent::deleteClip(clip *c, int trackIndex) {
