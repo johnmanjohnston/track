@@ -1,8 +1,10 @@
 #include "timeline.h"
+#include "clipboard.h"
 #include "defs.h"
 #include "juce_core/juce_core.h"
 #include "juce_graphics/native/juce_EventTracing.h"
 #include "juce_gui_basics/juce_gui_basics.h"
+#include "track.h"
 #include <memory>
 
 // TODO: organize this file
@@ -34,13 +36,15 @@ void track::TimelineViewport::mouseWheelMove(
     if (juce::ModifierKeys::currentModifiers.isCtrlDown() ||
         juce::ModifierKeys::currentModifiers.isCommandDown()) {
 
-        if (mouseWheelDetails.deltaY < 0 && UI_ZOOM_MULTIPLIER > UI_MINIMUM_ZOOM_MULTIPLIER) {
+        if (mouseWheelDetails.deltaY < 0 &&
+            UI_ZOOM_MULTIPLIER > UI_MINIMUM_ZOOM_MULTIPLIER) {
             UI_ZOOM_MULTIPLIER -= 2;
-        } else if (mouseWheelDetails.deltaY > 0 && UI_ZOOM_MULTIPLIER < UI_MAXIMUM_ZOOM_MULTIPLIER) {
+        } else if (mouseWheelDetails.deltaY > 0 &&
+                   UI_ZOOM_MULTIPLIER < UI_MAXIMUM_ZOOM_MULTIPLIER) {
             UI_ZOOM_MULTIPLIER += 2;
         }
 
-        TimelineComponent *tc = (TimelineComponent*)getViewedComponent();
+        TimelineComponent *tc = (TimelineComponent *)getViewedComponent();
         tc->resizeTimelineComponent();
 
         repaint();
@@ -78,6 +82,41 @@ void track::TimelineViewport::mouseWheelMove(
     if (ev.eventComponent == this)
         if (!useMouseWheelMoveIfNeeded(ev, mouseWheelDetails))
             Component::mouseWheelMove(ev, mouseWheelDetails);
+}
+
+void track::TimelineComponent::mouseDown(const juce::MouseEvent &event) {
+    if (event.mods.isRightButtonDown()) {
+        DBG("TimelineComponent::mouseDown() for right mouse button down");
+        juce::PopupMenu contextMenu;
+        contextMenu.addItem(1, "Paste clip");
+
+        contextMenu.showMenuAsync(
+            juce::PopupMenu::Options(), [this, event](int result) {
+                if (result == 1) {
+                    DBG("paste clip");
+                    if (clipboard::typecode != TYPECODE_CLIP)
+                        return;
+
+                    // create clip for processor
+                    clip *orginalClip = (clip *)clipboard::retrieveData();
+                    std::unique_ptr<clip> newClip(new clip());
+                    newClip->path = orginalClip->path;
+                    newClip->buffer = orginalClip->buffer;
+                    newClip->active = orginalClip->active;
+                    newClip->name = orginalClip->name;
+                    newClip->startPositionSample =
+                        (event.getMouseDownX() * 41000) / UI_ZOOM_MULTIPLIER;
+
+                    int trackIndex = juce::jmin(
+                        trackIndex = event.getMouseDownY() / UI_TRACK_HEIGHT,
+                        (int)processorRef->tracks.size() - 1);
+                    processorRef->tracks[(size_t)trackIndex].clips.push_back(
+                        *newClip);
+
+                    updateClipComponents();
+                }
+            });
+    }
 }
 
 void track::TimelineComponent::paint(juce::Graphics &g) {
@@ -158,7 +197,7 @@ void track::TimelineComponent::resizeTimelineComponent() {
     largestEnd += 2000;
     DBG("now, largestEnd is " << largestEnd);
 
-    //this->setSize(juce::jmax(getWidth(), largestEnd), getHeight());
+    // this->setSize(juce::jmax(getWidth(), largestEnd), getHeight());
     this->setSize(largestEnd, getHeight());
 }
 
@@ -174,16 +213,16 @@ void track::TimelineComponent::deleteClip(clip *c, int trackIndex) {
 
     DBG("clipIndex is " << clipIndex << "; trackIndex is " << trackIndex);
 
-    // TODO: turns out i was being a donut. this bug _shouldn't_ be happening
-    // anymore
+    // TODO: turns out i was being a donut. this bug _shouldn't_ be
+    // happening anymore
     if (trackIndex != 0) {
         processorRef->tracks[trackIndex].clips.erase(
             processorRef->tracks[trackIndex].clips.begin() + clipIndex);
     } else {
-        // for some reason when removing the leftmost clip of the first track,
-        // the program crashes; so instead of removing clips on the first track,
-        // just get rid of its data and move it to the left so that we cannot
-        // see it
+        // for some reason when removing the leftmost clip of the first
+        // track, the program crashes; so instead of removing clips on the
+        // first track, just get rid of its data and move it to the left so
+        // that we cannot see it
         processorRef->tracks[trackIndex].clips[clipIndex].buffer.setSize(0, 1);
         processorRef->tracks[trackIndex].clips[clipIndex].startPositionSample =
             -999999999;
@@ -219,8 +258,8 @@ void track::TimelineComponent::filesDropped(const juce::StringArray &files,
         return;
     }
 
-    // remove directories leading up to the actual file name we want, and strip
-    // file extension
+    // remove directories leading up to the actual file name we want, and
+    // strip file extension
     if (files[0].contains("/")) {
         c->name = files[0].fromLastOccurrenceOf(
             "/", false, true); // for REAL operating systems.

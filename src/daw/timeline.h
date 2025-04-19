@@ -1,5 +1,6 @@
 #pragma once
 #include "../processor.h"
+#include "juce_gui_basics/juce_gui_basics.h"
 #include "track.h"
 #include <JuceHeader.h>
 
@@ -25,6 +26,7 @@ class TimelineComponent : public juce::Component,
 
     bool isInterestedInFileDrag(const juce::StringArray &files) override;
     void filesDropped(const juce::StringArray &files, int x, int y) override;
+    void mouseDown(const juce::MouseEvent &event) override;
 
     void paint(juce::Graphics &g) override;
 

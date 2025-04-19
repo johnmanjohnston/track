@@ -1,5 +1,6 @@
 #include "track.h"
 #include "../editor.h"
+#include "clipboard.h"
 #include "defs.h"
 #include "juce_dsp/juce_dsp.h"
 #include "juce_events/juce_events.h"
@@ -93,6 +94,7 @@ void track::ClipComponent::mouseDown(const juce::MouseEvent &event) {
         contextMenu.addItem(1, "Reverse");
         contextMenu.addItem(2, "Cut");
         contextMenu.addItem(3, "Toggle activate/deactive clip");
+        contextMenu.addItem(4, "Copy clip");
 
         contextMenu.showMenuAsync(
             juce::PopupMenu::Options(), [this](int result) {
@@ -114,6 +116,10 @@ void track::ClipComponent::mouseDown(const juce::MouseEvent &event) {
                     this->correspondingClip->active =
                         !this->correspondingClip->active;
                     repaint();
+                }
+
+                else if (result == 4) {
+                    clipboard::setData(correspondingClip, TYPECODE_CLIP);
                 }
             });
     }
