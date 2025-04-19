@@ -36,6 +36,11 @@ void track::TimelineViewport::mouseWheelMove(
     if (juce::ModifierKeys::currentModifiers.isCtrlDown() ||
         juce::ModifierKeys::currentModifiers.isCommandDown()) {
 
+        TimelineComponent *tc = (TimelineComponent *)getViewedComponent();
+        int orginalWidth = tc->getWidth();
+        int x = getViewPositionX();
+        float ratio = (float)orginalWidth / (float)x;
+
         if (mouseWheelDetails.deltaY < 0 &&
             UI_ZOOM_MULTIPLIER > UI_MINIMUM_ZOOM_MULTIPLIER) {
             UI_ZOOM_MULTIPLIER -= 2;
@@ -44,8 +49,11 @@ void track::TimelineViewport::mouseWheelMove(
             UI_ZOOM_MULTIPLIER += 2;
         }
 
-        TimelineComponent *tc = (TimelineComponent *)getViewedComponent();
         tc->resizeTimelineComponent();
+
+        int newWidth = tc->getWidth();
+        int newX = (int)((float)newWidth / (float)ratio);
+        setViewPosition(newX, getViewPositionY());
 
         repaint();
     }
