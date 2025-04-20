@@ -53,6 +53,11 @@ class track {
     juce::String trackName = "Untitled Track";
 
     // future john, have fun trying to implement hosting audio plugins :skull:
+    std::vector<std::unique_ptr<juce::AudioPluginInstance>> plugins;
+    void addPlugin(juce::String path);
+    void preparePlugins(int maxSamplesPerBlock, int sampleRate);
+    int maxSamplesPerBlock = -1;
+    int sampleRate = -1;
 
     std::vector<clip> clips;
 

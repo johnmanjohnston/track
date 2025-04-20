@@ -421,6 +421,43 @@ void track::clip::updateBuffer() {
 
 void track::clip::reverse() { buffer.reverse(0, buffer.getNumSamples()); }
 
+void track::track::addPlugin(juce::String path) {
+    DBG("track::track addPlugin() called");
+    juce::OwnedArray<PluginDescription> pluginDescriptions;
+    juce::KnownPluginList plist;
+    juce::AudioPluginFormatManager apfm;
+    juce::String errorMsg;
+
+    DBG("initing audio plugin format manager and scanning...");
+    // init format manager and scan using `path`
+    apfm.addDefaultFormats();
+
+     for (int i = 0; i < apfm.getNumFormats(); ++i)
+        plist.scanAndAddFile(path, true, pluginDescriptions,
+                             *apfm.getFormat(i));
+
+
+     // add to vector and retrieve newly added element
+     plugins.emplace_back();
+     std::unique_ptr<juce::AudioPluginInstance> &plugin = this->plugins.back();
+
+     plugin = apfm.createPluginInstance(
+         *pluginDescriptions[0], sampleRate, maxSamplesPerBlock, errorMsg);
+
+    jassert(pluginDescriptions.size() > 0);
+
+     plugin->setPlayConfigDetails(2, 2, sampleRate, maxSamplesPerBlock);
+     plugin->prepareToPlay(sampleRate, maxSamplesPerBlock);
+
+     DBG("plugin added");
+}
+
+void track::track::preparePlugins(int maxSamplesPerBlock, int sampleRate) {
+    for (std::unique_ptr<juce::AudioPluginInstance> &plugin : plugins) {
+        plugin->prepareToPlay(maxSamplesPerBlock, sampleRate); 
+    }
+}
+
 void track::track::process(int numSamples, int currentSample) {
     if (m) {
         buffer.clear();
@@ -474,6 +511,12 @@ void track::track::process(int numSamples, int currentSample) {
                 }
             }
         }
+    }
+
+    // let subplugins process audio
+    for (std::unique_ptr<juce::AudioPluginInstance> &plugin : plugins) {
+        juce::MidiBuffer mb;
+        plugin->processBlock(buffer, mb);
     }
 
     // pan audio

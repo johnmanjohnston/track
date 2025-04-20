@@ -4,13 +4,22 @@ track::PluginChainComponent::PluginChainComponent() : juce::Component() {
     // setSize(500, 500);
 
     closeBtn.setButtonText("X");
+    addPluginBtn.setButtonText("e");
     // closeBtn.setColour(0x1004011, juce::Colours::red);
     // closeBtn.getLookAndFeel().setColour(0x1004011, juce::Colours::red);
     closeBtn.setLookAndFeel(nullptr);
     addAndMakeVisible(closeBtn);
+    addAndMakeVisible(addPluginBtn);
 
     closeBtn.onClick = [this] {
         getParentComponent()->removeChildComponent(this);
+    };
+
+    addPluginBtn.onClick = [this] { 
+        DBG("add plugin btn clicked"); 
+
+        juce::String pluginPath = juce::File("C:\\Program Files\\Common Files\\VST3\\OTT.vst3").getFullPathName();
+        getCorrespondingTrack()->addPlugin(pluginPath);
     };
 }
 
@@ -20,6 +29,8 @@ void track::PluginChainComponent::resized() {
     int closeBtnSize = titlebarHeight + 2;
     closeBtn.setBounds(getWidth() - closeBtnSize, 0, closeBtnSize,
                        closeBtnSize);
+
+    addPluginBtn.setBounds(10, 10, 100, 100);
 }
 
 track::PluginChainComponent::~PluginChainComponent() {}

@@ -107,6 +107,12 @@ void AudioPluginAudioProcessor::prepareToPlay(double sampleRate,
     plugin.get()->prepareToPlay(sampleRate, samplesPerBlock);
     */
 
+    for (track::track &t : tracks) {
+        t.maxSamplesPerBlock = samplesPerBlock;
+        t.sampleRate = sampleRate;
+        t.preparePlugins(samplesPerBlock, sampleRate);
+    }
+    
     if (prepared)
         return;
 

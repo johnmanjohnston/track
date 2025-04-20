@@ -24,6 +24,8 @@ class PluginChainComponent : public juce::Component {
 
     juce::TextButton closeBtn;
 
+    juce::TextButton addPluginBtn;
+
     // TODO: this shouldn't belong in this class
     static const juce::Font getInterBoldItalic() {
         static auto typeface = Typeface::createSystemTypefaceFor(
