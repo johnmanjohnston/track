@@ -37,6 +37,8 @@ class AudioPluginAudioProcessor : public juce::AudioProcessor {
 
     void reset() override;
 
+    int maxSamplesPerBlock = -1;
+
     // juce::String path =
     //"C:/Users/USER/Downloads/hyperpop-trap-drums_151bpm_B_major.wav";
     juce::String path = "/home/johnston/Downloads/tracktest.wav";

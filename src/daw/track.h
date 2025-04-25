@@ -55,7 +55,7 @@ class track {
     // future john, have fun trying to implement hosting audio plugins :skull:
     std::vector<std::unique_ptr<juce::AudioPluginInstance>> plugins;
     void addPlugin(juce::String path);
-    void preparePlugins(int maxSamplesPerBlock, int sampleRate);
+    void preparePlugins(int newMaxSamplesPerBlock, int newSampleRate);
     int maxSamplesPerBlock = -1;
     int sampleRate = -1;
 
@@ -63,6 +63,8 @@ class track {
 
     void process(int numSamples, int currentSample);
     juce::AudioBuffer<float> buffer;
+
+    void *processor = nullptr;
 };
 
 class group {

@@ -1,5 +1,6 @@
 #include "track.h"
 #include "../editor.h"
+#include "../processor.h"
 #include "clipboard.h"
 #include "defs.h"
 #include "juce_dsp/juce_dsp.h"
@@ -326,6 +327,7 @@ track::Tracklist::Tracklist() : juce::Component() {
         auto p = (AudioPluginAudioProcessor *)this->processor;
         p->tracks.emplace_back();
         auto &t = p->tracks.back();
+        t.processor = this->processor;
 
         int i = p->tracks.size() - 1;
         this->trackComponents.push_back(std::make_unique<TrackComponent>(i));
@@ -428,33 +430,63 @@ void track::track::addPlugin(juce::String path) {
     juce::AudioPluginFormatManager apfm;
     juce::String errorMsg;
 
-    DBG("initing audio plugin format manager and scanning...");
-    // init format manager and scan using `path`
+    jassert(processor != nullptr);
+
+    AudioPluginAudioProcessor *p = (AudioPluginAudioProcessor *)processor;
+    this->sampleRate = p->getSampleRate();
+    this->maxSamplesPerBlock = p->maxSamplesPerBlock;
+
+    jassert(sampleRate > 0);
+    jassert(maxSamplesPerBlock > 0);
+
     apfm.addDefaultFormats();
 
-     for (int i = 0; i < apfm.getNumFormats(); ++i)
+    DBG("scanning plugin");
+    for (int i = 0; i < apfm.getNumFormats(); ++i)
         plist.scanAndAddFile(path, true, pluginDescriptions,
                              *apfm.getFormat(i));
 
+    plugins.emplace_back();
+    std::unique_ptr<juce::AudioPluginInstance> &plugin = this->plugins.back();
 
-     // add to vector and retrieve newly added element
-     plugins.emplace_back();
-     std::unique_ptr<juce::AudioPluginInstance> &plugin = this->plugins.back();
-
-     plugin = apfm.createPluginInstance(
-         *pluginDescriptions[0], sampleRate, maxSamplesPerBlock, errorMsg);
+    DBG("creating plugin instance");
+    plugin = apfm.createPluginInstance(*pluginDescriptions[0], sampleRate,
+                                       maxSamplesPerBlock, errorMsg);
 
     jassert(pluginDescriptions.size() > 0);
 
-     plugin->setPlayConfigDetails(2, 2, sampleRate, maxSamplesPerBlock);
-     plugin->prepareToPlay(sampleRate, maxSamplesPerBlock);
+    DBG("LOGGING OUTPUTS:");
+    DBG("   " << plugin->getMainBusNumInputChannels() << " inputs");
+    DBG("   " << plugin->getMainBusNumOutputChannels() << " outputs");
 
-     DBG("plugin added");
+    // DBG("setting plugin play config details");
+    plugin->setPlayConfigDetails(2, 2, sampleRate, maxSamplesPerBlock);
+
+    /*
+    DBG("setting buses");
+    AudioPluginAudioProcessor *p = (AudioPluginAudioProcessor *)processor;
+    AudioPluginAudioProcessor::BusesLayout busesLayout = p->getBusesLayout();
+    plugin->setBusesLayout(busesLayout);
+
+    DBG("setting rate and buffer size details");
+    plugin->setRateAndBufferSizeDetails(sampleRate, maxSamplesPerBlock);
+    */
+
+    DBG("preparing plugin to play with sample rate,maxSamplesPerBlock"
+        << sampleRate << " " << maxSamplesPerBlock);
+    plugin->prepareToPlay(sampleRate, maxSamplesPerBlock);
+
+    DBG("LOGGING OUTPUTS:");
+    DBG("   " << plugin->getMainBusNumInputChannels() << " inputs");
+    DBG("   " << plugin->getMainBusNumOutputChannels() << " outputs");
+
+    DBG("plugin added");
 }
 
-void track::track::preparePlugins(int maxSamplesPerBlock, int sampleRate) {
+void track::track::preparePlugins(int newMaxSamplesPerBlock,
+                                  int newSampleRate) {
     for (std::unique_ptr<juce::AudioPluginInstance> &plugin : plugins) {
-        plugin->prepareToPlay(maxSamplesPerBlock, sampleRate); 
+        plugin->prepareToPlay(newMaxSamplesPerBlock, newSampleRate);
     }
 }
 

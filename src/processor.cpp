@@ -77,6 +77,9 @@ void AudioPluginAudioProcessor::changeProgramName(int index,
 
 void AudioPluginAudioProcessor::prepareToPlay(double sampleRate,
                                               int samplesPerBlock) {
+
+    this->maxSamplesPerBlock = samplesPerBlock;
+
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
     juce::ignoreUnused(sampleRate, samplesPerBlock);
@@ -108,11 +111,13 @@ void AudioPluginAudioProcessor::prepareToPlay(double sampleRate,
     */
 
     for (track::track &t : tracks) {
+        t.processor = this;
         t.maxSamplesPerBlock = samplesPerBlock;
         t.sampleRate = sampleRate;
+        DBG("SET TRACK'S SAMPLE RATE");
         t.preparePlugins(samplesPerBlock, sampleRate);
     }
-    
+
     if (prepared)
         return;
 

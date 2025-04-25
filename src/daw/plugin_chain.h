@@ -34,5 +34,7 @@ class PluginChainComponent : public juce::Component {
 
         return typeface;
     }
+
+    juce::AudioProcessorEditor *ape = nullptr;
 };
 } // namespace track

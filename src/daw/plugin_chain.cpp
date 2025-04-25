@@ -13,13 +13,24 @@ track::PluginChainComponent::PluginChainComponent() : juce::Component() {
 
     closeBtn.onClick = [this] {
         getParentComponent()->removeChildComponent(this);
+        delete ape;
     };
 
-    addPluginBtn.onClick = [this] { 
-        DBG("add plugin btn clicked"); 
+    addPluginBtn.onClick = [this] {
+        DBG("add plugin btn clicked");
 
-        juce::String pluginPath = juce::File("C:\\Program Files\\Common Files\\VST3\\OTT.vst3").getFullPathName();
+        // juce::String pluginPath = juce::File("C:\\Program Files\\Common
+        // Files\\VST3\\OTT.vst3").getFullPathName();
+        juce::String pluginPath =
+            juce::File("/home/johnston/.vst3/ZL Equalizer.vst3/")
+                .getFullPathName();
         getCorrespondingTrack()->addPlugin(pluginPath);
+
+        std::unique_ptr<juce::AudioPluginInstance> &plugin =
+            getCorrespondingTrack()->plugins.back();
+        ape = plugin->createEditorIfNeeded();
+        ape->setBounds(0, 0, 200, 200);
+        addAndMakeVisible(*ape);
     };
 }
 
