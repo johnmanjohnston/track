@@ -1,11 +1,16 @@
 #pragma once
 #include "daw/playhead.h"
-#include "daw/plugin_chain.h"
+// #include "daw/plugin_chain.h"
 #include "daw/timeline.h"
 #include "daw/track.h"
 #include "daw/transport_status.h"
 #include "lookandfeel.h"
 #include "processor.h"
+
+namespace track {
+class PluginChainComponent;
+class PluginEditorWindow;
+} // namespace track
 
 class AudioPluginAudioProcessorEditor : public juce::AudioProcessorEditor,
                                         public juce::Timer {
@@ -21,7 +26,9 @@ class AudioPluginAudioProcessorEditor : public juce::AudioProcessorEditor,
         pluginChainComponents;
     void openFxChain(int trackIndex);
 
-  private:
+    std::vector<std::unique_ptr<track::PluginEditorWindow>> pluginEditorWindows;
+    void openPluginEditorWindow(int trackIndex, int pluginIndex);
+
     AudioPluginAudioProcessor &processorRef;
 
     track::TimelineViewport timelineViewport;

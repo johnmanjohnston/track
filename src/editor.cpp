@@ -1,5 +1,6 @@
 #include "editor.h"
 #include "daw/defs.h"
+#include "daw/plugin_chain.h"
 #include "daw/timeline.h"
 #include "daw/track.h"
 #include "processor.h"
@@ -112,5 +113,21 @@ void AudioPluginAudioProcessorEditor::openFxChain(int trackIndex) {
     pcc->processor = &processorRef;
     addAndMakeVisible(*pcc);
     pcc->setBounds(10, 10, 900, 200);
+    repaint();
+}
+
+void AudioPluginAudioProcessorEditor::openPluginEditorWindow(int trackIndex,
+                                                             int pluginIndex) {
+    pluginEditorWindows.emplace_back(new track::PluginEditorWindow());
+    std::unique_ptr<track::PluginEditorWindow> &pew =
+        pluginEditorWindows.back();
+
+    pew->trackIndex = trackIndex;
+    pew->pluginIndex = pluginIndex;
+    pew->processor = &processorRef;
+    pew->createEditor();
+    addAndMakeVisible(*pew);
+
+    pew->setBounds(400, 0, 100, 100);
     repaint();
 }

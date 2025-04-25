@@ -1,4 +1,6 @@
 #include "plugin_chain.h"
+#include "juce_audio_processors/juce_audio_processors.h"
+#include "juce_events/juce_events.h"
 
 track::PluginChainComponent::PluginChainComponent() : juce::Component() {
     // setSize(500, 500);
@@ -13,24 +15,39 @@ track::PluginChainComponent::PluginChainComponent() : juce::Component() {
 
     closeBtn.onClick = [this] {
         getParentComponent()->removeChildComponent(this);
-        delete ape;
+        // delete ape;
     };
 
     addPluginBtn.onClick = [this] {
         DBG("add plugin btn clicked");
 
-        // juce::String pluginPath = juce::File("C:\\Program Files\\Common
-        // Files\\VST3\\OTT.vst3").getFullPathName();
+        // add actual subplugin
         juce::String pluginPath =
-            juce::File("/home/johnston/.vst3/ZL Equalizer.vst3/")
+            juce::File("/home/johnston/.vst3/Auburn Sounds Graillon 3.vst3/")
                 .getFullPathName();
         getCorrespondingTrack()->addPlugin(pluginPath);
 
-        std::unique_ptr<juce::AudioPluginInstance> &plugin =
-            getCorrespondingTrack()->plugins.back();
+        DBG("opening editor...");
+        // open subplugin's editor
+        // AudioPluginAudioProcessorEditor *editor =
+        //(AudioPluginAudioProcessorEditor *)getParentComponent();
+        AudioPluginAudioProcessorEditor *editor =
+            this->findParentComponentOfClass<AudioPluginAudioProcessorEditor>();
+
+        int pluginIndex = getCorrespondingTrack()->plugins.size() - 1;
+
+        DBG("trackIndex = " << this->trackIndex);
+        DBG("pluginIndex = " << pluginIndex);
+
+        editor->openPluginEditorWindow(trackIndex, pluginIndex);
+
+        // std::unique_ptr<juce::AudioPluginInstance> &plugin =
+        // getCorrespondingTrack()->plugins.back();
+        /*
         ape = plugin->createEditorIfNeeded();
         ape->setBounds(0, 0, 200, 200);
         addAndMakeVisible(*ape);
+        */
     };
 }
 
@@ -129,4 +146,39 @@ void track::PluginChainComponent::mouseDown(const juce::MouseEvent &event) {
 
 track::track *track::PluginChainComponent::getCorrespondingTrack() {
     return &processor->tracks[(size_t)trackIndex];
+}
+
+// plugin editor window
+track::PluginEditorWindow::PluginEditorWindow() : juce::Component() {}
+track::PluginEditorWindow::~PluginEditorWindow() {}
+
+void track::PluginEditorWindow::paint(juce::Graphics &g) {
+    g.fillAll(juce::Colours::red);
+}
+
+void track::PluginEditorWindow::resized() {
+    DBG("PluginEditorWindow::resized() called");
+}
+
+void track::PluginEditorWindow::createEditor() {
+    jassert(trackIndex > -1);
+    jassert(pluginIndex > -1);
+    jassert(processor != nullptr);
+
+    // this->ape = getPlugin()->get()->createEditorIfNeeded();
+    this->ape = std::unique_ptr<juce::AudioProcessorEditor>(
+        getPlugin()->get()->createEditorIfNeeded());
+    ape->setBounds(10, 10, 100, 100);
+
+    addAndMakeVisible(*ape);
+}
+
+// get current track and plugin util functions
+track::track *track::PluginEditorWindow::getCorrespondingTrack() {
+    return &processor->tracks[(size_t)trackIndex];
+}
+
+std::unique_ptr<juce::AudioPluginInstance> *
+track::PluginEditorWindow::getPlugin() {
+    return &getCorrespondingTrack()->plugins[(size_t)this->pluginIndex];
 }

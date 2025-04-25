@@ -1,3 +1,4 @@
+#include "../editor.h"
 #include "../processor.h"
 #include "BinaryData.h"
 #include "track.h"
@@ -35,6 +36,26 @@ class PluginChainComponent : public juce::Component {
         return typeface;
     }
 
-    juce::AudioProcessorEditor *ape = nullptr;
+    // juce::AudioProcessorEditor *ape = nullptr;
+};
+
+class PluginEditorWindow : public juce::Component {
+  public:
+    PluginEditorWindow();
+    ~PluginEditorWindow();
+
+    void createEditor();
+    void paint(juce::Graphics &g) override;
+    void resized() override;
+
+    int trackIndex = -1;
+    int pluginIndex = -1;
+
+    // juce::AudioProcessorEditor *ape = nullptr;
+    std::unique_ptr<juce::AudioProcessorEditor> ape;
+
+    AudioPluginAudioProcessor *processor = nullptr;
+    track *getCorrespondingTrack();
+    std::unique_ptr<juce::AudioPluginInstance> *getPlugin();
 };
 } // namespace track
