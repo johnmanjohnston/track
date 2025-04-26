@@ -164,8 +164,12 @@ void track::PluginEditorWindow::paint(juce::Graphics &g) {
     // other info
     g.setColour(juce::Colour(0xFF'595959));
     g.setFont(g.getCurrentFont().withHeight(17.f));
-    
-    juce::String otherInfoText = pluginManufacturer + "    " + juce::String(trackIndex) + "/" + trackName;
+   
+    int latency = getPlugin()->get()->getLatencySamples();
+    float latencyMs = (latency / getPlugin()->get()->getSampleRate()) * 1000.f;
+    juce::String otherInfoText = pluginManufacturer + "        " +
+                                 juce::String(trackIndex) + "/" + trackName + "        " + juce::String(latency) + " samples (" +
+                                 juce::String(latencyMs, 2, false) + "ms)";
     g.drawText(otherInfoText, pluginNameWidth + titlebarLeftMargin + 8, 0,
                getWidth() / 2, UI_SUBWINDOW_TITLEBAR_HEIGHT,
                juce::Justification::left, false);
