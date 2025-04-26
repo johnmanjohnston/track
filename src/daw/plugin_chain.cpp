@@ -49,7 +49,7 @@ track::PluginChainComponent::PluginChainComponent() : juce::Component()  {
 
 void track::PluginChainComponent::resized() {
     int closeBtnSize = UI_SUBWINDOW_TITLEBAR_HEIGHT;
-    closeBtn.setBounds(getWidth() - closeBtnSize, 0, closeBtnSize,
+    closeBtn.setBounds(getWidth() - closeBtnSize - UI_SUBWINDOW_TITLEBAR_MARGIN, 0, closeBtnSize + UI_SUBWINDOW_TITLEBAR_MARGIN,
                        closeBtnSize);
 
     addPluginBtn.setBounds(10, 10, 100, 100);
@@ -173,7 +173,7 @@ void track::PluginEditorWindow::paint(juce::Graphics &g) {
 
 void track::PluginEditorWindow::resized() {
     int closeBtnSize = UI_SUBWINDOW_TITLEBAR_HEIGHT;
-    closeBtn.setBounds(getWidth() - closeBtnSize - UI_SUBWINDOW_TITLEBAR_MARGIN, 0, closeBtnSize,
+    closeBtn.setBounds(getWidth() - closeBtnSize - UI_SUBWINDOW_TITLEBAR_MARGIN, 0, closeBtnSize + UI_SUBWINDOW_TITLEBAR_MARGIN,
                        closeBtnSize);
 }
 
@@ -244,10 +244,11 @@ void track::CloseButton::paint(juce::Graphics &g) {
     DBG("CLoseBUtton::paint()");
     
     g.setFont(font.withHeight(22.f));
-    g.setColour(juce::Colour(0xFF'585858));
+    g.setColour(isHoveredOver == true ? hoveredColor : normalColor);
     g.drawText("X", 0, 0, getWidth(), getHeight(), juce::Justification::centred,
                false);
 }
+
 void track::CloseButton::mouseUp(const juce::MouseEvent &event) {
     if (!event.mods.isLeftButtonDown())
         return;
@@ -260,4 +261,13 @@ void track::CloseButton::mouseUp(const juce::MouseEvent &event) {
     jassert(componentToRemoveParent != nullptr);
 
     componentToRemoveParent->removeChildComponent(componentToRemove);
+}
+
+void track::CloseButton::mouseEnter(const juce::MouseEvent &event) {
+    isHoveredOver = true;
+    repaint();
+}
+void track::CloseButton::mouseExit(const juce::MouseEvent &event) {
+    isHoveredOver = false;
+    repaint();
 }

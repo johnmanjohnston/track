@@ -14,5 +14,5 @@ constexpr int UI_TRACK_WIDTH = 260;
 constexpr int UI_TOPBAR_HEIGHT = 50;
 
 constexpr int UI_SUBWINDOW_TITLEBAR_HEIGHT = 24;
-constexpr int UI_SUBWINDOW_TITLEBAR_MARGIN = 3;
+constexpr int UI_SUBWINDOW_TITLEBAR_MARGIN = 5;
 } // namespace track

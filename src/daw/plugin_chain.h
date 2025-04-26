@@ -13,6 +13,12 @@ class CloseButton : public juce::Component {
     juce::Font font;
     void paint(juce::Graphics &g);
     void mouseUp(const juce::MouseEvent &event) override;
+
+    bool isHoveredOver = false; 
+    void mouseEnter(const juce::MouseEvent &event) override;
+    void mouseExit(const juce::MouseEvent &event) override;
+    juce::Colour normalColor = juce::Colour(0xFF'585858);
+    juce::Colour hoveredColor = juce::Colour(0xFF'808080);
 };
 
 class PluginChainComponent : public juce::Component {
