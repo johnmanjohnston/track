@@ -62,6 +62,11 @@ class PluginEditorWindow : public juce::Component, juce::Timer {
     void paint(juce::Graphics &g) override;
     void resized() override;
 
+    void mouseDown(const juce::MouseEvent &event) override;
+    void mouseDrag(const juce::MouseEvent &event) override;
+    juce::Rectangle<int> dragStartBounds;
+
+
     int trackIndex = -1;
     int pluginIndex = -1;
 

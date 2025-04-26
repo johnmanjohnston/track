@@ -209,6 +209,23 @@ void track::PluginEditorWindow::timerCallback() {
     setSize(ape->getWidth(), UI_SUBWINDOW_TITLEBAR_HEIGHT + ape->getHeight());
 }
 
+void track::PluginEditorWindow::mouseDown(const juce::MouseEvent& event) {
+    if (juce::ModifierKeys::currentModifiers.isAltDown())
+        dragStartBounds = getBounds();
+
+    this->toFront(true);
+    this->ape->toFront(true);
+}
+
+void track::PluginEditorWindow::mouseDrag(const juce::MouseEvent& event) {
+    if (juce::ModifierKeys::currentModifiers.isAltDown()) {
+        juce::Rectangle<int> newBounds = this->dragStartBounds;
+        newBounds.setX(newBounds.getX() + event.getDistanceFromDragStartX());
+        newBounds.setY(newBounds.getY() + event.getDistanceFromDragStartY());
+        setBounds(newBounds);
+    }
+}
+
 // get current track and plugin util functions
 track::track *track::PluginEditorWindow::getCorrespondingTrack() {
     return &processor->tracks[(size_t)trackIndex];
