@@ -5,10 +5,22 @@
 #include <JuceHeader.h>
 
 namespace track {
+class CloseButton : public juce::Component {
+  public:
+    CloseButton();
+    ~CloseButton();
+
+    juce::Font font;
+    void paint(juce::Graphics &g);
+    void mouseUp(const juce::MouseEvent &event) override;
+};
+
 class PluginChainComponent : public juce::Component {
   public:
     PluginChainComponent();
     ~PluginChainComponent();
+
+    CloseButton closeBtn;
 
     int titlebarHeight = -1;
 
@@ -22,8 +34,6 @@ class PluginChainComponent : public juce::Component {
     int trackIndex = -1;
     AudioPluginAudioProcessor *processor = nullptr;
     track *getCorrespondingTrack();
-
-    juce::TextButton closeBtn;
 
     juce::TextButton addPluginBtn;
 
@@ -43,6 +53,8 @@ class PluginEditorWindow : public juce::Component, juce::Timer {
   public:
     PluginEditorWindow();
     ~PluginEditorWindow();
+
+    CloseButton closeBtn;
 
     void timerCallback() override;
 

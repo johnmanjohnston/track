@@ -1,21 +1,18 @@
 #include "plugin_chain.h"
 #include "defs.h"
 
-track::PluginChainComponent::PluginChainComponent() : juce::Component() {
+track::PluginChainComponent::PluginChainComponent() : juce::Component()  {
     // setSize(500, 500);
 
-    closeBtn.setButtonText("X");
     addPluginBtn.setButtonText("e");
     // closeBtn.setColour(0x1004011, juce::Colours::red);
     // closeBtn.getLookAndFeel().setColour(0x1004011, juce::Colours::red);
-    closeBtn.setLookAndFeel(nullptr);
+    //closeBtn.setLookAndFeel(nullptr);
     addAndMakeVisible(closeBtn);
     addAndMakeVisible(addPluginBtn);
 
-    closeBtn.onClick = [this] {
-        getParentComponent()->removeChildComponent(this);
-        // delete ape;
-    };
+    closeBtn.font = getInterBoldItalic();
+    addAndMakeVisible(closeBtn);
 
     addPluginBtn.onClick = [this] {
         DBG("add plugin btn clicked");
@@ -51,9 +48,7 @@ track::PluginChainComponent::PluginChainComponent() : juce::Component() {
 }
 
 void track::PluginChainComponent::resized() {
-    this->titlebarHeight = getLocalBounds().getHeight() / 7;
-
-    int closeBtnSize = titlebarHeight + 2;
+    int closeBtnSize = UI_SUBWINDOW_TITLEBAR_HEIGHT;
     closeBtn.setBounds(getWidth() - closeBtnSize, 0, closeBtnSize,
                        closeBtnSize);
 
@@ -63,15 +58,13 @@ void track::PluginChainComponent::resized() {
 track::PluginChainComponent::~PluginChainComponent() {}
 
 void track::PluginChainComponent::paint(juce::Graphics &g) {
-    int margin = 3;
-
     // bg
     g.fillAll(juce::Colour(0xFF'282828));
 
     // titlebar
     juce::Rectangle<int> titlebarBounds = getLocalBounds();
-    titlebarBounds.setHeight(titlebarHeight);
-    titlebarBounds.reduce(margin, 0);
+    titlebarBounds.setHeight(UI_SUBWINDOW_TITLEBAR_HEIGHT);
+    titlebarBounds.reduce(UI_SUBWINDOW_TITLEBAR_MARGIN, 0);
     g.setColour(juce::Colours::green);
     // g.fillRect(titlebarBounds);
 
@@ -148,21 +141,24 @@ track::track *track::PluginChainComponent::getCorrespondingTrack() {
 }
 
 // plugin editor window
-track::PluginEditorWindow::PluginEditorWindow() : juce::Component() {}
+track::PluginEditorWindow::PluginEditorWindow() : juce::Component() {
+    closeBtn.font = getInterBoldItalic();
+    addAndMakeVisible(closeBtn);
+}
 track::PluginEditorWindow::~PluginEditorWindow() {}
 
 void track::PluginEditorWindow::paint(juce::Graphics &g) {
     g.setColour(juce::Colour(0xFF'1F1F1F));
-    g.fillRect(0, 0, getWidth(), UI_SUBPLUGIN_WINDOW_TITLEBAR_HEIGHT);
+    g.fillRect(0, 0, getWidth(), UI_SUBWINDOW_TITLEBAR_HEIGHT);
 
     g.setColour(juce::Colour(0xFF'838383));
     g.setFont(getInterBoldItalic().withHeight(21.f).withExtraKerningFactor(-.02f));
 
-    int titlebarLeftMargin = 8;
+    int titlebarLeftMargin = UI_SUBWINDOW_TITLEBAR_MARGIN + 5;
     int pluginNameWidth = g.getCurrentFont().getStringWidth(pluginName);
 
     // plugin name
-    g.drawText(pluginName, titlebarLeftMargin, 0, pluginNameWidth, UI_SUBPLUGIN_WINDOW_TITLEBAR_HEIGHT,
+    g.drawText(pluginName, titlebarLeftMargin, 0, pluginNameWidth, UI_SUBWINDOW_TITLEBAR_HEIGHT,
                juce::Justification::left, false);
 
     // other info
@@ -171,12 +167,14 @@ void track::PluginEditorWindow::paint(juce::Graphics &g) {
     
     juce::String otherInfoText = pluginManufacturer + "    " + juce::String(trackIndex) + "/" + trackName;
     g.drawText(otherInfoText, pluginNameWidth + titlebarLeftMargin + 8, 0,
-               getWidth() / 2, UI_SUBPLUGIN_WINDOW_TITLEBAR_HEIGHT,
+               getWidth() / 2, UI_SUBWINDOW_TITLEBAR_HEIGHT,
                juce::Justification::left, false);
 }
 
 void track::PluginEditorWindow::resized() {
-    DBG("PluginEditorWindow::resized() called");
+    int closeBtnSize = UI_SUBWINDOW_TITLEBAR_HEIGHT;
+    closeBtn.setBounds(getWidth() - closeBtnSize - UI_SUBWINDOW_TITLEBAR_MARGIN, 0, closeBtnSize,
+                       closeBtnSize);
 }
 
 void track::PluginEditorWindow::createEditor() {
@@ -186,7 +184,7 @@ void track::PluginEditorWindow::createEditor() {
 
     this->ape = std::unique_ptr<juce::AudioProcessorEditor>(
         getPlugin()->get()->createEditorIfNeeded());
-    ape->setBounds(0, UI_SUBPLUGIN_WINDOW_TITLEBAR_HEIGHT, 100, 100);
+    ape->setBounds(0, UI_SUBWINDOW_TITLEBAR_HEIGHT, 100, 100);
 
     addAndMakeVisible(*ape);
 
@@ -207,8 +205,8 @@ void track::PluginEditorWindow::timerCallback() {
     // DBG("ape's dimensions are x,y" << ape->getWidth() << ","
                                   // << ape->getHeight());
 
-    if (ape->getWidth() != this->getWidth() || ape->getHeight() != (UI_SUBPLUGIN_WINDOW_TITLEBAR_HEIGHT + ape->getHeight()))
-    setSize(ape->getWidth(), UI_SUBPLUGIN_WINDOW_TITLEBAR_HEIGHT + ape->getHeight());
+    if (ape->getWidth() != this->getWidth() || ape->getHeight() != (UI_SUBWINDOW_TITLEBAR_HEIGHT + ape->getHeight()))
+    setSize(ape->getWidth(), UI_SUBWINDOW_TITLEBAR_HEIGHT + ape->getHeight());
 }
 
 // get current track and plugin util functions
@@ -219,4 +217,30 @@ track::track *track::PluginEditorWindow::getCorrespondingTrack() {
 std::unique_ptr<juce::AudioPluginInstance> *
 track::PluginEditorWindow::getPlugin() {
     return &getCorrespondingTrack()->plugins[(size_t)this->pluginIndex];
+}
+
+// custom close button because lookandfeels are annoying
+track::CloseButton::CloseButton() : juce::Component(), font() {}
+track::CloseButton::~CloseButton() {}
+
+void track::CloseButton::paint(juce::Graphics &g) { 
+    DBG("CLoseBUtton::paint()");
+    
+    g.setFont(font.withHeight(22.f));
+    g.setColour(juce::Colour(0xFF'585858));
+    g.drawText("X", 0, 0, getWidth(), getHeight(), juce::Justification::centred,
+               false);
+}
+void track::CloseButton::mouseUp(const juce::MouseEvent &event) {
+    if (!event.mods.isLeftButtonDown())
+        return;
+
+    juce::Component *componentToRemove = (juce::Component*)getParentComponent();
+    jassert(componentToRemove != nullptr);
+
+    juce::Component *componentToRemoveParent =
+        (juce::Component*)componentToRemove->getParentComponent();
+    jassert(componentToRemoveParent != nullptr);
+
+    componentToRemoveParent->removeChildComponent(componentToRemove);
 }
