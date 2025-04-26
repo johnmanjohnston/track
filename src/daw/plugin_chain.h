@@ -39,10 +39,12 @@ class PluginChainComponent : public juce::Component {
     // juce::AudioProcessorEditor *ape = nullptr;
 };
 
-class PluginEditorWindow : public juce::Component {
+class PluginEditorWindow : public juce::Component, juce::Timer {
   public:
     PluginEditorWindow();
     ~PluginEditorWindow();
+
+    void timerCallback() override;
 
     void createEditor();
     void paint(juce::Graphics &g) override;
@@ -51,11 +53,25 @@ class PluginEditorWindow : public juce::Component {
     int trackIndex = -1;
     int pluginIndex = -1;
 
+    // info to show on titlebar
+    juce::String pluginName;
+    juce::String pluginManufacturer;
+    juce::String trackName;
+
     // juce::AudioProcessorEditor *ape = nullptr;
     std::unique_ptr<juce::AudioProcessorEditor> ape;
 
     AudioPluginAudioProcessor *processor = nullptr;
     track *getCorrespondingTrack();
     std::unique_ptr<juce::AudioPluginInstance> *getPlugin();
+
+    // TODO: this shouldn't belong in this class
+    static const juce::Font getInterBoldItalic() {
+        static auto typeface = Typeface::createSystemTypefaceFor(
+            BinaryData::Inter_18ptBoldItalic_ttf,
+            BinaryData::Inter_18ptBoldItalic_ttfSize);
+
+        return typeface;
+    }
 };
 } // namespace track

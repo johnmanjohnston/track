@@ -547,6 +547,9 @@ void track::track::process(int numSamples, int currentSample) {
 
     // let subplugins process audio
     for (std::unique_ptr<juce::AudioPluginInstance> &plugin : plugins) {
+        if (plugin == nullptr)
+            return;
+
         juce::MidiBuffer mb;
         plugin->processBlock(buffer, mb);
     }

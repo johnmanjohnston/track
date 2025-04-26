@@ -1,6 +1,5 @@
 #include "plugin_chain.h"
-#include "juce_audio_processors/juce_audio_processors.h"
-#include "juce_events/juce_events.h"
+#include "defs.h"
 
 track::PluginChainComponent::PluginChainComponent() : juce::Component() {
     // setSize(500, 500);
@@ -23,7 +22,7 @@ track::PluginChainComponent::PluginChainComponent() : juce::Component() {
 
         // add actual subplugin
         juce::String pluginPath =
-            juce::File("/home/johnston/.vst3/Auburn Sounds Graillon 3.vst3/")
+            juce::File("C:\\Program Files\\Common Files\\VST3\\TDR Nova.vst3")
                 .getFullPathName();
         getCorrespondingTrack()->addPlugin(pluginPath);
 
@@ -153,7 +152,27 @@ track::PluginEditorWindow::PluginEditorWindow() : juce::Component() {}
 track::PluginEditorWindow::~PluginEditorWindow() {}
 
 void track::PluginEditorWindow::paint(juce::Graphics &g) {
-    g.fillAll(juce::Colours::red);
+    g.setColour(juce::Colour(0xFF'1F1F1F));
+    g.fillRect(0, 0, getWidth(), UI_SUBPLUGIN_WINDOW_TITLEBAR_HEIGHT);
+
+    g.setColour(juce::Colour(0xFF'838383));
+    g.setFont(getInterBoldItalic().withHeight(21.f).withExtraKerningFactor(-.02f));
+
+    int titlebarLeftMargin = 8;
+    int pluginNameWidth = g.getCurrentFont().getStringWidth(pluginName);
+
+    // plugin name
+    g.drawText(pluginName, titlebarLeftMargin, 0, pluginNameWidth, UI_SUBPLUGIN_WINDOW_TITLEBAR_HEIGHT,
+               juce::Justification::left, false);
+
+    // other info
+    g.setColour(juce::Colour(0xFF'595959));
+    g.setFont(g.getCurrentFont().withHeight(17.f));
+    
+    juce::String otherInfoText = pluginManufacturer + "    " + juce::String(trackIndex) + "/" + trackName;
+    g.drawText(otherInfoText, pluginNameWidth + titlebarLeftMargin + 8, 0,
+               getWidth() / 2, UI_SUBPLUGIN_WINDOW_TITLEBAR_HEIGHT,
+               juce::Justification::left, false);
 }
 
 void track::PluginEditorWindow::resized() {
@@ -165,12 +184,31 @@ void track::PluginEditorWindow::createEditor() {
     jassert(pluginIndex > -1);
     jassert(processor != nullptr);
 
-    // this->ape = getPlugin()->get()->createEditorIfNeeded();
     this->ape = std::unique_ptr<juce::AudioProcessorEditor>(
         getPlugin()->get()->createEditorIfNeeded());
-    ape->setBounds(10, 10, 100, 100);
+    ape->setBounds(0, UI_SUBPLUGIN_WINDOW_TITLEBAR_HEIGHT, 100, 100);
 
     addAndMakeVisible(*ape);
+
+    // assign data to show on titlebar
+    pluginName = getPlugin()->get()->getPluginDescription().name;
+    pluginManufacturer =
+        getPlugin()->get()->getPluginDescription().manufacturerName;
+    trackName = getCorrespondingTrack()->trackName;
+
+    DBG(pluginName);
+    DBG(pluginManufacturer);
+
+    startTimer(60);
+}
+
+void track::PluginEditorWindow::timerCallback() {
+
+    // DBG("ape's dimensions are x,y" << ape->getWidth() << ","
+                                  // << ape->getHeight());
+
+    if (ape->getWidth() != this->getWidth() || ape->getHeight() != (UI_SUBPLUGIN_WINDOW_TITLEBAR_HEIGHT + ape->getHeight()))
+    setSize(ape->getWidth(), UI_SUBPLUGIN_WINDOW_TITLEBAR_HEIGHT + ape->getHeight());
 }
 
 // get current track and plugin util functions
