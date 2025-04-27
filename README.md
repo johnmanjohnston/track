@@ -16,7 +16,22 @@ cd track
 
 # clone JUCE
 git clone https://github.com/juce-framework/JUCE.git
+```
 
+### Temporary hack for track to run properly on Linux
+inside JUCE/modules/juce_audio_processors/format_types/juce_VST3PluginFormat.cpp, add the following code anywhere inside the `VST3PluginWindow` struct
+```cpp
+#if JUCE_LINUX
+    void handleCommandMessage(int commandId) override {
+        if (commandId == 420) {
+            embeddedComponent.updateEmbeddedBounds();
+        }
+    }
+#endif
+```
+
+
+```
 # generate build files with CMake
 cmake .
 ```
