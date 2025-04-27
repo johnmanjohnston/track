@@ -11,10 +11,10 @@ class CloseButton : public juce::Component {
     ~CloseButton();
 
     juce::Font font;
-    void paint(juce::Graphics &g);
+    void paint(juce::Graphics &g) override;
     void mouseUp(const juce::MouseEvent &event) override;
 
-    bool isHoveredOver = false; 
+    bool isHoveredOver = false;
     void mouseEnter(const juce::MouseEvent &event) override;
     void mouseExit(const juce::MouseEvent &event) override;
     juce::Colour normalColor = juce::Colour(0xFF'585858);
@@ -68,10 +68,10 @@ class PluginEditorWindow : public juce::Component, juce::Timer {
     void paint(juce::Graphics &g) override;
     void resized() override;
 
+    void mouseUp(const juce::MouseEvent &event) override;
     void mouseDown(const juce::MouseEvent &event) override;
     void mouseDrag(const juce::MouseEvent &event) override;
     juce::Rectangle<int> dragStartBounds;
-
 
     int trackIndex = -1;
     int pluginIndex = -1;

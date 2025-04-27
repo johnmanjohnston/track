@@ -1,13 +1,13 @@
 #include "plugin_chain.h"
 #include "defs.h"
 
-track::PluginChainComponent::PluginChainComponent() : juce::Component()  {
+track::PluginChainComponent::PluginChainComponent() : juce::Component() {
     // setSize(500, 500);
 
     addPluginBtn.setButtonText("e");
     // closeBtn.setColour(0x1004011, juce::Colours::red);
     // closeBtn.getLookAndFeel().setColour(0x1004011, juce::Colours::red);
-    //closeBtn.setLookAndFeel(nullptr);
+    // closeBtn.setLookAndFeel(nullptr);
     addAndMakeVisible(closeBtn);
     addAndMakeVisible(addPluginBtn);
 
@@ -19,7 +19,7 @@ track::PluginChainComponent::PluginChainComponent() : juce::Component()  {
 
         // add actual subplugin
         juce::String pluginPath =
-            juce::File("C:\\Program Files\\Common Files\\VST3\\TDR Nova.vst3")
+            juce::File("/home/johnston/.vst3/ZL Equalizer.vst3/")
                 .getFullPathName();
         getCorrespondingTrack()->addPlugin(pluginPath);
 
@@ -49,7 +49,8 @@ track::PluginChainComponent::PluginChainComponent() : juce::Component()  {
 
 void track::PluginChainComponent::resized() {
     int closeBtnSize = UI_SUBWINDOW_TITLEBAR_HEIGHT;
-    closeBtn.setBounds(getWidth() - closeBtnSize - UI_SUBWINDOW_TITLEBAR_MARGIN, 0, closeBtnSize + UI_SUBWINDOW_TITLEBAR_MARGIN,
+    closeBtn.setBounds(getWidth() - closeBtnSize - UI_SUBWINDOW_TITLEBAR_MARGIN,
+                       0, closeBtnSize + UI_SUBWINDOW_TITLEBAR_MARGIN,
                        closeBtnSize);
 
     addPluginBtn.setBounds(10, 10, 100, 100);
@@ -148,28 +149,35 @@ track::PluginEditorWindow::PluginEditorWindow() : juce::Component() {
 track::PluginEditorWindow::~PluginEditorWindow() {}
 
 void track::PluginEditorWindow::paint(juce::Graphics &g) {
+#if JUCE_LINUX
+    g.setColour(juce::Colours::black);
+    g.drawRect(getLocalBounds(), 2);
+#endif
+
     g.setColour(juce::Colour(0xFF'1F1F1F));
     g.fillRect(0, 0, getWidth(), UI_SUBWINDOW_TITLEBAR_HEIGHT);
 
     g.setColour(juce::Colour(0xFF'838383));
-    g.setFont(getInterBoldItalic().withHeight(21.f).withExtraKerningFactor(-.02f));
+    g.setFont(
+        getInterBoldItalic().withHeight(21.f).withExtraKerningFactor(-.02f));
 
     int titlebarLeftMargin = UI_SUBWINDOW_TITLEBAR_MARGIN + 5;
     int pluginNameWidth = g.getCurrentFont().getStringWidth(pluginName);
 
     // plugin name
-    g.drawText(pluginName, titlebarLeftMargin, 0, pluginNameWidth, UI_SUBWINDOW_TITLEBAR_HEIGHT,
-               juce::Justification::left, false);
+    g.drawText(pluginName, titlebarLeftMargin, 0, pluginNameWidth,
+               UI_SUBWINDOW_TITLEBAR_HEIGHT, juce::Justification::left, false);
 
     // other info
     g.setColour(juce::Colour(0xFF'595959));
     g.setFont(g.getCurrentFont().withHeight(17.f));
-   
+
     int latency = getPlugin()->get()->getLatencySamples();
     float latencyMs = (latency / getPlugin()->get()->getSampleRate()) * 1000.f;
-    juce::String otherInfoText = pluginManufacturer + "        " +
-                                 juce::String(trackIndex) + "/" + trackName + "        " + juce::String(latency) + " samples (" +
-                                 juce::String(latencyMs, 2, false) + "ms)";
+    juce::String otherInfoText =
+        pluginManufacturer + "        " + juce::String(trackIndex) + "/" +
+        trackName + "        " + juce::String(latency) + " samples (" +
+        juce::String(latencyMs, 2, false) + "ms)";
     g.drawText(otherInfoText, pluginNameWidth + titlebarLeftMargin + 8, 0,
                getWidth() / 2, UI_SUBWINDOW_TITLEBAR_HEIGHT,
                juce::Justification::left, false);
@@ -177,7 +185,8 @@ void track::PluginEditorWindow::paint(juce::Graphics &g) {
 
 void track::PluginEditorWindow::resized() {
     int closeBtnSize = UI_SUBWINDOW_TITLEBAR_HEIGHT;
-    closeBtn.setBounds(getWidth() - closeBtnSize - UI_SUBWINDOW_TITLEBAR_MARGIN, 0, closeBtnSize + UI_SUBWINDOW_TITLEBAR_MARGIN,
+    closeBtn.setBounds(getWidth() - closeBtnSize - UI_SUBWINDOW_TITLEBAR_MARGIN,
+                       0, closeBtnSize + UI_SUBWINDOW_TITLEBAR_MARGIN,
                        closeBtnSize);
 }
 
@@ -207,26 +216,49 @@ void track::PluginEditorWindow::createEditor() {
 void track::PluginEditorWindow::timerCallback() {
 
     // DBG("ape's dimensions are x,y" << ape->getWidth() << ","
-                                  // << ape->getHeight());
+    // << ape->getHeight());
 
-    if (ape->getWidth() != this->getWidth() || ape->getHeight() != (UI_SUBWINDOW_TITLEBAR_HEIGHT + ape->getHeight()))
-    setSize(ape->getWidth(), UI_SUBWINDOW_TITLEBAR_HEIGHT + ape->getHeight());
+    if (ape->getWidth() != this->getWidth() ||
+        ape->getHeight() != (UI_SUBWINDOW_TITLEBAR_HEIGHT + ape->getHeight()))
+        setSize(ape->getWidth(),
+                UI_SUBWINDOW_TITLEBAR_HEIGHT + ape->getHeight());
 }
 
-void track::PluginEditorWindow::mouseDown(const juce::MouseEvent& event) {
-    if (juce::ModifierKeys::currentModifiers.isAltDown())
+void track::PluginEditorWindow::mouseDown(const juce::MouseEvent &event) {
+    if (juce::ModifierKeys::currentModifiers.isAltDown()) {
         dragStartBounds = getBounds();
+        ape->setVisible(false);
+    }
 
     this->toFront(true);
     this->ape->toFront(true);
 }
 
-void track::PluginEditorWindow::mouseDrag(const juce::MouseEvent& event) {
+void track::PluginEditorWindow::mouseDrag(const juce::MouseEvent &event) {
     if (juce::ModifierKeys::currentModifiers.isAltDown()) {
         juce::Rectangle<int> newBounds = this->dragStartBounds;
         newBounds.setX(newBounds.getX() + event.getDistanceFromDragStartX());
         newBounds.setY(newBounds.getY() + event.getDistanceFromDragStartY());
         setBounds(newBounds);
+
+        ape->setBounds(0, UI_SUBWINDOW_TITLEBAR_HEIGHT, getWidth() - 1,
+                       getHeight() - UI_SUBWINDOW_TITLEBAR_HEIGHT);
+    }
+
+    ape->resized();
+    ape->repaint();
+}
+
+void track::PluginEditorWindow::mouseUp(const juce::MouseEvent &event) {
+    if (event.mouseWasDraggedSinceMouseDown() ||
+        juce::ModifierKeys::currentModifiers.isAltDown()) {
+        DBG("DRAG STOPPED");
+
+        ape->setVisible(true);
+
+#if JUCE_LINUX
+        ape->postCommandMessage(COMMAND_UPDATE_VST3_EMBEDDED_BOUNDS);
+#endif
     }
 }
 
@@ -244,9 +276,9 @@ track::PluginEditorWindow::getPlugin() {
 track::CloseButton::CloseButton() : juce::Component(), font() {}
 track::CloseButton::~CloseButton() {}
 
-void track::CloseButton::paint(juce::Graphics &g) { 
+void track::CloseButton::paint(juce::Graphics &g) {
     DBG("CLoseBUtton::paint()");
-    
+
     g.setFont(font.withHeight(22.f));
     g.setColour(isHoveredOver == true ? hoveredColor : normalColor);
     g.drawText("X", 0, 0, getWidth(), getHeight(), juce::Justification::centred,
@@ -257,11 +289,12 @@ void track::CloseButton::mouseUp(const juce::MouseEvent &event) {
     if (!event.mods.isLeftButtonDown())
         return;
 
-    juce::Component *componentToRemove = (juce::Component*)getParentComponent();
+    juce::Component *componentToRemove =
+        (juce::Component *)getParentComponent();
     jassert(componentToRemove != nullptr);
 
     juce::Component *componentToRemoveParent =
-        (juce::Component*)componentToRemove->getParentComponent();
+        (juce::Component *)componentToRemove->getParentComponent();
     jassert(componentToRemoveParent != nullptr);
 
     componentToRemoveParent->removeChildComponent(componentToRemove);

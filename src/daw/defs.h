@@ -15,4 +15,7 @@ constexpr int UI_TOPBAR_HEIGHT = 50;
 
 constexpr int UI_SUBWINDOW_TITLEBAR_HEIGHT = 24;
 constexpr int UI_SUBWINDOW_TITLEBAR_MARGIN = 5;
+
+// must align with internal JUCE modifications
+#define COMMAND_UPDATE_VST3_EMBEDDED_BOUNDS 420
 } // namespace track
