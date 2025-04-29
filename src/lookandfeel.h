@@ -1,4 +1,5 @@
 #pragma once
+#include "juce_gui_basics/juce_gui_basics.h"
 #include <JuceHeader.h>
 
 using namespace juce;
@@ -20,6 +21,10 @@ class CustomLookAndFeel : public juce::LookAndFeel_V4 {
         setColour(Slider::rotarySliderFillColourId, juce::Colour(0xFF'67FF76));
         setColour(Slider::thumbColourId, juce::Colour(0xFF'67FF76));
         setColour(Slider::trackColourId, juce::Colour(0xFF'303030));
+
+        setColour(PopupMenu::backgroundColourId, juce::Colour(0xFF'1F1F1F));
+        setColour(PopupMenu::highlightedBackgroundColourId,
+                  juce::Colour(0xFF'454545));
     }
 
     static const juce::Font getRobotoMonoThin();

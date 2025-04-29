@@ -96,6 +96,8 @@ void track::TimelineComponent::mouseDown(const juce::MouseEvent &event) {
     if (event.mods.isRightButtonDown()) {
         DBG("TimelineComponent::mouseDown() for right mouse button down");
         juce::PopupMenu contextMenu;
+        contextMenu.setLookAndFeel(&getLookAndFeel());
+
         contextMenu.addItem(1, "Paste clip");
 
         contextMenu.showMenuAsync(

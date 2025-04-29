@@ -145,6 +145,7 @@ void track::PluginChainComponent::mouseDown(const juce::MouseEvent &event) {
         jassert(knownPluginList != nullptr);
 
         juce::PopupMenu pluginSelector;
+        pluginSelector.setLookAndFeel(&getLookAndFeel());
 
         for (auto pluginDescription : knownPluginList->getTypes()) {
             pluginSelector.addItem(pluginDescription.name, [this,

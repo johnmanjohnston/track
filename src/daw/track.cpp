@@ -92,6 +92,8 @@ void track::ClipComponent::mouseDown(const juce::MouseEvent &event) {
         DBG("rmb down");
 
         juce::PopupMenu contextMenu;
+        contextMenu.setLookAndFeel(&getLookAndFeel());
+
         contextMenu.addItem(1, "Reverse");
         contextMenu.addItem(2, "Cut");
         contextMenu.addItem(3, "Toggle activate/deactive clip");
