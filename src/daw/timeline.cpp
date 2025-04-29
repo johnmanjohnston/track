@@ -128,7 +128,7 @@ void track::TimelineComponent::mouseDown(const juce::MouseEvent &event) {
 }
 
 void track::TimelineComponent::paint(juce::Graphics &g) {
-    DBG("timelineComponent paint called");
+    // DBG("timelineComponent paint called");
     g.fillAll(juce::Colour(0xFF2E2E2E));
 
     g.setColour(juce::Colours::white);

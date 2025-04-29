@@ -3,6 +3,7 @@
 #include "daw/plugin_chain.h"
 #include "daw/timeline.h"
 #include "daw/track.h"
+#include "juce_audio_processors/juce_audio_processors.h"
 #include "processor.h"
 
 AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
@@ -62,6 +63,11 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
 
     masterSlider.setTextBoxStyle(juce::Slider::TextEntryBoxPosition::NoTextBox,
                                  true, 0, 0);
+
+    scanBtn.setButtonText("scan");
+    scanBtn.onClick = [this] { scan(); };
+
+    addAndMakeVisible(scanBtn);
 }
 
 AudioPluginAudioProcessorEditor::~AudioPluginAudioProcessorEditor() {
@@ -100,6 +106,8 @@ void AudioPluginAudioProcessorEditor::resized() {
         timeInfoBgHeight);
 
     transportStatus.setBounds(timeInfoRectangle);
+
+    scanBtn.setBounds(1, 1, 50, 20);
 }
 
 void AudioPluginAudioProcessorEditor::openFxChain(int trackIndex) {
@@ -109,6 +117,7 @@ void AudioPluginAudioProcessorEditor::openFxChain(int trackIndex) {
     std::unique_ptr<track::PluginChainComponent> &pcc =
         pluginChainComponents.back();
 
+    pcc->knownPluginList = &this->knownPluginList;
     pcc->trackIndex = trackIndex;
     pcc->processor = &processorRef;
     addAndMakeVisible(*pcc);
@@ -130,4 +139,17 @@ void AudioPluginAudioProcessorEditor::openPluginEditorWindow(int trackIndex,
 
     pew->setBounds(400, 0, 100, 100);
     repaint();
+}
+
+void AudioPluginAudioProcessorEditor::scan() {
+    if (apfm.getNumFormats() < 1)
+        apfm.addDefaultFormats();
+
+    if (pluginListComponent.get() == nullptr) {
+        pluginListComponent = std::make_unique<juce::PluginListComponent>(
+            apfm, knownPluginList, juce::File(), propertiesFile.get(), true);
+    }
+
+    juce::AudioPluginFormat *format = apfm.getFormat(0);
+    pluginListComponent->scanFor(*format);
 }

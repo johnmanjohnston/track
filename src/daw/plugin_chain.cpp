@@ -1,19 +1,22 @@
 #include "plugin_chain.h"
 #include "defs.h"
+#include "juce_graphics/juce_graphics.h"
+#include "juce_gui_basics/juce_gui_basics.h"
 
 track::PluginChainComponent::PluginChainComponent() : juce::Component() {
     // setSize(500, 500);
 
-    addPluginBtn.setButtonText("e");
-    // closeBtn.setColour(0x1004011, juce::Colours::red);
-    // closeBtn.getLookAndFeel().setColour(0x1004011, juce::Colours::red);
-    // closeBtn.setLookAndFeel(nullptr);
+    // addPluginBtn.setButtonText("e");
+    //  closeBtn.setColour(0x1004011, juce::Colours::red);
+    //  closeBtn.getLookAndFeel().setColour(0x1004011, juce::Colours::red);
+    //  closeBtn.setLookAndFeel(nullptr);
     addAndMakeVisible(closeBtn);
-    addAndMakeVisible(addPluginBtn);
+    // addAndMakeVisible(addPluginBtn);
 
     closeBtn.font = getInterBoldItalic();
     addAndMakeVisible(closeBtn);
 
+    /*
     addPluginBtn.onClick = [this] {
         DBG("add plugin btn clicked");
 
@@ -37,14 +40,8 @@ track::PluginChainComponent::PluginChainComponent() : juce::Component() {
 
         editor->openPluginEditorWindow(trackIndex, pluginIndex);
 
-        // std::unique_ptr<juce::AudioPluginInstance> &plugin =
-        // getCorrespondingTrack()->plugins.back();
-        /*
-        ape = plugin->createEditorIfNeeded();
-        ape->setBounds(0, 0, 200, 200);
-        addAndMakeVisible(*ape);
-        */
     };
+        */
 }
 
 void track::PluginChainComponent::resized() {
@@ -53,7 +50,7 @@ void track::PluginChainComponent::resized() {
                        0, closeBtnSize + UI_SUBWINDOW_TITLEBAR_MARGIN,
                        closeBtnSize);
 
-    addPluginBtn.setBounds(10, 10, 100, 100);
+    // addPluginBtn.setBounds(10, 10, 100, 100);
 }
 
 track::PluginChainComponent::~PluginChainComponent() {}
@@ -119,6 +116,14 @@ void track::PluginChainComponent::paint(juce::Graphics &g) {
     // g.drawHorizontalLine(titlebarBounds.getHeight(), 0, getWidth());
     g.fillRect(0, titlebarBounds.getHeight(), getWidth(), 2);
     g.drawRect(getLocalBounds(), 2);
+
+    // what plugins are added?
+    g.setColour(juce::Colours::white);
+    for (size_t i = 0; i < getCorrespondingTrack()->plugins.size(); ++i) {
+        juce::String name = getCorrespondingTrack()->plugins[i]->getName();
+        g.drawText(name, 20, 20 + (i * 12), getWidth(), 8,
+                   juce::Justification::left, false);
+    }
 }
 
 void track::PluginChainComponent::mouseDrag(const juce::MouseEvent &event) {
@@ -135,6 +140,36 @@ void track::PluginChainComponent::mouseDown(const juce::MouseEvent &event) {
         dragStartBounds = getBounds();
 
     this->toFront(true);
+
+    if (event.mods.isRightButtonDown()) {
+        jassert(knownPluginList != nullptr);
+
+        juce::PopupMenu pluginSelector;
+
+        for (auto pluginDescription : knownPluginList->getTypes()) {
+            pluginSelector.addItem(pluginDescription.name, [this,
+                                                            pluginDescription] {
+                // add plugin
+                DBG("adding " << pluginDescription.name);
+                getCorrespondingTrack()->addPlugin(
+                    pluginDescription.fileOrIdentifier);
+
+                // open its editor
+                AudioPluginAudioProcessorEditor *editor =
+                    this->findParentComponentOfClass<
+                        AudioPluginAudioProcessorEditor>();
+
+                int pluginIndex = getCorrespondingTrack()->plugins.size() - 1;
+
+                DBG("trackIndex = " << this->trackIndex);
+                DBG("pluginIndex = " << pluginIndex);
+
+                editor->openPluginEditorWindow(trackIndex, pluginIndex);
+            });
+        }
+
+        pluginSelector.showMenuAsync(juce::PopupMenu::Options());
+    }
 }
 
 track::track *track::PluginChainComponent::getCorrespondingTrack() {

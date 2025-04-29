@@ -1,6 +1,7 @@
 #include "../editor.h"
 #include "../processor.h"
 #include "BinaryData.h"
+#include "juce_audio_processors/juce_audio_processors.h"
 #include "track.h"
 #include <JuceHeader.h>
 
@@ -26,6 +27,8 @@ class PluginChainComponent : public juce::Component {
     PluginChainComponent();
     ~PluginChainComponent();
 
+    juce::KnownPluginList *knownPluginList = nullptr;
+
     CloseButton closeBtn;
 
     int titlebarHeight = -1;
@@ -41,7 +44,7 @@ class PluginChainComponent : public juce::Component {
     AudioPluginAudioProcessor *processor = nullptr;
     track *getCorrespondingTrack();
 
-    juce::TextButton addPluginBtn;
+    // juce::TextButton addPluginBtn;
 
     // TODO: this shouldn't belong in this class
     static const juce::Font getInterBoldItalic() {

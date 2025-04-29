@@ -4,6 +4,7 @@
 #include "daw/timeline.h"
 #include "daw/track.h"
 #include "daw/transport_status.h"
+#include "juce_data_structures/juce_data_structures.h"
 #include "lookandfeel.h"
 #include "processor.h"
 
@@ -20,6 +21,19 @@ class AudioPluginAudioProcessorEditor : public juce::AudioProcessorEditor,
 
     void paint(juce::Graphics &) override;
     void resized() override;
+
+    // scanning
+    juce::KnownPluginList knownPluginList;
+    juce::AudioPluginFormatManager apfm;
+
+    std::unique_ptr<juce::PluginListComponent> pluginListComponent;
+
+    juce::PropertiesFile::Options options;
+    std::unique_ptr<juce::PropertiesFile> propertiesFile =
+        std::make_unique<juce::PropertiesFile>(options);
+    void scan();
+
+    juce::TextButton scanBtn;
 
     // track::PluginChainComponent pluginChainComponent;
     std::vector<std::unique_ptr<track::PluginChainComponent>>
