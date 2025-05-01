@@ -18,6 +18,13 @@ cd track
 git clone https://github.com/juce-framework/JUCE.git
 ```
 
+```
+# generate build files with CMake
+cmake .
+```
+
+You should then see the required files to build for your platform
+
 ### Temporary hack for track to run properly on Linux
 inside JUCE/modules/juce_audio_processors/format_types/juce_VST3PluginFormat.cpp, add the following code anywhere inside the `VST3PluginWindow` struct
 ```cpp
@@ -29,14 +36,6 @@ inside JUCE/modules/juce_audio_processors/format_types/juce_VST3PluginFormat.cpp
     }
 #endif
 ```
-
-
-```
-# generate build files with CMake
-cmake .
-```
-
-You should then see the required files to build for your platform
 
 ### Compiling
 #### Linux-based
@@ -50,6 +49,4 @@ make
 - Under Build, click Build Solution (or just do Ctrl+Shift+B)
 
 ### Running
-**as a standalone:** run the executable, located inside `track_artefacts/DEBUG/Standalone`
-
-**as a plugin:** move `track_artefacts/DEBUG/VST3/track.vst3` to the appropriate plugins folder for your system, then run it inside a DAW
+move `track_artefacts/DEBUG/VST3/track.vst3` to the appropriate plugins folder for your DAW, then add the plugin to a track in your DAW
