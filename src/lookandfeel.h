@@ -31,6 +31,7 @@ class CustomLookAndFeel : public juce::LookAndFeel_V4 {
 
     static const juce::Font getRobotoMonoThin();
     static const juce::Font getInterRegular();
+    static const juce::Font getInterSemiBold();
 
     void drawLinearSlider(Graphics &g, int x, int y, int width, int height,
                           float sliderPos, float minSliderPos,
@@ -48,5 +49,7 @@ class CustomLookAndFeel : public juce::LookAndFeel_V4 {
 
     void drawPopupMenuBackground(Graphics &g, int width, int height) override;
     Font getPopupMenuFont() override;
+
+    Font getTextButtonFont(TextButton &button, int buttonHeight) override;
 };
 } // namespace track::ui

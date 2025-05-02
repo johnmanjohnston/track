@@ -2,6 +2,7 @@
 #include "clipboard.h"
 #include "defs.h"
 #include "juce_core/juce_core.h"
+#include "juce_graphics/juce_graphics.h"
 #include "juce_graphics/native/juce_EventTracing.h"
 #include "juce_gui_basics/juce_gui_basics.h"
 #include "track.h"

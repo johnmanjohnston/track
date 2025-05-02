@@ -17,6 +17,14 @@ const juce::Font track::ui::CustomLookAndFeel::getInterRegular() {
     return Font(typeface);
 }
 
+const juce::Font track::ui::CustomLookAndFeel::getInterSemiBold() {
+    static auto typeface = Typeface::createSystemTypefaceFor(
+        BinaryData::Inter_18ptSemiBold_ttf,
+        BinaryData::Inter_18ptSemiBold_ttfSize);
+
+    return Font(typeface);
+}
+
 void track::ui::CustomLookAndFeel::drawRotarySlider(
     Graphics &g, int x, int y, int width, int height, float sliderPos,
     const float rotaryStartAngle, const float rotaryEndAngle, Slider &slider) {
@@ -225,4 +233,14 @@ void track::ui::CustomLookAndFeel::drawPopupMenuBackground(Graphics &g,
 
 Font track::ui::CustomLookAndFeel::getPopupMenuFont() {
     return getInterRegular().withHeight(18.f).withExtraKerningFactor(-.03f);
+}
+
+Font track::ui::CustomLookAndFeel::getTextButtonFont(TextButton &button,
+                                                     int buttonHeight) {
+    // is length is <= 2 then it's one of those "icon" buttons like mute button
+    // or FX chain button
+    if (button.getButtonText().length() <= 2)
+        return getInterSemiBold().withHeight((float)buttonHeight / 1.6f);
+
+    return getInterSemiBold().withHeight((float)buttonHeight / 2.f);
 }

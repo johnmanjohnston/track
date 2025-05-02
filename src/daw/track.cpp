@@ -71,7 +71,7 @@ void track::ClipComponent::paint(juce::Graphics &g) {
         else
             g.setColour(juce::Colour(0xFF'696969));
 
-        int thumbnailTopMargin = 18;
+        int thumbnailTopMargin = 14;
         juce::Rectangle<int> thumbnailBounds = getLocalBounds().reduced(2);
         thumbnailBounds.setHeight(thumbnailBounds.getHeight() -
                                   thumbnailTopMargin);
@@ -79,6 +79,11 @@ void track::ClipComponent::paint(juce::Graphics &g) {
 
         thumbnail.drawChannels(g, thumbnailBounds, 0,
                                thumbnail.getTotalLength(), .7f);
+    }
+
+    if (isMouseOver(true)) {
+        g.setColour(juce::Colours::white.withAlpha(.07f));
+        g.fillRoundedRectangle(getLocalBounds().toFloat(), cornerSize);
     }
 
     g.setColour(juce::Colour(0xFF'000515));
@@ -102,35 +107,42 @@ void track::ClipComponent::mouseDown(const juce::MouseEvent &event) {
         juce::PopupMenu contextMenu;
         contextMenu.setLookAndFeel(&getLookAndFeel());
 
-        contextMenu.addItem(1, "Reverse");
-        contextMenu.addItem(2, "Cut");
-        contextMenu.addItem(3, "Toggle activate/deactive clip");
-        contextMenu.addItem(4, "Copy clip");
+#define MENU_REVERSE_CLIP 1
+#define MENU_CUT_CLIP 2
+#define MENU_TOGGLE_CLIP_ACTIVATION 3
+#define MENU_COPY_CLIP 4
+
+        contextMenu.addItem(MENU_COPY_CLIP, "Copy clip");
+        contextMenu.addItem(MENU_CUT_CLIP, "Cut");
+        contextMenu.addSeparator();
+        contextMenu.addItem(MENU_REVERSE_CLIP, "Reverse");
+        contextMenu.addItem(MENU_TOGGLE_CLIP_ACTIVATION,
+                            "Toggle activate/deactive clip");
 
         juce::PopupMenu::Options options;
 
         contextMenu.showMenuAsync(options, [this](int result) {
-            if (result == 1) {
+            if (result == MENU_REVERSE_CLIP) {
                 this->correspondingClip->reverse();
                 thumbnailCache.clear();
                 thumbnail.setSource(&correspondingClip->buffer, 44100.0, 2);
                 repaint();
             }
 
-            else if (result == 2) {
+            else if (result == MENU_CUT_CLIP) {
                 TimelineComponent *tc =
                     (TimelineComponent *)getParentComponent();
 
                 tc->deleteClip(correspondingClip, trackIndex);
             }
 
-            else if (result == 3) {
+            else if (result == MENU_TOGGLE_CLIP_ACTIVATION) {
                 this->correspondingClip->active =
                     !this->correspondingClip->active;
                 repaint();
             }
 
-            else if (result == 4) {
+            else if (result == MENU_COPY_CLIP) {
                 clipboard::setData(correspondingClip, TYPECODE_CLIP);
             }
         });
@@ -186,7 +198,8 @@ void track::TrackComponent::initializeGainSlider() {
 track::TrackComponent::TrackComponent(int trackIndex) : juce::Component() {
     // starting text for track name label is set when TrackComponent is created
     // in createTrackComponents()
-    trackNameLabel.setFont(getInterRegular().withHeight(17.f));
+    trackNameLabel.setFont(
+        getInterRegular().withHeight(17.f).withExtraKerningFactor(-0.02f));
     trackNameLabel.setBounds(0, 0, 100, 20);
     trackNameLabel.setEditable(true);
     addAndMakeVisible(trackNameLabel);
@@ -330,35 +343,48 @@ void track::TrackViewport::scrollBarMoved(juce::ScrollBar *bar,
 
 track::Tracklist::Tracklist() : juce::Component() {
     addAndMakeVisible(newTrackBtn);
-    newTrackBtn.setButtonText("create new track");
+    newTrackBtn.setButtonText("ADD TRACK");
+    newTrackBtn.setTooltip("create new track");
 
-    newTrackBtn.onClick = [this] {
-        // this is annoying
-        DBG("new track button clicked");
-
-        auto p = (AudioPluginAudioProcessor *)this->processor;
-        p->tracks.emplace_back();
-        auto &t = p->tracks.back();
-        t.processor = this->processor;
-
-        int i = p->tracks.size() - 1;
-        this->trackComponents.push_back(std::make_unique<TrackComponent>(i));
-        trackComponents.back().get()->processor = processor;
-        trackComponents.back().get()->initializeGainSlider();
-
-        // set track label text
-        trackComponents.back().get()->trackNameLabel.setText(
-            trackComponents.back().get()->getCorrespondingTrack()->trackName,
-            juce::NotificationType::dontSendNotification);
-
-        addAndMakeVisible(*trackComponents.back());
-
-        DBG("track component added. will set track components bounds now");
-        setTrackComponentBounds();
-        repaint();
-    };
+    newTrackBtn.onClick = [this] { addNewTrack(); };
 }
 track::Tracklist::~Tracklist() {}
+
+void track::Tracklist::addNewTrack() {
+    auto p = (AudioPluginAudioProcessor *)this->processor;
+    p->tracks.emplace_back();
+    auto &t = p->tracks.back();
+    t.processor = this->processor;
+
+    int i = p->tracks.size() - 1;
+    this->trackComponents.push_back(std::make_unique<TrackComponent>(i));
+    trackComponents.back().get()->processor = processor;
+    trackComponents.back().get()->initializeGainSlider();
+
+    // set track label text
+    trackComponents.back().get()->trackNameLabel.setText(
+        trackComponents.back().get()->getCorrespondingTrack()->trackName,
+        juce::NotificationType::dontSendNotification);
+
+    addAndMakeVisible(*trackComponents.back());
+
+    DBG("track component added. will set track components bounds now");
+    setTrackComponentBounds();
+
+    repaint();
+}
+
+void track::Tracklist::mouseDown(const juce::MouseEvent &event) {
+    if (event.mods.isRightButtonDown()) {
+        juce::PopupMenu contextMenu;
+        contextMenu.setLookAndFeel(&getLookAndFeel());
+
+        contextMenu.addItem("add new track", [this] { this->addNewTrack(); });
+
+        contextMenu.showMenuAsync(juce::PopupMenu::Options());
+    }
+}
+
 void track::Tracklist::createTrackComponents() {
     AudioPluginAudioProcessor *p =
         (AudioPluginAudioProcessor *)(this->processor);
@@ -392,12 +418,7 @@ void track::Tracklist::setTrackComponentBounds() {
         tc->repaint();
     }
 
-    newTrackBtn.setBounds(0,
-                          UI_TRACK_VERTICAL_OFFSET +
-                              (UI_TRACK_HEIGHT * counter) +
-                              (UI_TRACK_VERTICAL_MARGIN * counter),
-                          UI_TRACK_WIDTH, UI_TRACK_HEIGHT);
-
+    newTrackBtn.setBounds(0, 0, 80, UI_TRACK_VERTICAL_OFFSET);
     DBG("setTrackComponentBounds() called");
 
     if (getParentComponent()) {

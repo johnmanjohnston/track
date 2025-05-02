@@ -39,6 +39,10 @@ class ClipComponent : public juce::Component, public juce::ChangeListener {
     void mouseDown(const juce::MouseEvent &event) override;
     void mouseDrag(const juce::MouseEvent &event) override;
     void mouseUp(const juce::MouseEvent &event) override;
+
+    void mouseEnter(const juce::MouseEvent &) override { repaint(); }
+    void mouseExit(const juce::MouseEvent &) override { repaint(); }
+
     bool isBeingDragged = false;
 
     // TODO: this function should not be in this class
@@ -130,6 +134,10 @@ class Tracklist : public juce::Component {
     std::vector<std::unique_ptr<TrackComponent>> trackComponents;
     void createTrackComponents();
     void setTrackComponentBounds();
+
+    void mouseDown(const juce::MouseEvent &event) override;
+
+    void addNewTrack();
 
     void *processor = nullptr;
 
