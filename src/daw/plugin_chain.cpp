@@ -144,6 +144,10 @@ void track::PluginChainComponent::mouseDown(const juce::MouseEvent &event) {
     if (event.mods.isRightButtonDown()) {
         jassert(knownPluginList != nullptr);
 
+        if (knownPluginList->getTypes().size() == 0) {
+            DBG("No plugins in known plugin list");
+        }
+
         juce::PopupMenu pluginSelector;
         pluginSelector.setLookAndFeel(&getLookAndFeel());
 

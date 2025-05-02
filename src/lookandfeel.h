@@ -46,8 +46,7 @@ class CustomLookAndFeel : public juce::LookAndFeel_V4 {
                               bool shouldDrawButtonAsHighlighted,
                               bool shouldDrawButtonAsDown) override;
 
-    // void drawPopupMenuBackground(Graphics &g, int width, int height)
-    // override;
+    void drawPopupMenuBackground(Graphics &g, int width, int height) override;
     Font getPopupMenuFont() override;
 };
 } // namespace track::ui

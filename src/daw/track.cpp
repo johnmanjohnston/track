@@ -21,8 +21,10 @@ track::ClipComponent::ClipComponent(clip *c)
 
     thumbnail.addChangeListener(this);
 
-    clipNameLabel.setFont(getInterRegular());
-    clipNameLabel.setColour(juce::Label::textColourId, juce::Colours::black);
+    clipNameLabel.setFont(
+        getInterSemiBold().withHeight(16.f).withExtraKerningFactor(-.02f));
+    clipNameLabel.setColour(juce::Label::textColourId,
+                            juce::Colour(0xFF'AECBED).brighter(.5f));
     clipNameLabel.setEditable(true);
     clipNameLabel.setText(c->name,
                           juce::NotificationType::dontSendNotification);
@@ -35,6 +37,7 @@ track::ClipComponent::ClipComponent(clip *c)
     };
 
     setBufferedToImage(true);
+    setOpaque(false);
 }
 track::ClipComponent::~ClipComponent() { thumbnail.removeAllChangeListeners(); }
 
@@ -43,6 +46,8 @@ void track::ClipComponent::changeListenerCallback(ChangeBroadcaster *source) {
 }
 
 void track::ClipComponent::paint(juce::Graphics &g) {
+    float cornerSize = 4.f;
+
     if (thumbnail.getNumChannels() == 0) {
         g.fillAll(juce::Colours::grey);
         g.setColour(juce::Colours::white);
@@ -57,7 +62,7 @@ void track::ClipComponent::paint(juce::Graphics &g) {
         } else {
             if (this->correspondingClip->active) {
                 g.setColour(juce::Colour(0xFF33587F));
-                g.fillRoundedRectangle(getLocalBounds().toFloat(), 2.f);
+                g.fillRoundedRectangle(getLocalBounds().toFloat(), cornerSize);
             }
         }
 
@@ -67,16 +72,17 @@ void track::ClipComponent::paint(juce::Graphics &g) {
             g.setColour(juce::Colour(0xFF'696969));
 
         int thumbnailTopMargin = 18;
-        juce::Rectangle<int> thumbnailBounds = getLocalBounds();
+        juce::Rectangle<int> thumbnailBounds = getLocalBounds().reduced(2);
         thumbnailBounds.setHeight(thumbnailBounds.getHeight() -
                                   thumbnailTopMargin);
         thumbnailBounds.setY(thumbnailBounds.getY() + thumbnailTopMargin);
 
         thumbnail.drawChannels(g, thumbnailBounds, 0,
                                thumbnail.getTotalLength(), .7f);
-
-        g.fillRect(0, 0, getWidth(), thumbnailTopMargin);
     }
+
+    g.setColour(juce::Colour(0xFF'000515));
+    g.drawRoundedRectangle(getLocalBounds().toFloat(), cornerSize, 1.4f);
 
     /*
     if (this->correspondingClip->active)

@@ -1,4 +1,5 @@
 #pragma once
+#include "BinaryData.h"
 #include <JuceHeader.h>
 
 namespace track {
@@ -41,10 +42,10 @@ class ClipComponent : public juce::Component, public juce::ChangeListener {
     bool isBeingDragged = false;
 
     // TODO: this function should not be in this class
-    juce::Font getInterRegular() {
+    juce::Font getInterSemiBold() {
         static auto typeface = Typeface::createSystemTypefaceFor(
-            BinaryData::Inter_18ptRegular_ttf,
-            BinaryData::Inter_18ptRegular_ttfSize);
+            BinaryData::Inter_18ptSemiBold_ttf,
+            BinaryData::Inter_18ptSemiBold_ttfSize);
 
         return Font(typeface);
     }

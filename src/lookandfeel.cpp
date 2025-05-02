@@ -1,5 +1,6 @@
 #include "lookandfeel.h"
 #include "BinaryData.h"
+#include "juce_gui_basics/juce_gui_basics.h"
 
 const juce::Font track::ui::CustomLookAndFeel::getRobotoMonoThin() {
     static auto typeface = Typeface::createSystemTypefaceFor(
@@ -212,14 +213,15 @@ void track::ui::CustomLookAndFeel::drawLinearSlider(
     }
 }
 
-/*
 void track::ui::CustomLookAndFeel::drawPopupMenuBackground(Graphics &g,
                                                            int width,
                                                            int height) {
     g.setColour(findColour(PopupMenu::backgroundColourId));
-    g.fillRoundedRectangle(juce::Rectangle<float>(0, 0, width, height), 12.f);
+    g.fillAll();
+
+    g.setColour(findColour(PopupMenu::textColourId).withAlpha(.2f));
+    g.drawRect(juce::Rectangle<int>(0, 0, width, height), 1);
 }
-*/
 
 Font track::ui::CustomLookAndFeel::getPopupMenuFont() {
     return getInterRegular().withHeight(18.f).withExtraKerningFactor(-.03f);

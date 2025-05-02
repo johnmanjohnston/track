@@ -24,6 +24,7 @@ juce_add_binary_data(trackBinaryData SOURCES
     assets/RobotoMono-Thin.ttf
     assets/Inter_18pt-BoldItalic.ttf
     assets/Inter_18pt-Regular.ttf
+    assets/Inter_18pt-SemiBold.ttf
     assets/FX.png
 )
 
