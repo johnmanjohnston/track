@@ -1,4 +1,5 @@
 #pragma once
+#include "juce_graphics/juce_graphics.h"
 #include "juce_gui_basics/juce_gui_basics.h"
 #include <JuceHeader.h>
 
@@ -22,12 +23,14 @@ class CustomLookAndFeel : public juce::LookAndFeel_V4 {
         setColour(Slider::thumbColourId, juce::Colour(0xFF'67FF76));
         setColour(Slider::trackColourId, juce::Colour(0xFF'303030));
 
+        setColour(PopupMenu::textColourId, juce::Colour(0xFF'E5E5E5));
         setColour(PopupMenu::backgroundColourId, juce::Colour(0xFF'1F1F1F));
         setColour(PopupMenu::highlightedBackgroundColourId,
                   juce::Colour(0xFF'454545));
     }
 
     static const juce::Font getRobotoMonoThin();
+    static const juce::Font getInterRegular();
 
     void drawLinearSlider(Graphics &g, int x, int y, int width, int height,
                           float sliderPos, float minSliderPos,
@@ -42,5 +45,9 @@ class CustomLookAndFeel : public juce::LookAndFeel_V4 {
                               const Colour &backgroundColour,
                               bool shouldDrawButtonAsHighlighted,
                               bool shouldDrawButtonAsDown) override;
+
+    // void drawPopupMenuBackground(Graphics &g, int width, int height)
+    // override;
+    Font getPopupMenuFont() override;
 };
 } // namespace track::ui

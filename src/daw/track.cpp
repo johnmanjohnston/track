@@ -5,6 +5,7 @@
 #include "defs.h"
 #include "juce_dsp/juce_dsp.h"
 #include "juce_events/juce_events.h"
+#include "juce_gui_basics/juce_gui_basics.h"
 #include "timeline.h"
 
 track::ClipComponent::ClipComponent(clip *c)
@@ -20,6 +21,7 @@ track::ClipComponent::ClipComponent(clip *c)
 
     thumbnail.addChangeListener(this);
 
+    clipNameLabel.setFont(getInterRegular());
     clipNameLabel.setColour(juce::Label::textColourId, juce::Colours::black);
     clipNameLabel.setEditable(true);
     clipNameLabel.setText(c->name,
@@ -99,32 +101,33 @@ void track::ClipComponent::mouseDown(const juce::MouseEvent &event) {
         contextMenu.addItem(3, "Toggle activate/deactive clip");
         contextMenu.addItem(4, "Copy clip");
 
-        contextMenu.showMenuAsync(
-            juce::PopupMenu::Options(), [this](int result) {
-                if (result == 1) {
-                    this->correspondingClip->reverse();
-                    thumbnailCache.clear();
-                    thumbnail.setSource(&correspondingClip->buffer, 44100.0, 2);
-                    repaint();
-                }
+        juce::PopupMenu::Options options;
 
-                else if (result == 2) {
-                    TimelineComponent *tc =
-                        (TimelineComponent *)getParentComponent();
+        contextMenu.showMenuAsync(options, [this](int result) {
+            if (result == 1) {
+                this->correspondingClip->reverse();
+                thumbnailCache.clear();
+                thumbnail.setSource(&correspondingClip->buffer, 44100.0, 2);
+                repaint();
+            }
 
-                    tc->deleteClip(correspondingClip, trackIndex);
-                }
+            else if (result == 2) {
+                TimelineComponent *tc =
+                    (TimelineComponent *)getParentComponent();
 
-                else if (result == 3) {
-                    this->correspondingClip->active =
-                        !this->correspondingClip->active;
-                    repaint();
-                }
+                tc->deleteClip(correspondingClip, trackIndex);
+            }
 
-                else if (result == 4) {
-                    clipboard::setData(correspondingClip, TYPECODE_CLIP);
-                }
-            });
+            else if (result == 3) {
+                this->correspondingClip->active =
+                    !this->correspondingClip->active;
+                repaint();
+            }
+
+            else if (result == 4) {
+                clipboard::setData(correspondingClip, TYPECODE_CLIP);
+            }
+        });
     }
 }
 
@@ -177,6 +180,7 @@ void track::TrackComponent::initializeGainSlider() {
 track::TrackComponent::TrackComponent(int trackIndex) : juce::Component() {
     // starting text for track name label is set when TrackComponent is created
     // in createTrackComponents()
+    trackNameLabel.setFont(getInterRegular().withHeight(17.f));
     trackNameLabel.setBounds(0, 0, 100, 20);
     trackNameLabel.setEditable(true);
     addAndMakeVisible(trackNameLabel);

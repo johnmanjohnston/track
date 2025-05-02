@@ -40,6 +40,15 @@ class ClipComponent : public juce::Component, public juce::ChangeListener {
     void mouseUp(const juce::MouseEvent &event) override;
     bool isBeingDragged = false;
 
+    // TODO: this function should not be in this class
+    juce::Font getInterRegular() {
+        static auto typeface = Typeface::createSystemTypefaceFor(
+            BinaryData::Inter_18ptRegular_ttf,
+            BinaryData::Inter_18ptRegular_ttfSize);
+
+        return Font(typeface);
+    }
+
     juce::Label clipNameLabel;
 };
 
@@ -99,6 +108,15 @@ class TrackComponent : public juce::Component {
     juce::TextButton fxBtn; // like in REAPER
     juce::Slider gainSlider;
     juce::Slider panSlider;
+
+    // TODO: this function should not be in this class
+    juce::Font getInterRegular() {
+        static auto typeface = Typeface::createSystemTypefaceFor(
+            BinaryData::Inter_18ptRegular_ttf,
+            BinaryData::Inter_18ptRegular_ttfSize);
+
+        return Font(typeface);
+    }
 
     juce::Label trackNameLabel;
 };

@@ -1,9 +1,17 @@
 #include "lookandfeel.h"
-#include "juce_core/juce_core.h"
+#include "BinaryData.h"
 
 const juce::Font track::ui::CustomLookAndFeel::getRobotoMonoThin() {
     static auto typeface = Typeface::createSystemTypefaceFor(
         BinaryData::RobotoMonoThin_ttf, BinaryData::RobotoMonoThin_ttfSize);
+
+    return Font(typeface);
+}
+
+const juce::Font track::ui::CustomLookAndFeel::getInterRegular() {
+    static auto typeface = Typeface::createSystemTypefaceFor(
+        BinaryData::Inter_18ptRegular_ttf,
+        BinaryData::Inter_18ptRegular_ttfSize);
 
     return Font(typeface);
 }
@@ -202,4 +210,17 @@ void track::ui::CustomLookAndFeel::drawLinearSlider(
                         maxSliderPos - sr, trackWidth * 2.0f, pointerColour, 3);
         }
     }
+}
+
+/*
+void track::ui::CustomLookAndFeel::drawPopupMenuBackground(Graphics &g,
+                                                           int width,
+                                                           int height) {
+    g.setColour(findColour(PopupMenu::backgroundColourId));
+    g.fillRoundedRectangle(juce::Rectangle<float>(0, 0, width, height), 12.f);
+}
+*/
+
+Font track::ui::CustomLookAndFeel::getPopupMenuFont() {
+    return getInterRegular().withHeight(18.f).withExtraKerningFactor(-.03f);
 }
