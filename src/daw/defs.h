@@ -17,6 +17,7 @@ constexpr int UI_SUBWINDOW_TITLEBAR_HEIGHT = 24;
 constexpr int UI_SUBWINDOW_TITLEBAR_MARGIN = 5;
 
 extern int BPM; // set in playhead
+extern int SNAP_DIVISION;
 
 // must align with internal JUCE modifications
 #define COMMAND_UPDATE_VST3_EMBEDDED_BOUNDS 420

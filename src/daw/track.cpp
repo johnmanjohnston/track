@@ -58,7 +58,8 @@ void track::ClipComponent::paint(juce::Graphics &g) {
 
     else {
         if (isBeingDragged) {
-            g.fillAll(juce::Colours::blue);
+            // g.fillAll(juce::Colours::blue);
+            g.fillAll(juce::Colour(0xFF'487FB7));
         } else {
             if (this->correspondingClip->active) {
                 g.setColour(juce::Colour(0xFF33587F));
@@ -81,7 +82,7 @@ void track::ClipComponent::paint(juce::Graphics &g) {
                                thumbnail.getTotalLength(), .7f);
     }
 
-    if (isMouseOver(true)) {
+    if (isMouseOver(true) && !isBeingDragged) {
         g.setColour(juce::Colours::white.withAlpha(.07f));
         g.fillRoundedRectangle(getLocalBounds().toFloat(), cornerSize);
     }
@@ -147,11 +148,37 @@ void track::ClipComponent::mouseDown(const juce::MouseEvent &event) {
             }
         });
     }
+
+    else {
+        startDragX = getLocalBounds().getX();
+        startDragStartPositionSample = correspondingClip->startPositionSample;
+    }
 }
 
 void track::ClipComponent::mouseDrag(const juce::MouseEvent &event) {
     // DBG("dragging is happening");
     isBeingDragged = true;
+
+    int distanceMoved = startDragX + event.getDistanceFromDragStartX();
+    int rawSamplePos = startDragStartPositionSample +
+                       ((distanceMoved * 44100) / UI_ZOOM_MULTIPLIER);
+
+    // if alt held, don't snap
+    if (event.mods.isAltDown()) {
+        correspondingClip->startPositionSample = rawSamplePos;
+    } else {
+        double secondsPerBeat = 60.f / BPM;
+        int samplesPerBar = (secondsPerBeat * 44100) * 4;
+        int samplesPerSnap = samplesPerBar / SNAP_DIVISION;
+        
+        int snappedSamplePos =
+            ((rawSamplePos + samplesPerSnap / 2) / samplesPerSnap) *
+            samplesPerSnap;
+
+        correspondingClip->startPositionSample = snappedSamplePos;
+    }
+
+    repaint();
 }
 
 void track::ClipComponent::mouseUp(const juce::MouseEvent &event) {
@@ -161,8 +188,10 @@ void track::ClipComponent::mouseUp(const juce::MouseEvent &event) {
 
         int distanceMovedHorizontally = event.getDistanceFromDragStartX();
 
+        /*
         this->correspondingClip->startPositionSample +=
             (distanceMovedHorizontally * 44100) / UI_ZOOM_MULTIPLIER;
+            */
 
         TimelineComponent *tc = (TimelineComponent *)getParentComponent();
         jassert(tc != nullptr);

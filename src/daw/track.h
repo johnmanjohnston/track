@@ -44,6 +44,8 @@ class ClipComponent : public juce::Component, public juce::ChangeListener {
     void mouseExit(const juce::MouseEvent &) override { repaint(); }
 
     bool isBeingDragged = false;
+    int startDragX = -1;
+    int startDragStartPositionSample = -1;
 
     // TODO: this function should not be in this class
     juce::Font getInterSemiBold() {

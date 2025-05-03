@@ -46,6 +46,15 @@ class TimelineComponent : public juce::Component,
     std::vector<std::unique_ptr<TrackComponent>> trackComponents;
     */
 
+    // TODO: this function should not be in this class
+    juce::Font getInterRegular() {
+        static auto typeface = Typeface::createSystemTypefaceFor(
+            BinaryData::Inter_18ptRegular_ttf,
+            BinaryData::Inter_18ptRegular_ttfSize);
+
+        return Font(typeface);
+    }
+
   private:
     int zoomLevel = 1;
 };

@@ -134,8 +134,6 @@ void track::TimelineComponent::paint(juce::Graphics &g) {
     // DBG("timelineComponent paint called");
     g.fillAll(juce::Colour(0xFF2E2E2E));
 
-    g.setColour(juce::Colours::darkgrey);
-
     // bar markers
     float secondsPerBeat = 60.f / BPM;
     float pxPerSecond = UI_ZOOM_MULTIPLIER;
@@ -154,18 +152,29 @@ void track::TimelineComponent::paint(juce::Graphics &g) {
     int incrementAmount = std::ceil(minSpace / pxPerBar);
     incrementAmount = std::max(1, incrementAmount);
 
+    g.setFont(getInterRegular().withHeight(16.f));
     for (int i = 0; i < bars; i += incrementAmount) {
         float x = i * pxPerBar;
         juce::Rectangle<int> bounds = getLocalBounds();
 
-        bounds.setX((int)x);
+        // draw numbers
+        bounds.setX((int)x + 4);
         bounds.setY(bounds.getY() - (bounds.getHeight() / 2.f) + 10 +
                        scrollValue);
 
+        g.setColour(juce::Colour(0xFF'929292).withAlpha(.8f));
         g.drawText(juce::String(i + 1), bounds, juce::Justification::left,
                    false);
+
+        // draw vertical lines for bar numbers
+        g.setColour(juce::Colour(0xFF'444444).withAlpha(.4f));
+        g.fillRect((int)x, 0, 1, 1280);
     }
-   
+
+    // horizontal divide line thingy
+    g.setColour(juce::Colour(0xFF'1E1E1E).withAlpha(0.4f));
+    g.drawRect(0, 20, getWidth(), 1);
+
     if (clipComponentsUpdated == false)
         updateClipComponents();
 
