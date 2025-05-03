@@ -267,7 +267,10 @@ void track::PluginEditorWindow::timerCallback() {
 void track::PluginEditorWindow::mouseDown(const juce::MouseEvent &event) {
     if (juce::ModifierKeys::currentModifiers.isAltDown()) {
         dragStartBounds = getBounds();
+
+#if JUCE_LINUX
         ape->setVisible(false);
+#endif
     }
 
     this->toFront(true);
