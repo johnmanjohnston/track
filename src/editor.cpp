@@ -29,6 +29,7 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
     // tracks
     tracklist.setBounds(0, 60, track::UI_TRACK_WIDTH, 2000);
     tracklist.processor = (void *)&processorRef;
+    tracklist.timelineComponent = (void *)timelineComponent.get();
     tracklist.createTrackComponents();
 
     trackViewport.setViewedComponent(&tracklist, false);

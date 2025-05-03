@@ -100,6 +100,8 @@ class TrackComponent : public juce::Component {
     void resized() override;
     void initializeGainSlider();
 
+    void mouseDown(const juce::MouseEvent &event) override;
+
     // instances of TrackComponent are responsible for only handling the UI for
     // an indiviaul track (only the left section which shows track name, volume
     // controls, mute/soloing control). The actual CLIPS of audio will be
@@ -138,8 +140,10 @@ class Tracklist : public juce::Component {
     void mouseDown(const juce::MouseEvent &event) override;
 
     void addNewTrack();
+    void deleteTrack(int trackIndex);
 
     void *processor = nullptr;
+    void *timelineComponent = nullptr;
 
     juce::TextButton newTrackBtn;
 };

@@ -232,7 +232,7 @@ void track::ui::CustomLookAndFeel::drawPopupMenuBackground(Graphics &g,
 }
 
 Font track::ui::CustomLookAndFeel::getPopupMenuFont() {
-    return getInterRegular().withHeight(18.f).withExtraKerningFactor(-.03f);
+    return getInterRegular().withHeight(20.f).withExtraKerningFactor(-.03f);
 }
 
 Font track::ui::CustomLookAndFeel::getTextButtonFont(TextButton &button,

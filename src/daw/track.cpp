@@ -22,7 +22,7 @@ track::ClipComponent::ClipComponent(clip *c)
     thumbnail.addChangeListener(this);
 
     clipNameLabel.setFont(
-        getInterSemiBold().withHeight(16.f).withExtraKerningFactor(-.02f));
+        getInterSemiBold().withHeight(17.f).withExtraKerningFactor(-.02f));
     clipNameLabel.setColour(juce::Label::textColourId,
                             juce::Colour(0xFF'AECBED).brighter(.5f));
     clipNameLabel.setEditable(true);
@@ -257,6 +257,23 @@ track::TrackComponent::TrackComponent(int trackIndex) : juce::Component() {
 }
 track::TrackComponent::~TrackComponent() {}
 
+void track::TrackComponent::mouseDown(const juce::MouseEvent &event) {
+    if (event.mods.isRightButtonDown()) {
+        PopupMenu contextMenu;
+        contextMenu.setLookAndFeel(&getLookAndFeel());
+
+        contextMenu.addItem("delete " + getCorrespondingTrack()->trackName,
+        [this] { 
+            Tracklist *tracklist =
+                    (Tracklist *)findParentComponentOfClass<Tracklist>();
+
+            tracklist->deleteTrack(this->trackIndex);
+        });
+
+        contextMenu.showMenuAsync(juce::PopupMenu::Options());
+    }
+}
+
 void track::TrackComponent::paint(juce::Graphics &g) {
     g.fillAll(juce::Colour(0xFF5F5F5F));   // bg
     g.setColour(juce::Colour(0xFF535353)); // outline
@@ -371,6 +388,26 @@ void track::Tracklist::addNewTrack() {
     DBG("track component added. will set track components bounds now");
     setTrackComponentBounds();
 
+    repaint();
+}
+
+void track::Tracklist::deleteTrack(int trackIndex) {
+    DBG("deleting track " << trackIndex);
+
+    AudioPluginAudioProcessor *p = (AudioPluginAudioProcessor *)processor;
+    p->tracks.erase(p->tracks.begin() + trackIndex);
+
+    TimelineComponent *tc = (TimelineComponent *)timelineComponent;
+    tc->updateClipComponents();
+   
+    // update trackComponent indices 
+    trackComponents.erase(trackComponents.begin() + trackIndex);
+    for (int i = trackIndex; i < trackComponents.size(); ++i) {
+        trackComponents[i].get()->trackIndex--;
+    }
+
+    this->setTrackComponentBounds();
+    tc->repaint();
     repaint();
 }
 
