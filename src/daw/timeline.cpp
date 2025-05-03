@@ -116,7 +116,7 @@ void track::TimelineComponent::mouseDown(const juce::MouseEvent &event) {
                     newClip->active = orginalClip->active;
                     newClip->name = orginalClip->name;
                     newClip->startPositionSample =
-                        (event.getMouseDownX() * 41000) / UI_ZOOM_MULTIPLIER;
+                        (event.getMouseDownX() * 44100) / UI_ZOOM_MULTIPLIER;
 
                     int trackIndex = juce::jmin(
                         trackIndex = event.getMouseDownY() / UI_TRACK_HEIGHT,
@@ -134,32 +134,50 @@ void track::TimelineComponent::paint(juce::Graphics &g) {
     // DBG("timelineComponent paint called");
     g.fillAll(juce::Colour(0xFF2E2E2E));
 
-    g.setColour(juce::Colours::white);
-    for (int i = 0; i < (getBounds().getWidth() / 100); ++i) {
-        int scrollValue =
-            viewport->getVerticalScrollBar().getCurrentRangeStart();
+    g.setColour(juce::Colours::darkgrey);
 
-        juce::Rectangle<int> newBounds = getLocalBounds();
-        newBounds.setX(newBounds.getX() + (i * (zoomLevel * 100)));
-        newBounds.setY(newBounds.getY() - (newBounds.getHeight() / 2.f) + 10 +
+    // bar markers
+    float secondsPerBeat = 60.f / BPM;
+    float pxPerSecond = UI_ZOOM_MULTIPLIER;
+    float pxPerBeat = secondsPerBeat * pxPerSecond;
+
+    int beats = this->getWidth() / pxPerBeat;
+    int scrollValue = viewport->getVerticalScrollBar().getCurrentRangeStart();
+
+    // TODO: make this work for other time signatures
+    // assuming 4/4 time signature
+    float pxPerBar = pxPerBeat * 4;
+    int bars = beats * 4;
+
+    // space out markers 
+    float minSpace = 30.f;
+    int incrementAmount = std::ceil(minSpace / pxPerBar);
+    incrementAmount = std::max(1, incrementAmount);
+
+    for (int i = 0; i < bars; i += incrementAmount) {
+        float x = i * pxPerBar;
+        juce::Rectangle<int> bounds = getLocalBounds();
+
+        bounds.setX((int)x);
+        bounds.setY(bounds.getY() - (bounds.getHeight() / 2.f) + 10 +
                        scrollValue);
 
-        g.drawText(juce::String(i), newBounds, juce::Justification::left,
+        g.drawText(juce::String(i + 1), bounds, juce::Justification::left,
                    false);
     }
-
+   
     if (clipComponentsUpdated == false)
         updateClipComponents();
 
     // draw clips
     for (auto &&clip : this->clipComponents) {
-        clip->setBounds(clip->correspondingClip->startPositionSample / 41000.0 *
+        clip->setBounds(clip->correspondingClip->startPositionSample / 44100.0 *
                             UI_ZOOM_MULTIPLIER,
                         UI_TRACK_VERTICAL_OFFSET +
                             (clip->trackIndex * UI_TRACK_HEIGHT) +
                             (UI_TRACK_VERTICAL_MARGIN * clip->trackIndex),
                         clip->correspondingClip->buffer.getNumSamples() /
-                            41000.0 * UI_ZOOM_MULTIPLIER,
+                            44100.0 * UI_ZOOM_MULTIPLIER,
                         UI_TRACK_HEIGHT);
 
         // handle offline clips
@@ -204,7 +222,7 @@ void track::TimelineComponent::resizeTimelineComponent() {
 
     DBG("largestEnd is " << largestEnd);
     jassert(UI_ZOOM_MULTIPLIER > 0);
-    largestEnd /= 41000 / UI_ZOOM_MULTIPLIER;
+    largestEnd /= 44100 / UI_ZOOM_MULTIPLIER;
     largestEnd += 2000;
     DBG("now, largestEnd is " << largestEnd);
 
