@@ -58,8 +58,8 @@ void track::ClipComponent::paint(juce::Graphics &g) {
 
     else {
         if (isBeingDragged) {
-            // g.fillAll(juce::Colours::blue);
-            g.fillAll(juce::Colour(0xFF'487FB7));
+            g.setColour(juce::Colour(0xFF'487FB7));
+            g.fillRoundedRectangle(getLocalBounds().toFloat(), cornerSize);
         } else {
             if (this->correspondingClip->active) {
                 g.setColour(juce::Colour(0xFF33587F));
@@ -170,7 +170,7 @@ void track::ClipComponent::mouseDrag(const juce::MouseEvent &event) {
         double secondsPerBeat = 60.f / BPM;
         int samplesPerBar = (secondsPerBeat * 44100) * 4;
         int samplesPerSnap = samplesPerBar / SNAP_DIVISION;
-        
+
         int snappedSamplePos =
             ((rawSamplePos + samplesPerSnap / 2) / samplesPerSnap) *
             samplesPerSnap;
@@ -291,13 +291,13 @@ void track::TrackComponent::mouseDown(const juce::MouseEvent &event) {
         PopupMenu contextMenu;
         contextMenu.setLookAndFeel(&getLookAndFeel());
 
-        contextMenu.addItem("delete " + getCorrespondingTrack()->trackName,
-        [this] { 
-            Tracklist *tracklist =
+        contextMenu.addItem(
+            "delete " + getCorrespondingTrack()->trackName, [this] {
+                Tracklist *tracklist =
                     (Tracklist *)findParentComponentOfClass<Tracklist>();
 
-            tracklist->deleteTrack(this->trackIndex);
-        });
+                tracklist->deleteTrack(this->trackIndex);
+            });
 
         contextMenu.showMenuAsync(juce::PopupMenu::Options());
     }
@@ -428,8 +428,8 @@ void track::Tracklist::deleteTrack(int trackIndex) {
 
     TimelineComponent *tc = (TimelineComponent *)timelineComponent;
     tc->updateClipComponents();
-   
-    // update trackComponent indices 
+
+    // update trackComponent indices
     trackComponents.erase(trackComponents.begin() + trackIndex);
     for (int i = trackIndex; i < trackComponents.size(); ++i) {
         trackComponents[i].get()->trackIndex--;

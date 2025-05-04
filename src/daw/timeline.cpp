@@ -101,20 +101,34 @@ void track::TimelineComponent::mouseDown(const juce::MouseEvent &event) {
 
         // to select grid size for snapping to grid
         juce::PopupMenu gridMenu;
-        gridMenu.addItem("1/1", true, SNAP_DIVISION == 1,
-                         [] { SNAP_DIVISION = 1; });
-        gridMenu.addItem("1/2", true, SNAP_DIVISION == 2,
-                         [] { SNAP_DIVISION = 2; });
-        gridMenu.addItem("1/4", true, SNAP_DIVISION == 4,
-                         [] { SNAP_DIVISION = 4; });
-        gridMenu.addItem("1/8", true, SNAP_DIVISION == 8,
-                         [] { SNAP_DIVISION = 8; });
-        gridMenu.addItem("1/16", true, SNAP_DIVISION == 16,
-                         [] { SNAP_DIVISION = 16; });
-        gridMenu.addItem("1/32", true, SNAP_DIVISION == 32,
-                         [] { SNAP_DIVISION = 32; });
-        gridMenu.addItem("1/64", true, SNAP_DIVISION == 64,
-                         [] { SNAP_DIVISION = 64; });
+        gridMenu.addItem("1/1", true, SNAP_DIVISION == 1, [this] {
+            SNAP_DIVISION = 1;
+            repaint();
+        });
+        gridMenu.addItem("1/2", true, SNAP_DIVISION == 2, [this] {
+            SNAP_DIVISION = 2;
+            repaint();
+        });
+        gridMenu.addItem("1/4", true, SNAP_DIVISION == 4, [this] {
+            SNAP_DIVISION = 4;
+            repaint();
+        });
+        gridMenu.addItem("1/8", true, SNAP_DIVISION == 8, [this] {
+            SNAP_DIVISION = 8;
+            repaint();
+        });
+        gridMenu.addItem("1/16", true, SNAP_DIVISION == 16, [this] {
+            SNAP_DIVISION = 16;
+            repaint();
+        });
+        gridMenu.addItem("1/32", true, SNAP_DIVISION == 32, [this] {
+            SNAP_DIVISION = 32;
+            repaint();
+        });
+        gridMenu.addItem("1/64", true, SNAP_DIVISION == 64, [this] {
+            SNAP_DIVISION = 64;
+            repaint();
+        });
 
 #define MENU_PASTE_CLIP 1
 
@@ -173,22 +187,28 @@ void track::TimelineComponent::paint(juce::Graphics &g) {
     incrementAmount = std::max(1, incrementAmount);
 
     g.setFont(getInterRegular().withHeight(16.f));
+    juce::Rectangle<int> bounds = getLocalBounds();
+    bounds.setY(bounds.getY() - (bounds.getHeight() / 2.f) + 10 + scrollValue);
+
     for (int i = 0; i < bars; i += incrementAmount) {
         float x = i * pxPerBar;
-        juce::Rectangle<int> bounds = getLocalBounds();
 
         // draw numbers
         bounds.setX((int)x + 4);
-        bounds.setY(bounds.getY() - (bounds.getHeight() / 2.f) + 10 +
-                    scrollValue);
-
         g.setColour(juce::Colour(0xFF'929292).withAlpha(.8f));
         g.drawText(juce::String(i + 1), bounds, juce::Justification::left,
                    false);
 
         // draw vertical lines for bar numbers
-        g.setColour(juce::Colour(0xFF'444444).withAlpha(.4f));
+        g.setColour(juce::Colour(0xFF'444444).withAlpha(.5f));
         g.fillRect((int)x, 0, 1, 1280);
+
+        // draw lines for grid snapping
+        g.setColour(juce::Colour(0xFF'444444).withAlpha(.3f));
+        for (int j = 0; j < SNAP_DIVISION; ++j) {
+            int divX = x + ((pxPerBar / SNAP_DIVISION) * j);
+            g.fillRect(divX, 0, 1, 1280);
+        }
     }
 
     // horizontal divide line thingy
