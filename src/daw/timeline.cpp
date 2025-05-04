@@ -99,11 +99,31 @@ void track::TimelineComponent::mouseDown(const juce::MouseEvent &event) {
         juce::PopupMenu contextMenu;
         contextMenu.setLookAndFeel(&getLookAndFeel());
 
-        contextMenu.addItem(1, "Paste clip");
+        // to select grid size for snapping to grid
+        juce::PopupMenu gridMenu;
+        gridMenu.addItem("1/1", true, SNAP_DIVISION == 1,
+                         [] { SNAP_DIVISION = 1; });
+        gridMenu.addItem("1/2", true, SNAP_DIVISION == 2,
+                         [] { SNAP_DIVISION = 2; });
+        gridMenu.addItem("1/4", true, SNAP_DIVISION == 4,
+                         [] { SNAP_DIVISION = 4; });
+        gridMenu.addItem("1/8", true, SNAP_DIVISION == 8,
+                         [] { SNAP_DIVISION = 8; });
+        gridMenu.addItem("1/16", true, SNAP_DIVISION == 16,
+                         [] { SNAP_DIVISION = 16; });
+        gridMenu.addItem("1/32", true, SNAP_DIVISION == 32,
+                         [] { SNAP_DIVISION = 32; });
+        gridMenu.addItem("1/64", true, SNAP_DIVISION == 64,
+                         [] { SNAP_DIVISION = 64; });
+
+#define MENU_PASTE_CLIP 1
+
+        contextMenu.addItem(MENU_PASTE_CLIP, "Paste clip");
+        contextMenu.addSubMenu("Grid", gridMenu);
 
         contextMenu.showMenuAsync(
             juce::PopupMenu::Options(), [this, event](int result) {
-                if (result == 1) {
+                if (result == MENU_PASTE_CLIP) {
                     DBG("paste clip");
                     if (clipboard::typecode != TYPECODE_CLIP)
                         return;
@@ -147,7 +167,7 @@ void track::TimelineComponent::paint(juce::Graphics &g) {
     float pxPerBar = pxPerBeat * 4;
     int bars = beats * 4;
 
-    // space out markers 
+    // space out markers
     float minSpace = 30.f;
     int incrementAmount = std::ceil(minSpace / pxPerBar);
     incrementAmount = std::max(1, incrementAmount);
@@ -160,7 +180,7 @@ void track::TimelineComponent::paint(juce::Graphics &g) {
         // draw numbers
         bounds.setX((int)x + 4);
         bounds.setY(bounds.getY() - (bounds.getHeight() / 2.f) + 10 +
-                       scrollValue);
+                    scrollValue);
 
         g.setColour(juce::Colour(0xFF'929292).withAlpha(.8f));
         g.drawText(juce::String(i + 1), bounds, juce::Justification::left,
