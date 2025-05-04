@@ -243,8 +243,8 @@ void track::TimelineComponent::updateClipComponents() {
 
     clipComponents.clear();
 
-    for (std::vector<track>::size_type i = 0; i < processorRef->tracks.size();
-         ++i) {
+    for (std::vector<track::audioNode>::size_type i = 0;
+         i < processorRef->tracks.size(); ++i) {
         for (auto &c : processorRef->tracks[i].clips) {
             this->clipComponents.push_back(std::make_unique<ClipComponent>(&c));
             addAndMakeVisible(*clipComponents.back());
@@ -260,7 +260,7 @@ void track::TimelineComponent::updateClipComponents() {
 void track::TimelineComponent::resizeTimelineComponent() {
     int largestEnd = -1;
 
-    for (track &t : processorRef->tracks) {
+    for (audioNode &t : processorRef->tracks) {
         for (clip &c : t.clips) {
             if ((c.buffer.getNumSamples() + c.startPositionSample) >
                 largestEnd) {

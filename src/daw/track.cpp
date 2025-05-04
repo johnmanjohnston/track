@@ -202,7 +202,8 @@ void track::ClipComponent::mouseUp(const juce::MouseEvent &event) {
     repaint();
 }
 
-track::track *track::TrackComponent::TrackComponent::getCorrespondingTrack() {
+track::audioNode *
+track::TrackComponent::TrackComponent::getCorrespondingTrack() {
     if (processor == nullptr) {
         DBG("! TRACK COMPONENT'S getCorrespondingTrack() RETURNED nullptr");
         DBG("TrackComponent's processor is nullptr");
@@ -456,7 +457,7 @@ void track::Tracklist::createTrackComponents() {
         (AudioPluginAudioProcessor *)(this->processor);
 
     int i = 0;
-    for (track &t : p->tracks) {
+    for (audioNode &t : p->tracks) {
         this->trackComponents.push_back(std::make_unique<TrackComponent>(i));
         trackComponents.back().get()->processor = processor;
         trackComponents.back().get()->initializeGainSlider();
@@ -522,7 +523,7 @@ void track::clip::updateBuffer() {
 
 void track::clip::reverse() { buffer.reverse(0, buffer.getNumSamples()); }
 
-void track::track::addPlugin(juce::String path) {
+void track::audioNode::addPlugin(juce::String path) {
     DBG("track::track addPlugin() called");
     juce::OwnedArray<PluginDescription> pluginDescriptions;
     juce::KnownPluginList plist;
@@ -582,14 +583,14 @@ void track::track::addPlugin(juce::String path) {
     DBG("plugin added");
 }
 
-void track::track::preparePlugins(int newMaxSamplesPerBlock,
-                                  int newSampleRate) {
+void track::audioNode::preparePlugins(int newMaxSamplesPerBlock,
+                                      int newSampleRate) {
     for (std::unique_ptr<juce::AudioPluginInstance> &plugin : plugins) {
         plugin->prepareToPlay(newMaxSamplesPerBlock, newSampleRate);
     }
 }
 
-void track::track::process(int numSamples, int currentSample) {
+void track::audioNode::process(int numSamples, int currentSample) {
     if (m) {
         buffer.clear();
         return;

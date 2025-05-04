@@ -59,7 +59,7 @@ class ClipComponent : public juce::Component, public juce::ChangeListener {
     juce::Label clipNameLabel;
 };
 
-class track {
+class audioNode {
   public:
     bool s = false;
     bool m = false;
@@ -109,7 +109,7 @@ class TrackComponent : public juce::Component {
     // controls, mute/soloing control). The actual CLIPS of audio will be
     // handles in the TimelineComponent class
     // track *correspondingTrack = nullptr;
-    track *getCorrespondingTrack();
+    audioNode *getCorrespondingTrack();
     void *processor = nullptr;
     int trackIndex = -1;
 

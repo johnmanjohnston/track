@@ -42,7 +42,7 @@ class PluginChainComponent : public juce::Component {
 
     int trackIndex = -1;
     AudioPluginAudioProcessor *processor = nullptr;
-    track *getCorrespondingTrack();
+    audioNode *getCorrespondingTrack();
 
     // juce::TextButton addPluginBtn;
 
@@ -88,7 +88,7 @@ class PluginEditorWindow : public juce::Component, juce::Timer {
     std::unique_ptr<juce::AudioProcessorEditor> ape;
 
     AudioPluginAudioProcessor *processor = nullptr;
-    track *getCorrespondingTrack();
+    audioNode *getCorrespondingTrack();
     std::unique_ptr<juce::AudioPluginInstance> *getPlugin();
 
     // TODO: this shouldn't belong in this class

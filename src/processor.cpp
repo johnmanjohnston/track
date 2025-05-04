@@ -110,7 +110,7 @@ void AudioPluginAudioProcessor::prepareToPlay(double sampleRate,
     plugin.get()->prepareToPlay(sampleRate, samplesPerBlock);
     */
 
-    for (track::track &t : tracks) {
+    for (track::audioNode &t : tracks) {
         t.processor = this;
         t.maxSamplesPerBlock = samplesPerBlock;
         t.sampleRate = sampleRate;
@@ -258,12 +258,12 @@ void AudioPluginAudioProcessor::processBlock(juce::AudioBuffer<float> &buffer,
             int outputBufferLength = buffer.getNumSamples();
 
             // process tracks; tracks populate their internal buffer
-            for (track::track &t : tracks) {
+            for (track::audioNode &t : tracks) {
                 t.process(buffer.getNumSamples(), currentSample);
             }
 
             // sum track buffers
-            for (track::track &t : tracks) {
+            for (track::audioNode &t : tracks) {
                 for (int channel = 0; channel < totalNumOutputChannels;
                      ++channel) {
 
@@ -392,7 +392,7 @@ void AudioPluginAudioProcessor::setStateInformation(const void *data,
 
             // create track instance
             tracks.emplace_back();
-            track::track *t = &tracks.back();
+            track::audioNode *t = &tracks.back();
             t->trackName = trackName;
 
             while (clipElement != nullptr) {

@@ -177,7 +177,7 @@ void track::PluginChainComponent::mouseDown(const juce::MouseEvent &event) {
     }
 }
 
-track::track *track::PluginChainComponent::getCorrespondingTrack() {
+track::audioNode *track::PluginChainComponent::getCorrespondingTrack() {
     return &processor->tracks[(size_t)trackIndex];
 }
 
@@ -306,7 +306,7 @@ void track::PluginEditorWindow::mouseUp(const juce::MouseEvent &event) {
 }
 
 // get current track and plugin util functions
-track::track *track::PluginEditorWindow::getCorrespondingTrack() {
+track::audioNode *track::PluginEditorWindow::getCorrespondingTrack() {
     return &processor->tracks[(size_t)trackIndex];
 }
 
