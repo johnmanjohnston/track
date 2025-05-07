@@ -5,7 +5,7 @@ audio plugin which acts as a mini DAW, as a workaround to track count limits in 
 TODO
 
 ## Installation
-TODO
+From the Releases section, download the appropriate file for your operating system
 
 ## Building
 ### Downloading Source and Dependencies
