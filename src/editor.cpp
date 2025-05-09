@@ -111,28 +111,26 @@ void AudioPluginAudioProcessorEditor::resized() {
     scanBtn.setBounds(1, 1, 50, 20);
 }
 
-void AudioPluginAudioProcessorEditor::openFxChain(int trackIndex) {
-    DBG("editor's openFxChain() called for track " << trackIndex);
-
+void AudioPluginAudioProcessorEditor::openFxChain(std::vector<int> route) {
     pluginChainComponents.emplace_back(new track::PluginChainComponent());
     std::unique_ptr<track::PluginChainComponent> &pcc =
         pluginChainComponents.back();
 
     pcc->knownPluginList = &this->knownPluginList;
-    pcc->trackIndex = trackIndex;
+    pcc->route = route;
     pcc->processor = &processorRef;
     addAndMakeVisible(*pcc);
     pcc->setBounds(10, 10, 900, 200);
     repaint();
 }
 
-void AudioPluginAudioProcessorEditor::openPluginEditorWindow(int trackIndex,
-                                                             int pluginIndex) {
+void AudioPluginAudioProcessorEditor::openPluginEditorWindow(
+    std::vector<int> route, int pluginIndex) {
     pluginEditorWindows.emplace_back(new track::PluginEditorWindow());
     std::unique_ptr<track::PluginEditorWindow> &pew =
         pluginEditorWindows.back();
 
-    pew->trackIndex = trackIndex;
+    pew->route = route;
     pew->pluginIndex = pluginIndex;
     pew->processor = &processorRef;
     pew->createEditor();

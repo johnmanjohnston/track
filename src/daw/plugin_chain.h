@@ -40,7 +40,7 @@ class PluginChainComponent : public juce::Component {
     void paint(juce::Graphics &g) override;
     void resized() override;
 
-    int trackIndex = -1;
+    std::vector<int> route;
     AudioPluginAudioProcessor *processor = nullptr;
     audioNode *getCorrespondingTrack();
 
@@ -76,7 +76,7 @@ class PluginEditorWindow : public juce::Component, juce::Timer {
     void mouseDrag(const juce::MouseEvent &event) override;
     juce::Rectangle<int> dragStartBounds;
 
-    int trackIndex = -1;
+    std::vector<int> route;
     int pluginIndex = -1;
 
     // info to show on titlebar

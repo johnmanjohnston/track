@@ -224,11 +224,10 @@ track::TrackComponent::TrackComponent::getCorrespondingTrack() {
     }
 
     AudioPluginAudioProcessor *p = (AudioPluginAudioProcessor *)processor;
-    // return &(p->tracks[(size_t)siblingIndex]);
 
-    audioNode *head = &p->tracks[route[0]];
-    for (int i = 1; i < route.size(); ++i) {
-        head = &head->childNodes[route[i]];
+    audioNode *head = &p->tracks[(size_t)route[0]];
+    for (size_t i = 1; i < route.size(); ++i) {
+        head = &head->childNodes[(size_t)route[i]];
     }
 
     return head;
@@ -246,7 +245,8 @@ track::TrackComponent::TrackComponent(int trackIndex) : juce::Component() {
     DBG("TrackComponent constructor called");
 
     trackNameLabel.setFont(
-        getInterRegular().withHeight(17.f).withExtraKerningFactor(-0.02f));
+        getAudioNodeLabelFont().withHeight(17.f).withExtraKerningFactor(
+            -0.02f));
     trackNameLabel.setBounds(0, 0, 100, 20);
     trackNameLabel.setEditable(true);
     addAndMakeVisible(trackNameLabel);
@@ -299,7 +299,7 @@ track::TrackComponent::TrackComponent(int trackIndex) : juce::Component() {
 
         AudioPluginAudioProcessorEditor *editor =
             this->findParentComponentOfClass<AudioPluginAudioProcessorEditor>();
-        editor->openFxChain(this->siblingIndex);
+        editor->openFxChain(route);
     };
 }
 track::TrackComponent::~TrackComponent() {}
@@ -321,10 +321,19 @@ void track::TrackComponent::mouseDown(const juce::MouseEvent &event) {
     }
 }
 
+void track::TrackComponent::mouseUp(const juce::MouseEvent &event) {
+    if (event.mouseWasDraggedSinceMouseDown()) {
+        // TODO: handle moving audio node
+    }
+}
+
 void track::TrackComponent::paint(juce::Graphics &g) {
     g.fillAll(juce::Colour(0xFF5F5F5F));   // bg
     g.setColour(juce::Colour(0xFF535353)); // outline
     g.drawRect(getLocalBounds(), 2);
+
+    g.setColour(juce::Colours::white);
+    g.fillRect(0, 0, 5 * (route.size()), getHeight());
 
     juce::String trackName = getCorrespondingTrack() == nullptr
                                  ? "null trackk"

@@ -166,10 +166,9 @@ void track::PluginChainComponent::mouseDown(const juce::MouseEvent &event) {
 
                 int pluginIndex = getCorrespondingTrack()->plugins.size() - 1;
 
-                DBG("trackIndex = " << this->trackIndex);
                 DBG("pluginIndex = " << pluginIndex);
 
-                editor->openPluginEditorWindow(trackIndex, pluginIndex);
+                editor->openPluginEditorWindow(route, pluginIndex);
             });
         }
 
@@ -178,7 +177,12 @@ void track::PluginChainComponent::mouseDown(const juce::MouseEvent &event) {
 }
 
 track::audioNode *track::PluginChainComponent::getCorrespondingTrack() {
-    return &processor->tracks[(size_t)trackIndex];
+    audioNode *head = &processor->tracks[(size_t)route[0]];
+    for (size_t i = 1; i < route.size(); ++i) {
+        head = &head->childNodes[(size_t)route[i]];
+    }
+
+    return head;
 }
 
 // plugin editor window
@@ -214,10 +218,11 @@ void track::PluginEditorWindow::paint(juce::Graphics &g) {
 
     int latency = getPlugin()->get()->getLatencySamples();
     float latencyMs = (latency / getPlugin()->get()->getSampleRate()) * 1000.f;
-    juce::String otherInfoText =
-        pluginManufacturer + "        " + juce::String(trackIndex) + "/" +
-        trackName + "        " + juce::String(latency) + " samples (" +
-        juce::String(latencyMs, 2, false) + "ms)";
+    juce::String otherInfoText = pluginManufacturer + "        " +
+                                 juce::String(route[route.size() - 1]) + "/" +
+                                 trackName + "        " +
+                                 juce::String(latency) + " samples (" +
+                                 juce::String(latencyMs, 2, false) + "ms)";
     g.drawText(otherInfoText, pluginNameWidth + titlebarLeftMargin + 8, 0,
                getWidth() / 2, UI_SUBWINDOW_TITLEBAR_HEIGHT,
                juce::Justification::left, false);
@@ -231,7 +236,7 @@ void track::PluginEditorWindow::resized() {
 }
 
 void track::PluginEditorWindow::createEditor() {
-    jassert(trackIndex > -1);
+    jassert(route.size() > 0);
     jassert(pluginIndex > -1);
     jassert(processor != nullptr);
 
@@ -307,7 +312,12 @@ void track::PluginEditorWindow::mouseUp(const juce::MouseEvent &event) {
 
 // get current track and plugin util functions
 track::audioNode *track::PluginEditorWindow::getCorrespondingTrack() {
-    return &processor->tracks[(size_t)trackIndex];
+    audioNode *head = &processor->tracks[(size_t)route[0]];
+    for (size_t i = 1; i < route.size(); ++i) {
+        head = &head->childNodes[(size_t)route[i]];
+    }
+
+    return head;
 }
 
 std::unique_ptr<juce::AudioPluginInstance> *

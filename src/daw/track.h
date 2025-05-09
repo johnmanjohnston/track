@@ -105,6 +105,7 @@ class TrackComponent : public juce::Component {
     void initializeGainSlider();
 
     void mouseDown(const juce::MouseEvent &event) override;
+    void mouseUp(const juce::MouseEvent &event) override;
 
     // instances of TrackComponent are responsible for only handling the UI for
     // an indiviaul track (only the left section which shows track name, volume
@@ -121,8 +122,7 @@ class TrackComponent : public juce::Component {
     juce::Slider gainSlider;
     juce::Slider panSlider;
 
-    // TODO: this function should not be in this class
-    juce::Font getInterRegular() {
+    juce::Font getAudioNodeLabelFont() {
         static auto typeface = Typeface::createSystemTypefaceFor(
             BinaryData::Inter_18ptRegular_ttf,
             BinaryData::Inter_18ptRegular_ttfSize);

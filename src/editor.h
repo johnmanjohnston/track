@@ -38,10 +38,10 @@ class AudioPluginAudioProcessorEditor : public juce::AudioProcessorEditor,
     // track::PluginChainComponent pluginChainComponent;
     std::vector<std::unique_ptr<track::PluginChainComponent>>
         pluginChainComponents;
-    void openFxChain(int trackIndex);
+    void openFxChain(std::vector<int> route);
 
     std::vector<std::unique_ptr<track::PluginEditorWindow>> pluginEditorWindows;
-    void openPluginEditorWindow(int trackIndex, int pluginIndex);
+    void openPluginEditorWindow(std::vector<int> route, int pluginIndex);
 
     AudioPluginAudioProcessor &processorRef;
 
