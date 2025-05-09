@@ -66,7 +66,7 @@ class audioNode {
     float gain = 1.f;
     float pan = 0.f;
 
-    juce::String trackName = "Untitled Track";
+    juce::String trackName = "Untitled Node";
 
     // future john, have fun trying to implement hosting audio plugins :skull:
     std::vector<std::unique_ptr<juce::AudioPluginInstance>> plugins;
@@ -155,13 +155,17 @@ class Tracklist : public juce::Component {
 
     void mouseDown(const juce::MouseEvent &event) override;
 
-    void addNewTrack();
+    void addNewNode(bool isTrack = true);
     void deleteTrack(int trackIndex);
+    void moveNodeToGroup(track::TrackComponent *caller,
+                         int relativeDisplayNodesToMove);
+    void deepCopyGroupInsideGroup(audioNode *childNode, audioNode *parentNode);
 
     void *processor = nullptr;
     void *timelineComponent = nullptr;
 
     juce::TextButton newTrackBtn;
+    juce::TextButton newGroupBtn;
 };
 
 class TrackViewport : public juce::Viewport {

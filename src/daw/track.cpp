@@ -3,11 +3,9 @@
 #include "../processor.h"
 #include "clipboard.h"
 #include "defs.h"
-#include "juce_dsp/juce_dsp.h"
 #include "juce_events/juce_events.h"
 #include "juce_gui_basics/juce_gui_basics.h"
 #include "timeline.h"
-#include <typeinfo>
 
 track::ClipComponent::ClipComponent(clip *c)
     : juce::Component(), thumbnailCache(5),
@@ -323,7 +321,15 @@ void track::TrackComponent::mouseDown(const juce::MouseEvent &event) {
 
 void track::TrackComponent::mouseUp(const juce::MouseEvent &event) {
     if (event.mouseWasDraggedSinceMouseDown()) {
-        // TODO: handle moving audio node
+        float rawDisplayNodes =
+            event.getDistanceFromDragStartY() / (float)UI_TRACK_HEIGHT;
+        int displayNodes = (int)rawDisplayNodes;
+        DBG("raw display nodes is " << rawDisplayNodes);
+        DBG("display nodes is " << displayNodes);
+
+        Tracklist *tracklist = findParentComponentOfClass<Tracklist>();
+        tracklist->moveNodeToGroup(this, displayNodes);
+        DBG("done");
     }
 }
 
@@ -423,15 +429,23 @@ track::Tracklist::Tracklist() : juce::Component() {
     newTrackBtn.setButtonText("ADD TRACK");
     newTrackBtn.setTooltip("create new track");
 
-    newTrackBtn.onClick = [this] { addNewTrack(); };
+    addAndMakeVisible(newGroupBtn);
+    newGroupBtn.setButtonText("ADD GROUP");
+
+    newTrackBtn.onClick = [this] { addNewNode(); };
+    newGroupBtn.onClick = [this] { addNewNode(false); };
 }
 track::Tracklist::~Tracklist() {}
 
-void track::Tracklist::addNewTrack() {
+void track::Tracklist::addNewNode(bool isTrack) {
     auto p = (AudioPluginAudioProcessor *)this->processor;
     p->tracks.emplace_back();
-    auto &t = p->tracks.back();
+    audioNode &t = p->tracks.back();
     t.processor = this->processor;
+    t.isTrack = isTrack;
+    t.trackName = isTrack ? "Untitled Track" : "Untitled Group";
+
+    jassert(t.processor != nullptr);
 
     int i = p->tracks.size() - 1;
     std::vector<int> route;
@@ -474,12 +488,106 @@ void track::Tracklist::deleteTrack(int trackIndex) {
     repaint();
 }
 
+void track::Tracklist::deepCopyGroupInsideGroup(audioNode *childNode,
+                                                audioNode *parentNode) {
+    for (auto &child : childNode->childNodes) {
+        audioNode *newNode = &parentNode->childNodes.emplace_back();
+        newNode->trackName = child.trackName;
+        newNode->isTrack = child.isTrack;
+        newNode->gain = child.gain;
+        newNode->processor = processor;
+
+        if (newNode->isTrack)
+            newNode->clips = childNode->clips;
+        else {
+            deepCopyGroupInsideGroup(&child, newNode);
+        }
+    }
+}
+
+void track::Tracklist::moveNodeToGroup(track::TrackComponent *caller,
+                                       int relativeDisplayNodesToMove) {
+
+    audioNode *trackNode = caller->getCorrespondingTrack();
+
+    int callerIndex = -1;
+    // TODO: this is horrendous and you shouldn't need to find the index like
+    // this. maybe store the display node index in each track component or
+    // something. idk.
+    for (size_t i = 0; i < this->trackComponents.size(); ++i) {
+        if (this->trackComponents[i].get() == caller) {
+            callerIndex = i;
+            break;
+        }
+    }
+
+    int targetIndex = callerIndex + relativeDisplayNodesToMove;
+    if (relativeDisplayNodesToMove == 0 || callerIndex < 0 || targetIndex < 0 ||
+        targetIndex >= (int)trackComponents.size())
+        return;
+
+    auto &nodeComponentToMoveTo = this->trackComponents[(size_t)targetIndex];
+
+    audioNode *parentNode = nodeComponentToMoveTo->getCorrespondingTrack();
+    if (parentNode->isTrack) {
+        DBG("rejecting moving track inside a track");
+        return;
+    }
+
+    audioNode *newNode = &parentNode->childNodes.emplace_back();
+    newNode->trackName = trackNode->trackName;
+    newNode->gain = trackNode->gain;
+    newNode->isTrack = trackNode->isTrack;
+    newNode->processor = processor;
+
+    std::vector<int> routeCopy = caller->route;
+    if (trackNode->isTrack)
+        newNode->clips = trackNode->clips;
+    else
+        deepCopyGroupInsideGroup(trackNode, newNode);
+
+    // now the annoying thing, copying plugins. (which is why you can't just
+    // push_back() trackNode into groupNode->childNodes)
+    for (auto &pluginInstance : trackNode->plugins) {
+        juce::String identifier =
+            pluginInstance->getPluginDescription().fileOrIdentifier;
+
+        // FIXME: is there a better way than needing to split strings to get the
+        // right file path for plugin?
+        identifier = identifier.upToLastOccurrenceOf(".vst3", true, true);
+
+        DBG("adding plugin to new node, using identifier " << identifier);
+        newNode->addPlugin(identifier);
+        // TODO: handle making sure subplugin data copies over properly
+    }
+
+    // node is copied. now delete orginal node
+    AudioPluginAudioProcessor *p = (AudioPluginAudioProcessor *)processor;
+    jassert(caller->route.size() > 0);
+
+    if (routeCopy.size() == 1)
+        p->tracks.erase(p->tracks.begin() + routeCopy[0]); // orphan
+    else {
+        audioNode *head = &p->tracks[(size_t)routeCopy[0]];
+        for (size_t i = 1; i < routeCopy.size() - 1; ++i) {
+            head = &head->childNodes[routeCopy[i]];
+        }
+
+        head->childNodes.erase(head->childNodes.begin() +
+                               routeCopy[routeCopy.size() - 1]);
+    }
+
+    trackComponents.clear();
+    createTrackComponents();
+    setTrackComponentBounds();
+}
+
 void track::Tracklist::mouseDown(const juce::MouseEvent &event) {
     if (event.mods.isRightButtonDown()) {
         juce::PopupMenu contextMenu;
         contextMenu.setLookAndFeel(&getLookAndFeel());
 
-        contextMenu.addItem("add new track", [this] { this->addNewTrack(); });
+        contextMenu.addItem("add new track", [this] { this->addNewNode(); });
 
         contextMenu.showMenuAsync(juce::PopupMenu::Options());
     }
@@ -568,6 +676,7 @@ void track::Tracklist::setTrackComponentBounds() {
     }
 
     newTrackBtn.setBounds(0, 0, 80, UI_TRACK_VERTICAL_OFFSET);
+    newGroupBtn.setBounds(80 + 20, 0, 80, UI_TRACK_VERTICAL_OFFSET);
     DBG("setTrackComponentBounds() called");
 
     if (getParentComponent()) {
@@ -597,8 +706,8 @@ void track::clip::updateBuffer() {
     afm.registerBasicFormats();
 
     std::unique_ptr<juce::AudioFormatReader> reader(afm.createReaderFor(file));
-    buffer =
-        juce::AudioBuffer<float>(reader->numChannels, reader->lengthInSamples);
+    buffer = juce::AudioBuffer<float>((int)reader->numChannels,
+                                      reader->lengthInSamples);
 
     reader->read(&buffer, 0, buffer.getNumSamples(), 0, true, true);
 }
@@ -632,10 +741,10 @@ void track::audioNode::addPlugin(juce::String path) {
     std::unique_ptr<juce::AudioPluginInstance> &plugin = this->plugins.back();
 
     DBG("creating plugin instance");
+    jassert(pluginDescriptions.size() > 0);
+
     plugin = apfm.createPluginInstance(*pluginDescriptions[0], sampleRate,
                                        maxSamplesPerBlock, errorMsg);
-
-    jassert(pluginDescriptions.size() > 0);
 
     DBG("LOGGING OUTPUTS:");
     DBG("   " << plugin->getMainBusNumInputChannels() << " inputs");

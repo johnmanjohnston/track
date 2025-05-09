@@ -190,7 +190,9 @@ track::PluginEditorWindow::PluginEditorWindow() : juce::Component() {
     closeBtn.font = getInterBoldItalic();
     addAndMakeVisible(closeBtn);
 }
-track::PluginEditorWindow::~PluginEditorWindow() {}
+track::PluginEditorWindow::~PluginEditorWindow() {
+    getPlugin()->get()->editorBeingDeleted(ape.get());
+}
 
 void track::PluginEditorWindow::paint(juce::Graphics &g) {
 #if JUCE_LINUX
