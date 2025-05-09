@@ -223,8 +223,8 @@ void track::TimelineComponent::paint(juce::Graphics &g) {
         clip->setBounds(clip->correspondingClip->startPositionSample / 44100.0 *
                             UI_ZOOM_MULTIPLIER,
                         UI_TRACK_VERTICAL_OFFSET +
-                            (clip->trackIndex * UI_TRACK_HEIGHT) +
-                            (UI_TRACK_VERTICAL_MARGIN * clip->trackIndex),
+                            (clip->nodeDisplayIndex * UI_TRACK_HEIGHT) +
+                            (UI_TRACK_VERTICAL_MARGIN * clip->nodeDisplayIndex),
                         clip->correspondingClip->buffer.getNumSamples() /
                             44100.0 * UI_ZOOM_MULTIPLIER,
                         UI_TRACK_HEIGHT);
@@ -243,14 +243,19 @@ void track::TimelineComponent::updateClipComponents() {
 
     clipComponents.clear();
 
-    for (std::vector<track::audioNode>::size_type i = 0;
-         i < processorRef->tracks.size(); ++i) {
-        for (auto &c : processorRef->tracks[i].clips) {
+    for (size_t i = 0; i < viewport->tracklist->trackComponents.size(); ++i) {
+        audioNode *node =
+            viewport->tracklist->trackComponents[i]->getCorrespondingTrack();
+
+        if (!node->isTrack)
+            continue;
+
+        for (auto &c : node->clips) {
             this->clipComponents.push_back(std::make_unique<ClipComponent>(&c));
             addAndMakeVisible(*clipComponents.back());
 
             auto &cc = clipComponents.back();
-            cc->trackIndex = i;
+            cc->nodeDisplayIndex = i;
         }
     }
 
@@ -318,9 +323,10 @@ void track::TimelineComponent::filesDropped(const juce::StringArray &files,
                                             int x, int y) {
     // DBG("files dropped; x: " << x << "; y: " << y);
 
-    int trackIndex = juce::jmin(trackIndex = y / UI_TRACK_HEIGHT,
-                                (int)processorRef->tracks.size() - 1);
-    DBG("track index is " << trackIndex);
+    int nodeDisplayIndex =
+        juce::jmin((y / UI_TRACK_HEIGHT) - 1,
+                   (int)viewport->tracklist->trackComponents.size() - 1);
+    DBG("track index is " << nodeDisplayIndex);
 
     std::unique_ptr<clip> c(new clip());
     c->path = files[0];
@@ -349,7 +355,17 @@ void track::TimelineComponent::filesDropped(const juce::StringArray &files,
     c->startPositionSample = x * 32 * 40;
     c->updateBuffer();
 
-    processorRef->tracks[trackIndex].clips.push_back(*c);
+    DBG("nodeDisplayIndex is " << nodeDisplayIndex);
+    audioNode *node =
+        viewport->tracklist->trackComponents[(size_t)nodeDisplayIndex]
+            ->getCorrespondingTrack();
+
+    if (!node->isTrack) {
+        DBG("Rejecting file drop onto group");
+    } else {
+        node->clips.push_back(*c);
+        DBG("inserted clip into node");
+    }
 
     updateClipComponents();
 }

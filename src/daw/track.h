@@ -33,7 +33,7 @@ class ClipComponent : public juce::Component, public juce::ChangeListener {
     clip *correspondingClip = nullptr;
 
     void paint(juce::Graphics &g) override;
-    int trackIndex = -1;
+    int nodeDisplayIndex = -1;
 
     // moving clips
     void mouseDown(const juce::MouseEvent &event) override;
@@ -75,12 +75,14 @@ class audioNode {
     int maxSamplesPerBlock = -1;
     int sampleRate = -1;
 
-    std::vector<clip> clips;
-
     void process(int numSamples, int currentSample);
     juce::AudioBuffer<float> buffer;
 
     void *processor = nullptr;
+
+    bool isTrack = true;
+    std::vector<clip> clips;
+    std::vector<audioNode> childNodes;
 };
 
 class group {
@@ -111,7 +113,8 @@ class TrackComponent : public juce::Component {
     // track *correspondingTrack = nullptr;
     audioNode *getCorrespondingTrack();
     void *processor = nullptr;
-    int trackIndex = -1;
+    int siblingIndex = -1;
+    std::vector<int> route;
 
     juce::TextButton muteBtn;
     juce::TextButton fxBtn; // like in REAPER
@@ -136,6 +139,17 @@ class Tracklist : public juce::Component {
     ~Tracklist();
 
     std::vector<std::unique_ptr<TrackComponent>> trackComponents;
+    int findChildren(audioNode *parentNode, std::vector<int> route,
+                     int foundItems, int depth);
+    juce::String getPrettyVector(std::vector<int> v) {
+        juce::String retval = "[";
+        for (int x : v) {
+            retval.append(juce::String(x), 2);
+            retval.append(",", 2);
+        }
+        retval.append("]", 1);
+        return retval;
+    }
     void createTrackComponents();
     void setTrackComponentBounds();
 

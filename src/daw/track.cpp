@@ -7,6 +7,7 @@
 #include "juce_events/juce_events.h"
 #include "juce_gui_basics/juce_gui_basics.h"
 #include "timeline.h"
+#include <typeinfo>
 
 track::ClipComponent::ClipComponent(clip *c)
     : juce::Component(), thumbnailCache(5),
@@ -134,7 +135,7 @@ void track::ClipComponent::mouseDown(const juce::MouseEvent &event) {
                 TimelineComponent *tc =
                     (TimelineComponent *)getParentComponent();
 
-                tc->deleteClip(correspondingClip, trackIndex);
+                tc->deleteClip(correspondingClip, nodeDisplayIndex);
             }
 
             else if (result == MENU_TOGGLE_CLIP_ACTIVATION) {
@@ -204,30 +205,46 @@ void track::ClipComponent::mouseUp(const juce::MouseEvent &event) {
 
 track::audioNode *
 track::TrackComponent::TrackComponent::getCorrespondingTrack() {
+    // DBG("TrackComponent::getCorrespondingTrack() called");
+
     if (processor == nullptr) {
         DBG("! TRACK COMPONENT'S getCorrespondingTrack() RETURNED nullptr");
         DBG("TrackComponent's processor is nullptr");
         return nullptr;
     }
-    if (trackIndex == -1) {
+    if (siblingIndex == -1) {
         DBG("! TRACK COMPONENT'S getCorrespondingTrack() RETURNED nullptr");
         DBG("TrackComponent's trackIndex is -1");
         return nullptr;
     }
 
+    if (route.size() == 0) {
+        DBG("TrackComponent does not have a route");
+        return nullptr;
+    }
+
     AudioPluginAudioProcessor *p = (AudioPluginAudioProcessor *)processor;
-    return &(p->tracks[trackIndex]);
+    // return &(p->tracks[(size_t)siblingIndex]);
+
+    audioNode *head = &p->tracks[route[0]];
+    for (int i = 1; i < route.size(); ++i) {
+        head = &head->childNodes[route[i]];
+    }
+
+    return head;
 }
 
 void track::TrackComponent::initializeGainSlider() {
     DBG("intiailizGainSlider() called");
-    DBG("track's gain is " << getCorrespondingTrack()->gain);
+    // DBG("track's gain is " << getCorrespondingTrack()->gain);
     gainSlider.setValue(getCorrespondingTrack()->gain);
 }
 
 track::TrackComponent::TrackComponent(int trackIndex) : juce::Component() {
     // starting text for track name label is set when TrackComponent is created
     // in createTrackComponents()
+    DBG("TrackComponent constructor called");
+
     trackNameLabel.setFont(
         getInterRegular().withHeight(17.f).withExtraKerningFactor(-0.02f));
     trackNameLabel.setBounds(0, 0, 100, 20);
@@ -238,7 +255,7 @@ track::TrackComponent::TrackComponent(int trackIndex) : juce::Component() {
         this->getCorrespondingTrack()->trackName = trackNameLabel.getText(true);
     };
 
-    this->trackIndex = trackIndex;
+    this->siblingIndex = trackIndex;
 
     addAndMakeVisible(muteBtn);
     muteBtn.setButtonText("M");
@@ -282,7 +299,7 @@ track::TrackComponent::TrackComponent(int trackIndex) : juce::Component() {
 
         AudioPluginAudioProcessorEditor *editor =
             this->findParentComponentOfClass<AudioPluginAudioProcessorEditor>();
-        editor->openFxChain(this->trackIndex);
+        editor->openFxChain(this->siblingIndex);
     };
 }
 track::TrackComponent::~TrackComponent() {}
@@ -297,7 +314,7 @@ void track::TrackComponent::mouseDown(const juce::MouseEvent &event) {
                 Tracklist *tracklist =
                     (Tracklist *)findParentComponentOfClass<Tracklist>();
 
-                tracklist->deleteTrack(this->trackIndex);
+                tracklist->deleteTrack(this->siblingIndex);
             });
 
         contextMenu.showMenuAsync(juce::PopupMenu::Options());
@@ -341,16 +358,20 @@ void track::TrackComponent::paint(juce::Graphics &g) {
 }
 
 void track::TrackComponent::resized() {
-    trackNameLabel.setBounds(getLocalBounds().getX() + 10,
-                             (UI_TRACK_HEIGHT / 4) - 5, 100, 20);
 
+    // trackNameLabel.setBounds((route.size() - 1) * 10, 0, getWidth(), 20);
+    // return;
+
+    int xOffset = (route.size() - 1) * 10;
+    trackNameLabel.setBounds(getLocalBounds().getX() + 10 + xOffset,
+                             (UI_TRACK_HEIGHT / 4) - 5, 100, 20);
     int btnSize = 24;
     int btnHeight = btnSize;
     int btnWidth = btnSize;
 
     juce::Rectangle<int> btnBounds = juce::Rectangle<int>(
-        UI_TRACK_WIDTH - 115, (UI_TRACK_HEIGHT / 2) - (btnHeight / 2), btnWidth,
-        btnHeight);
+        xOffset + UI_TRACK_WIDTH - 115, (UI_TRACK_HEIGHT / 2) - (btnHeight / 2),
+        btnWidth, btnHeight);
 
     muteBtn.setBounds(btnBounds);
 
@@ -404,8 +425,11 @@ void track::Tracklist::addNewTrack() {
     t.processor = this->processor;
 
     int i = p->tracks.size() - 1;
+    std::vector<int> route;
+    route.push_back(i);
     this->trackComponents.push_back(std::make_unique<TrackComponent>(i));
     trackComponents.back().get()->processor = processor;
+    trackComponents.back().get()->route = route;
     trackComponents.back().get()->initializeGainSlider();
 
     // set track label text
@@ -433,7 +457,7 @@ void track::Tracklist::deleteTrack(int trackIndex) {
     // update trackComponent indices
     trackComponents.erase(trackComponents.begin() + trackIndex);
     for (int i = trackIndex; i < trackComponents.size(); ++i) {
-        trackComponents[i].get()->trackIndex--;
+        trackComponents[i].get()->siblingIndex--;
     }
 
     this->setTrackComponentBounds();
@@ -452,18 +476,67 @@ void track::Tracklist::mouseDown(const juce::MouseEvent &event) {
     }
 }
 
+int track::Tracklist::findChildren(audioNode *parentNode,
+                                   std::vector<int> route, int foundItems,
+                                   int depth) {
+    for (size_t i = 0; i < parentNode->childNodes.size(); ++i) {
+        juce::String tabs;
+        for (int x = 0; x < depth; ++x) {
+            tabs.append("    ", 4);
+        }
+
+        audioNode *childNode = &parentNode->childNodes[i];
+
+        route.push_back(i);
+
+        this->trackComponents.push_back(std::make_unique<TrackComponent>(i));
+        trackComponents.back().get()->processor = processor;
+        trackComponents.back().get()->route = route;
+        trackComponents.back().get()->initializeGainSlider();
+        trackComponents.back().get()->trackNameLabel.setText(
+            childNode->trackName, juce::NotificationType::dontSendNotification);
+
+        addAndMakeVisible(*trackComponents.back());
+
+        DBG(tabs << "found " << (childNode->isTrack ? "track" : "group") << " "
+                 << childNode->trackName << "(" << i << foundItems << depth
+                 << ") " << getPrettyVector(route));
+
+        if (!childNode->isTrack) {
+            foundItems = findChildren(childNode, route, foundItems, depth + 1);
+        } else {
+        }
+
+        ++foundItems;
+        route.pop_back();
+    }
+
+    return foundItems;
+}
+
 void track::Tracklist::createTrackComponents() {
     AudioPluginAudioProcessor *p =
         (AudioPluginAudioProcessor *)(this->processor);
 
     int i = 0;
+    int foundItems = 0;
+    DBG("");
     for (audioNode &t : p->tracks) {
+        std::vector<int> route;
+        route.push_back(i);
+
         this->trackComponents.push_back(std::make_unique<TrackComponent>(i));
         trackComponents.back().get()->processor = processor;
+        trackComponents.back().get()->route = route;
         trackComponents.back().get()->initializeGainSlider();
         trackComponents.back().get()->trackNameLabel.setText(
             t.trackName, juce::NotificationType::dontSendNotification);
         addAndMakeVisible(*trackComponents.back());
+
+        DBG("=== SCANNING " << t.trackName << "===");
+
+        foundItems = findChildren(&t, route, foundItems, 0);
+        DBG("");
 
         i++;
     }
@@ -604,43 +677,60 @@ void track::audioNode::process(int numSamples, int currentSample) {
     int outputBufferLength = numSamples;
     int totalNumInputChannels = 2;
 
-    // add sample data to buffer
-    for (clip &c : clips) {
-        if (!c.active)
-            continue;
+    if (isTrack) {
+        // add sample data to buffer
+        for (clip &c : clips) {
+            if (!c.active)
+                continue;
 
-        int clipStart = c.startPositionSample;
-        int clipEnd = c.startPositionSample + c.buffer.getNumSamples();
+            int clipStart = c.startPositionSample;
+            int clipEnd = c.startPositionSample + c.buffer.getNumSamples();
 
-        // bounds check
-        if (clipEnd > currentSample &&
-            clipStart < currentSample + outputBufferLength) {
-            // where in buffer should clip start?
-            int outputOffset =
-                (clipStart < currentSample) ? 0 : clipStart - currentSample;
-            // starting point in clip's buffer?
-            int clipBufferStart =
-                (clipStart < currentSample) ? currentSample - clipStart : 0;
-            // how many samples can we safely copy?
-            int samplesToCopy =
-                juce::jmin(outputBufferLength - outputOffset,
-                           c.buffer.getNumSamples() - clipBufferStart);
+            // bounds check
+            if (clipEnd > currentSample &&
+                clipStart < currentSample + outputBufferLength) {
+                // where in buffer should clip start?
+                int outputOffset =
+                    (clipStart < currentSample) ? 0 : clipStart - currentSample;
+                // starting point in clip's buffer?
+                int clipBufferStart =
+                    (clipStart < currentSample) ? currentSample - clipStart : 0;
+                // how many samples can we safely copy?
+                int samplesToCopy =
+                    juce::jmin(outputBufferLength - outputOffset,
+                               c.buffer.getNumSamples() - clipBufferStart);
 
-            if (c.buffer.getNumChannels() > 1) {
-                for (int channel = 0; channel < buffer.getNumChannels();
-                     ++channel) {
-                    buffer.addFrom(channel, outputOffset, c.buffer,
-                                   channel % totalNumInputChannels,
-                                   clipBufferStart, samplesToCopy);
+                if (c.buffer.getNumChannels() > 1) {
+                    for (int channel = 0; channel < buffer.getNumChannels();
+                         ++channel) {
+                        buffer.addFrom(channel, outputOffset, c.buffer,
+                                       channel % totalNumInputChannels,
+                                       clipBufferStart, samplesToCopy);
+                    }
+                }
+
+                else {
+                    for (int channel = 0; channel < buffer.getNumChannels();
+                         ++channel) {
+                        buffer.addFrom(channel, outputOffset, c.buffer, 0,
+                                       clipBufferStart, samplesToCopy);
+                    }
                 }
             }
+        }
+    } else {
+        // let child tracks process
+        for (audioNode &child : this->childNodes) {
+            child.process(numSamples, currentSample);
+        }
 
-            else {
-                for (int channel = 0; channel < buffer.getNumChannels();
-                     ++channel) {
-                    buffer.addFrom(channel, outputOffset, c.buffer, 0,
-                                   clipBufferStart, samplesToCopy);
-                }
+        // sum up buffers
+        for (track::audioNode &t : childNodes) {
+            int totalNumOutputChannels = 2;
+            for (int channel = 0; channel < totalNumOutputChannels; ++channel) {
+
+                buffer.addFrom(channel, 0, t.buffer, channel, 0,
+                               buffer.getNumSamples());
             }
         }
     }
@@ -667,9 +757,3 @@ void track::audioNode::process(int numSamples, int currentSample) {
     // main audio processing is done; add gain as final step
     buffer.applyGain(gain);
 }
-
-/*
-void track::group::process(juce::AudioBuffer<float> buffer, int currentSample) {
-    DBG("trac::group::process() CALLED BUT NOT IMPLEMENTED YET");
-}
-*/

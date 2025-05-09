@@ -144,6 +144,45 @@ void AudioPluginAudioProcessor::prepareToPlay(double sampleRate,
         DBG("reader not created");
     }
 
+    auto &g1 = tracks.emplace_back();
+    g1.isTrack = false;
+    g1.trackName = "g1";
+
+    for (int i = 0; i < 5; ++i) {
+        auto &subtrack = g1.childNodes.emplace_back();
+        subtrack.trackName = "child track " + juce::String(i);
+    }
+
+    auto &sg = g1.childNodes.emplace_back();
+    sg.isTrack = false;
+    sg.trackName = "subgroup1";
+
+    for (int i = 0; i < 3; ++i) {
+        auto &subtrack = sg.childNodes.emplace_back();
+        subtrack.trackName = "subgroup child " + juce::String(i);
+    }
+
+    auto &g2 = tracks.emplace_back();
+    g2.trackName = "group 2";
+    g2.isTrack = false;
+    auto &x = g2.childNodes.emplace_back();
+    x.trackName = "2nd parent's child whcih is a group";
+    x.isTrack = false;
+
+    auto &gilbert = x.childNodes.emplace_back();
+    gilbert.trackName = "gilbert :)";
+    gilbert.isTrack = false;
+    for (int i = 0; i < 3; ++i) {
+        auto &sub = gilbert.childNodes.emplace_back();
+        sub.trackName = juce::String(i);
+        sub.isTrack = false;
+
+        for (int j = 0; j < 4; ++j) {
+            auto &y = sub.childNodes.emplace_back();
+            y.trackName = juce::String(j);
+        }
+    }
+
     /*
     // initialize tracks
     // first track
@@ -348,7 +387,7 @@ void AudioPluginAudioProcessor::getStateInformation(
         xml->addChildElement(trackElement);
     }
 
-    copyXmlToBinary(*xml, destData);
+    // copyXmlToBinary(*xml, destData);
 
     DBG(xml->createDocument(""));
 }
