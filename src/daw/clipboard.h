@@ -9,4 +9,5 @@ extern int typecode;
 
 void setData(void *item, int typehint);
 void *retrieveData();
+void releaseResources();
 } // namespace track::clipboard

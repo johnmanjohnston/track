@@ -1,4 +1,5 @@
 #include "editor.h"
+#include "daw/clipboard.h"
 #include "daw/defs.h"
 #include "daw/plugin_chain.h"
 #include "daw/timeline.h"
@@ -72,11 +73,15 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
 }
 
 AudioPluginAudioProcessorEditor::~AudioPluginAudioProcessorEditor() {
+    /*
     DBG("track plugin editor destructor called");
     DBG("plugin editor window vector size is " << pluginEditorWindows.size());
     DBG("plugin chain coomponents vector size is "
         << pluginChainComponents.size());
+        */
+
     setLookAndFeel(nullptr);
+    track::clipboard::releaseResources();
 }
 
 void AudioPluginAudioProcessorEditor::paint(juce::Graphics &g) {

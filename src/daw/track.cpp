@@ -144,7 +144,18 @@ void track::ClipComponent::mouseDown(const juce::MouseEvent &event) {
             }
 
             else if (result == MENU_COPY_CLIP) {
-                clipboard::setData(correspondingClip, TYPECODE_CLIP);
+                // create new clip and set clipboard's data as this new clip
+                // also, by creating a copy of the clip we allow the user to
+                // delete the orginal clip from timeline, and still paste it
+                track::clip *newClip = new track::clip;
+                newClip->buffer = correspondingClip->buffer;
+                newClip->startPositionSample =
+                    correspondingClip->startPositionSample;
+                newClip->name = correspondingClip->name;
+                newClip->path = correspondingClip->path;
+                newClip->active = correspondingClip->active;
+
+                clipboard::setData(newClip, TYPECODE_CLIP);
             }
         });
     }
@@ -526,6 +537,7 @@ void track::Tracklist::deepCopyGroupInsideGroup(audioNode *childNode,
     }
 }
 
+// FIXME: moving a group into its child (which is also a group) causes segfault
 void track::Tracklist::moveNodeToGroup(track::TrackComponent *caller,
                                        int relativeDisplayNodesToMove) {
 

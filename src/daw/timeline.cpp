@@ -132,7 +132,8 @@ void track::TimelineComponent::mouseDown(const juce::MouseEvent &event) {
 
 #define MENU_PASTE_CLIP 1
 
-        contextMenu.addItem(MENU_PASTE_CLIP, "Paste clip");
+        contextMenu.addItem(MENU_PASTE_CLIP, "Paste clip",
+                            clipboard::typecode == TYPECODE_CLIP);
         contextMenu.addSubMenu("Grid", gridMenu);
 
         contextMenu.showMenuAsync(
