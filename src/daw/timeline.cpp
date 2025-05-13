@@ -274,11 +274,11 @@ void track::TimelineComponent::resizeTimelineComponent() {
         }
     }
 
-    DBG("largestEnd is " << largestEnd);
+    // DBG("largestEnd is " << largestEnd);
     jassert(UI_ZOOM_MULTIPLIER > 0);
     largestEnd /= 44100 / UI_ZOOM_MULTIPLIER;
     largestEnd += 2000;
-    DBG("now, largestEnd is " << largestEnd);
+    // DBG("now, largestEnd is " << largestEnd);
 
     // this->setSize(juce::jmax(getWidth(), largestEnd), getHeight());
     this->setSize(largestEnd, getHeight());

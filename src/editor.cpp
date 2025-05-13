@@ -72,6 +72,10 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
 }
 
 AudioPluginAudioProcessorEditor::~AudioPluginAudioProcessorEditor() {
+    DBG("track plugin editor destructor called");
+    DBG("plugin editor window vector size is " << pluginEditorWindows.size());
+    DBG("plugin chain coomponents vector size is "
+        << pluginChainComponents.size());
     setLookAndFeel(nullptr);
 }
 

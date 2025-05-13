@@ -3,6 +3,7 @@
 #include "../processor.h"
 #include "clipboard.h"
 #include "defs.h"
+#include "juce_audio_processors/juce_audio_processors.h"
 #include "juce_events/juce_events.h"
 #include "juce_gui_basics/juce_gui_basics.h"
 #include "timeline.h"
@@ -232,7 +233,7 @@ track::TrackComponent::TrackComponent::getCorrespondingTrack() {
 }
 
 void track::TrackComponent::initializeGainSlider() {
-    DBG("intiailizGainSlider() called");
+    // DBG("intiailizGainSlider() called");
     // DBG("track's gain is " << getCorrespondingTrack()->gain);
     gainSlider.setValue(getCorrespondingTrack()->gain);
 }
@@ -240,7 +241,7 @@ void track::TrackComponent::initializeGainSlider() {
 track::TrackComponent::TrackComponent(int trackIndex) : juce::Component() {
     // starting text for track name label is set when TrackComponent is created
     // in createTrackComponents()
-    DBG("TrackComponent constructor called");
+    // DBG("TrackComponent constructor called");
 
     trackNameLabel.setFont(
         getAudioNodeLabelFont().withHeight(17.f).withExtraKerningFactor(
@@ -338,8 +339,8 @@ void track::TrackComponent::paint(juce::Graphics &g) {
     g.setColour(juce::Colour(0xFF535353)); // outline
     g.drawRect(getLocalBounds(), 2);
 
-    g.setColour(juce::Colours::white);
-    g.fillRect(0, 0, 5 * (route.size()), getHeight());
+    g.setColour(juce::Colours::lightgrey);
+    g.fillRect(0, 0, 5 * (route.size() - 1), getHeight());
 
     juce::String trackName = getCorrespondingTrack() == nullptr
                                  ? "null trackk"
@@ -462,7 +463,7 @@ void track::Tracklist::addNewNode(bool isTrack) {
 
     addAndMakeVisible(*trackComponents.back());
 
-    DBG("track component added. will set track components bounds now");
+    DBG("New node component added");
     setTrackComponentBounds();
 
     repaint();
@@ -502,6 +503,26 @@ void track::Tracklist::deepCopyGroupInsideGroup(audioNode *childNode,
         else {
             deepCopyGroupInsideGroup(&child, newNode);
         }
+
+        // now the annoying thing, copying plugins. (which is why you can't just
+        // push_back() trackNode into groupNode->childNodes)
+        for (auto &pluginInstance : child.plugins) {
+            if (pluginInstance->getActiveEditor() != nullptr) {
+                DBG("pluginInstance's active editor still exists");
+                delete pluginInstance->getActiveEditor();
+            }
+
+            pluginInstance->releaseResources();
+
+            juce::String identifier =
+                pluginInstance->getPluginDescription().fileOrIdentifier;
+
+            identifier = identifier.upToLastOccurrenceOf(".vst3", true, true);
+
+            DBG("adding plugin to new node, using identifier " << identifier);
+            newNode->addPlugin(identifier);
+            // TODO: handle making sure subplugin data copies over properly
+        }
     }
 }
 
@@ -511,9 +532,9 @@ void track::Tracklist::moveNodeToGroup(track::TrackComponent *caller,
     audioNode *trackNode = caller->getCorrespondingTrack();
 
     int callerIndex = -1;
-    // TODO: this is horrendous and you shouldn't need to find the index like
-    // this. maybe store the display node index in each track component or
-    // something. idk.
+    // TODO: this is horrendous and you shouldn't need to find the index
+    // like this. maybe store the display node index in each track component
+    // or something. idk.
     for (size_t i = 0; i < this->trackComponents.size(); ++i) {
         if (this->trackComponents[i].get() == caller) {
             callerIndex = i;
@@ -549,11 +570,16 @@ void track::Tracklist::moveNodeToGroup(track::TrackComponent *caller,
     // now the annoying thing, copying plugins. (which is why you can't just
     // push_back() trackNode into groupNode->childNodes)
     for (auto &pluginInstance : trackNode->plugins) {
+        if (pluginInstance->getActiveEditor() != nullptr) {
+            DBG("pluginInstance's active editor still exists");
+            delete pluginInstance->getActiveEditor();
+        }
+
+        pluginInstance->releaseResources();
+
         juce::String identifier =
             pluginInstance->getPluginDescription().fileOrIdentifier;
 
-        // FIXME: is there a better way than needing to split strings to get the
-        // right file path for plugin?
         identifier = identifier.upToLastOccurrenceOf(".vst3", true, true);
 
         DBG("adding plugin to new node, using identifier " << identifier);
@@ -565,12 +591,21 @@ void track::Tracklist::moveNodeToGroup(track::TrackComponent *caller,
     AudioPluginAudioProcessor *p = (AudioPluginAudioProcessor *)processor;
     jassert(caller->route.size() > 0);
 
-    if (routeCopy.size() == 1)
+    if (routeCopy.size() == 1) {
+        DBG("deleting orphan node with index " << routeCopy[0]);
+        for (auto &pluginInstance : p->tracks[(size_t)routeCopy[0]].plugins) {
+            AudioProcessorEditor *subpluginEditor =
+                pluginInstance->getActiveEditor();
+            if (subpluginEditor != nullptr) {
+                pluginInstance->editorBeingDeleted(subpluginEditor);
+            }
+        }
+
         p->tracks.erase(p->tracks.begin() + routeCopy[0]); // orphan
-    else {
+    } else {
         audioNode *head = &p->tracks[(size_t)routeCopy[0]];
         for (size_t i = 1; i < routeCopy.size() - 1; ++i) {
-            head = &head->childNodes[routeCopy[i]];
+            head = &head->childNodes[(size_t)routeCopy[i]];
         }
 
         head->childNodes.erase(head->childNodes.begin() +
@@ -650,9 +685,8 @@ void track::Tracklist::createTrackComponents() {
             t.trackName, juce::NotificationType::dontSendNotification);
         addAndMakeVisible(*trackComponents.back());
 
-        DBG("=== SCANNING " << t.trackName << "===");
-
-        foundItems = findChildren(&t, route, foundItems, 0);
+        DBG("found " << t.trackName << " (root node)");
+        foundItems = findChildren(&t, route, foundItems, 1);
         DBG("");
 
         i++;
@@ -677,7 +711,7 @@ void track::Tracklist::setTrackComponentBounds() {
 
     newTrackBtn.setBounds(0, 0, 80, UI_TRACK_VERTICAL_OFFSET);
     newGroupBtn.setBounds(80 + 20, 0, 80, UI_TRACK_VERTICAL_OFFSET);
-    DBG("setTrackComponentBounds() called");
+    // DBG("setTrackComponentBounds() called");
 
     if (getParentComponent()) {
         int newTracklistHeight = juce::jmax((counter + 2) * UI_TRACK_HEIGHT,
@@ -756,8 +790,8 @@ void track::audioNode::addPlugin(juce::String path) {
     /*
     DBG("setting buses");
     AudioPluginAudioProcessor *p = (AudioPluginAudioProcessor *)processor;
-    AudioPluginAudioProcessor::BusesLayout busesLayout = p->getBusesLayout();
-    plugin->setBusesLayout(busesLayout);
+    AudioPluginAudioProcessor::BusesLayout busesLayout =
+    p->getBusesLayout(); plugin->setBusesLayout(busesLayout);
 
     DBG("setting rate and buffer size details");
     plugin->setRateAndBufferSizeDetails(sampleRate, maxSamplesPerBlock);

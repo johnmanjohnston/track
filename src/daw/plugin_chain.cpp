@@ -191,7 +191,15 @@ track::PluginEditorWindow::PluginEditorWindow() : juce::Component() {
     addAndMakeVisible(closeBtn);
 }
 track::PluginEditorWindow::~PluginEditorWindow() {
-    getPlugin()->get()->editorBeingDeleted(ape.get());
+    if (!getPlugin())
+        return;
+    if (!getPlugin()->get())
+        return;
+
+    if (getPlugin()->get()->getActiveEditor() != nullptr) {
+        DBG("active plugin's editor is not nullptr. deleting active editor");
+        delete getPlugin()->get()->getActiveEditor();
+    }
 }
 
 void track::PluginEditorWindow::paint(juce::Graphics &g) {
@@ -242,8 +250,11 @@ void track::PluginEditorWindow::createEditor() {
     jassert(pluginIndex > -1);
     jassert(processor != nullptr);
 
+    /*
     this->ape = std::unique_ptr<juce::AudioProcessorEditor>(
         getPlugin()->get()->createEditorIfNeeded());
+        */
+    this->ape = getPlugin()->get()->createEditorIfNeeded();
     ape->setBounds(0, UI_SUBWINDOW_TITLEBAR_HEIGHT, 100, 100);
 
     addAndMakeVisible(*ape);

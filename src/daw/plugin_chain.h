@@ -84,8 +84,8 @@ class PluginEditorWindow : public juce::Component, juce::Timer {
     juce::String pluginManufacturer;
     juce::String trackName;
 
-    // juce::AudioProcessorEditor *ape = nullptr;
-    std::unique_ptr<juce::AudioProcessorEditor> ape;
+    juce::AudioProcessorEditor *ape = nullptr;
+    // std::unique_ptr<juce::AudioProcessorEditor> ape;
 
     AudioPluginAudioProcessor *processor = nullptr;
     audioNode *getCorrespondingTrack();
