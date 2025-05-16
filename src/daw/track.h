@@ -156,7 +156,9 @@ class Tracklist : public juce::Component {
     void mouseDown(const juce::MouseEvent &event) override;
 
     void addNewNode(bool isTrack = true);
-    void deleteTrack(int trackIndex);
+    // void deleteTrack(int trackIndex);
+    void deleteTrack(std::vector<int> route);
+    void recursivelyDeleteNodePlugins(audioNode *node);
     void moveNodeToGroup(track::TrackComponent *caller,
                          int relativeDisplayNodesToMove);
     void deepCopyGroupInsideGroup(audioNode *childNode, audioNode *parentNode);

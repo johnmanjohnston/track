@@ -7,6 +7,7 @@
 #include "juce_events/juce_events.h"
 #include "juce_gui_basics/juce_gui_basics.h"
 #include "timeline.h"
+#include <cstddef>
 
 track::ClipComponent::ClipComponent(clip *c)
     : juce::Component(), thumbnailCache(5),
@@ -324,7 +325,8 @@ void track::TrackComponent::mouseDown(const juce::MouseEvent &event) {
                 Tracklist *tracklist =
                     (Tracklist *)findParentComponentOfClass<Tracklist>();
 
-                tracklist->deleteTrack(this->siblingIndex);
+                // tracklist->deleteTrack(this->siblingIndex);
+                tracklist->deleteTrack(this->route);
             });
 
         contextMenu.showMenuAsync(juce::PopupMenu::Options());
@@ -480,7 +482,30 @@ void track::Tracklist::addNewNode(bool isTrack) {
     repaint();
 }
 
-void track::Tracklist::deleteTrack(int trackIndex) {
+void track::Tracklist::recursivelyDeleteNodePlugins(audioNode *node) {
+    if (!node->isTrack) {
+        for (audioNode &child : node->childNodes) {
+            recursivelyDeleteNodePlugins(&child);
+        }
+    }
+
+    for (auto &plugin : node->plugins) {
+        if (plugin->getActiveEditor() != nullptr) {
+            DBG("deleting a node which has a plugin with an EDITOR WHCIH IS "
+                "STILL ACTIVE");
+            // plugin->editorBeingDeleted(plugin->getActiveEditor());
+            delete plugin->getActiveEditor();
+        }
+
+        DBG("recursivelyDeleteNodePlugins(): deleting a plugin: "
+            << plugin->getPluginDescription().name);
+        plugin->releaseResources();
+    }
+}
+
+// vokd track::Tracklist::deleteTrack(int trackIndex) {
+void track::Tracklist::deleteTrack(std::vector<int> route) {
+    /*
     DBG("deleting track " << trackIndex);
 
     AudioPluginAudioProcessor *p = (AudioPluginAudioProcessor *)processor;
@@ -498,6 +523,37 @@ void track::Tracklist::deleteTrack(int trackIndex) {
     this->setTrackComponentBounds();
     tc->repaint();
     repaint();
+    */
+
+    juce::MessageManagerLock mmlock;
+    AudioPluginAudioProcessor *p = (AudioPluginAudioProcessor *)processor;
+
+    if (juce::MessageManager::getInstance()->isThisTheMessageThread()) {
+        DBG("THIS IS THE MESSAGE THREAD");
+    }
+
+    // trivially delete
+    if (route.size() == 1) {
+        DBG("trivially deleted audo node with index: "
+            << getPrettyVector(route));
+
+        recursivelyDeleteNodePlugins(&p->tracks[(size_t)route[0]]);
+        p->tracks.erase(p->tracks.begin() + route[0]);
+    } else {
+        audioNode *head = &p->tracks[(size_t)route[0]];
+        for (size_t i = 1; i < route.size() - 1; ++i) {
+            head = &head->childNodes[(size_t)route[i]];
+        }
+
+        recursivelyDeleteNodePlugins(
+            &head->childNodes[route[route.size() - 1]]);
+        head->childNodes.erase(head->childNodes.begin() +
+                               route[route.size() - 1]);
+    }
+
+    this->trackComponents.clear();
+    this->createTrackComponents();
+    this->setTrackComponentBounds();
 }
 
 void track::Tracklist::deepCopyGroupInsideGroup(audioNode *childNode,

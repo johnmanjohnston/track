@@ -168,7 +168,7 @@ void track::PluginChainComponent::mouseDown(const juce::MouseEvent &event) {
 
                 DBG("pluginIndex = " << pluginIndex);
 
-                editor->openPluginEditorWindow(route, pluginIndex);
+                // editor->openPluginEditorWindow(route, pluginIndex);
             });
         }
 
@@ -199,6 +199,9 @@ track::PluginEditorWindow::~PluginEditorWindow() {
     if (getPlugin()->get()->getActiveEditor() != nullptr) {
         DBG("active plugin's editor is not nullptr. deleting active editor");
         delete getPlugin()->get()->getActiveEditor();
+
+        getPlugin()->get()->editorBeingDeleted(
+            getPlugin()->get()->getActiveEditor());
     }
 }
 
