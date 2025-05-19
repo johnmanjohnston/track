@@ -168,7 +168,7 @@ void track::PluginChainComponent::mouseDown(const juce::MouseEvent &event) {
 
                 DBG("pluginIndex = " << pluginIndex);
 
-                // editor->openPluginEditorWindow(route, pluginIndex);
+                editor->openPluginEditorWindow(route, pluginIndex);
             });
         }
 
@@ -188,9 +188,11 @@ track::audioNode *track::PluginChainComponent::getCorrespondingTrack() {
 // plugin editor window
 track::PluginEditorWindow::PluginEditorWindow() : juce::Component() {
     closeBtn.font = getInterBoldItalic();
+    closeBtn.behaveLikeANormalFuckingCloseButton = false;
     addAndMakeVisible(closeBtn);
 }
 track::PluginEditorWindow::~PluginEditorWindow() {
+    DBG("PEW's destrcutor is called ");
     if (!getPlugin())
         return;
     if (!getPlugin()->get())
@@ -358,15 +360,37 @@ void track::CloseButton::mouseUp(const juce::MouseEvent &event) {
     if (!event.mods.isLeftButtonDown())
         return;
 
-    juce::Component *componentToRemove =
-        (juce::Component *)getParentComponent();
-    jassert(componentToRemove != nullptr);
+    if (behaveLikeANormalFuckingCloseButton) {
+        juce::Component *componentToRemove =
+            (juce::Component *)getParentComponent();
+        jassert(componentToRemove != nullptr);
 
-    juce::Component *componentToRemoveParent =
-        (juce::Component *)componentToRemove->getParentComponent();
-    jassert(componentToRemoveParent != nullptr);
+        juce::Component *componentToRemoveParent =
+            (juce::Component *)componentToRemove->getParentComponent();
+        jassert(componentToRemoveParent != nullptr);
 
-    componentToRemoveParent->removeChildComponent(componentToRemove);
+        componentToRemoveParent->removeChildComponent(componentToRemove);
+    } else {
+        // if this isn't a normal fucking close button perform this absolute
+        // shitwreck to make sure that the desutrcutor (however the fuck you
+        // spell it man i dont got fucking time for this shit right now) for
+        // PluginEditorWindow gets called i've spent the past four days tryin to
+        // fix segfaults all because this stupid desutrctir is not being called
+        // im bout to go fuckin insane
+        track::PluginEditorWindow *pew =
+            (track::PluginEditorWindow *)getParentComponent();
+
+        AudioPluginAudioProcessorEditor *editor =
+            findParentComponentOfClass<AudioPluginAudioProcessorEditor>();
+
+        for (size_t i = 0; i < editor->pluginEditorWindows.size(); ++i) {
+            if (editor->pluginEditorWindows[i].get() == pew) {
+                editor->pluginEditorWindows.erase(
+                    editor->pluginEditorWindows.begin() + (long)i);
+                break;
+            }
+        }
+    }
 }
 
 void track::CloseButton::mouseEnter(const juce::MouseEvent &event) {

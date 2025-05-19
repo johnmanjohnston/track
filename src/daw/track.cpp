@@ -490,12 +490,14 @@ void track::Tracklist::recursivelyDeleteNodePlugins(audioNode *node) {
     }
 
     for (auto &plugin : node->plugins) {
+        /*
         if (plugin->getActiveEditor() != nullptr) {
             DBG("deleting a node which has a plugin with an EDITOR WHCIH IS "
                 "STILL ACTIVE");
             // plugin->editorBeingDeleted(plugin->getActiveEditor());
             delete plugin->getActiveEditor();
         }
+        */
 
         DBG("recursivelyDeleteNodePlugins(): deleting a plugin: "
             << plugin->getPluginDescription().name);
@@ -574,10 +576,12 @@ void track::Tracklist::deepCopyGroupInsideGroup(audioNode *childNode,
         // now the annoying thing, copying plugins. (which is why you can't just
         // push_back() trackNode into groupNode->childNodes)
         for (auto &pluginInstance : child.plugins) {
+            /*
             if (pluginInstance->getActiveEditor() != nullptr) {
                 DBG("pluginInstance's active editor still exists");
                 delete pluginInstance->getActiveEditor();
             }
+            */
 
             pluginInstance->releaseResources();
 

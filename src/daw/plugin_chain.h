@@ -20,6 +20,8 @@ class CloseButton : public juce::Component {
     void mouseExit(const juce::MouseEvent &event) override;
     juce::Colour normalColor = juce::Colour(0xFF'585858);
     juce::Colour hoveredColor = juce::Colour(0xFF'808080);
+
+    bool behaveLikeANormalFuckingCloseButton = true;
 };
 
 class PluginChainComponent : public juce::Component {
