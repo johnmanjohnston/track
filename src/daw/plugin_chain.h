@@ -24,10 +24,40 @@ class CloseButton : public juce::Component {
     bool behaveLikeANormalFuckingCloseButton = true;
 };
 
+class PluginNodeComponent : public juce::Component {
+  public:
+    PluginNodeComponent();
+    ~PluginNodeComponent();
+
+    void paint(juce::Graphics &g) override;
+    int pluginIndex = -1;
+    std::unique_ptr<juce::AudioPluginInstance> *getPlugin();
+};
+
+class PluginNodesWrapper : public juce::Component {
+  public:
+    PluginNodesWrapper();
+    ~PluginNodesWrapper();
+
+    void createPluginNodeComponents();
+    PluginChainComponent *pcc = nullptr;
+
+    std::vector<std::unique_ptr<PluginNodeComponent>> pluginNodeComponents;
+};
+
+class PluginNodesViewport : public juce::Viewport {
+  public:
+    PluginNodesViewport();
+    ~PluginNodesViewport();
+};
+
 class PluginChainComponent : public juce::Component {
   public:
     PluginChainComponent();
     ~PluginChainComponent();
+
+    PluginNodesViewport nodesViewport;
+    PluginNodesWrapper nodesWrapper;
 
     juce::KnownPluginList *knownPluginList = nullptr;
 

@@ -2,6 +2,50 @@
 #include "defs.h"
 #include "juce_graphics/juce_graphics.h"
 #include "juce_gui_basics/juce_gui_basics.h"
+#include "track.h"
+
+track::PluginNodeComponent::PluginNodeComponent() : juce::Component() {}
+track::PluginNodeComponent::~PluginNodeComponent() {}
+track::PluginNodesWrapper::PluginNodesWrapper() : juce::Component() {}
+track::PluginNodesWrapper::~PluginNodesWrapper() {}
+track::PluginNodesViewport::PluginNodesViewport() : juce::Viewport() {}
+track::PluginNodesViewport::~PluginNodesViewport() {}
+
+void track::PluginNodeComponent::paint(juce::Graphics &g) {
+    g.fillAll(juce::Colours::pink);
+
+    g.drawText(getPlugin()->get()->getName(), 1, 1, 100, 20,
+               juce::Justification::left);
+}
+
+void track::PluginNodesWrapper::createPluginNodeComponents() {
+    jassert(pcc != nullptr);
+
+    audioNode *node = pcc->getCorrespondingTrack();
+
+    for (size_t i = 0; i < node->plugins.size(); ++i) {
+        DBG("creating plugin node for " << node->plugins[i].get()->getName());
+
+        this->pluginNodeComponents.emplace_back(new track::PluginNodeComponent);
+        PluginNodeComponent &nc = *this->pluginNodeComponents.back();
+        nc.pluginIndex = i;
+
+        addAndMakeVisible(nc);
+        nc.setBounds(i * 200, 0, 190, 50);
+    }
+}
+
+std::unique_ptr<juce::AudioPluginInstance> *
+track::PluginNodeComponent::getPlugin() {
+    PluginChainComponent *pcc =
+        findParentComponentOfClass<PluginChainComponent>();
+    jassert(pcc != nullptr);
+
+    audioNode *node = pcc->getCorrespondingTrack();
+    jassert(node != nullptr);
+
+    return &node->plugins[(size_t)this->pluginIndex];
+}
 
 track::PluginChainComponent::PluginChainComponent() : juce::Component() {
     // setSize(500, 500);
@@ -15,6 +59,13 @@ track::PluginChainComponent::PluginChainComponent() : juce::Component() {
 
     closeBtn.font = getInterBoldItalic();
     addAndMakeVisible(closeBtn);
+
+    nodesWrapper.pcc = this;
+    nodesViewport.setViewedComponent(&nodesWrapper);
+    addAndMakeVisible(nodesViewport);
+    // addAndMakeVisible(nodesWrapper);
+
+    // nodesWrapper.createPluginNodeComponents();
 
     /*
     addPluginBtn.onClick = [this] {
@@ -49,6 +100,10 @@ void track::PluginChainComponent::resized() {
     closeBtn.setBounds(getWidth() - closeBtnSize - UI_SUBWINDOW_TITLEBAR_MARGIN,
                        0, closeBtnSize + UI_SUBWINDOW_TITLEBAR_MARGIN,
                        closeBtnSize);
+
+    nodesViewport.setBounds(1, UI_SUBWINDOW_TITLEBAR_HEIGHT, getWidth() - 2,
+                            getHeight() - UI_SUBWINDOW_TITLEBAR_HEIGHT);
+    nodesWrapper.setBounds(0, 0, 2000, getHeight());
 
     // addPluginBtn.setBounds(10, 10, 100, 100);
 }
@@ -177,6 +232,9 @@ void track::PluginChainComponent::mouseDown(const juce::MouseEvent &event) {
 }
 
 track::audioNode *track::PluginChainComponent::getCorrespondingTrack() {
+    jassert(processor != nullptr);
+    jassert(route.size() > 0);
+
     audioNode *head = &processor->tracks[(size_t)route[0]];
     for (size_t i = 1; i < route.size(); ++i) {
         head = &head->childNodes[(size_t)route[i]];
