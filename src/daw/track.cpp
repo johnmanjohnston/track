@@ -4,6 +4,7 @@
 #include "clipboard.h"
 #include "defs.h"
 #include "juce_audio_processors/juce_audio_processors.h"
+#include "juce_core/juce_core.h"
 #include "juce_events/juce_events.h"
 #include "juce_gui_basics/juce_gui_basics.h"
 #include "timeline.h"
@@ -583,6 +584,9 @@ void track::Tracklist::deepCopyGroupInsideGroup(audioNode *childNode,
             }
             */
 
+            // retrieve data then free up original plugin instance's resources
+            juce::MemoryBlock pluginData;
+            pluginInstance->getStateInformation(pluginData);
             pluginInstance->releaseResources();
 
             juce::String identifier =
@@ -590,9 +594,11 @@ void track::Tracklist::deepCopyGroupInsideGroup(audioNode *childNode,
 
             identifier = identifier.upToLastOccurrenceOf(".vst3", true, true);
 
+            // add plugin to new node and copy data
             DBG("adding plugin to new node, using identifier " << identifier);
             newNode->addPlugin(identifier);
-            // TODO: handle making sure subplugin data copies over properly
+            newNode->plugins[newNode->plugins.size() - 1]->setStateInformation(
+                pluginData.getData(), pluginData.getSize());
         }
     }
 }
@@ -647,6 +653,8 @@ void track::Tracklist::moveNodeToGroup(track::TrackComponent *caller,
             delete pluginInstance->getActiveEditor();
         }
 
+        juce::MemoryBlock pluginData;
+        pluginInstance->getStateInformation(pluginData);
         pluginInstance->releaseResources();
 
         juce::String identifier =
@@ -656,7 +664,8 @@ void track::Tracklist::moveNodeToGroup(track::TrackComponent *caller,
 
         DBG("adding plugin to new node, using identifier " << identifier);
         newNode->addPlugin(identifier);
-        // TODO: handle making sure subplugin data copies over properly
+        newNode->plugins[newNode->plugins.size() - 1]->setStateInformation(
+            pluginData.getData(), pluginData.getSize());
     }
 
     // node is copied. now delete orginal node

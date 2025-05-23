@@ -4,7 +4,21 @@
 #include "juce_gui_basics/juce_gui_basics.h"
 #include "track.h"
 
-track::PluginNodeComponent::PluginNodeComponent() : juce::Component() {}
+track::PluginNodeComponent::PluginNodeComponent() : juce::Component() {
+    this->openEditorBtn.setButtonText("open editor");
+    addAndMakeVisible(openEditorBtn);
+
+    openEditorBtn.onClick = [this] {
+        PluginChainComponent *pcc =
+            findParentComponentOfClass<PluginChainComponent>();
+        AudioPluginAudioProcessorEditor *editor =
+            this->findParentComponentOfClass<AudioPluginAudioProcessorEditor>();
+
+        DBG("pluginIndex = " << pluginIndex);
+
+        editor->openPluginEditorWindow(pcc->route, pluginIndex);
+    };
+}
 track::PluginNodeComponent::~PluginNodeComponent() {}
 track::PluginNodesWrapper::PluginNodesWrapper() : juce::Component() {}
 track::PluginNodesWrapper::~PluginNodesWrapper() {}
@@ -18,7 +32,12 @@ void track::PluginNodeComponent::paint(juce::Graphics &g) {
                juce::Justification::left);
 }
 
+void track::PluginNodeComponent::resized() {
+    this->openEditorBtn.setBounds(20, 20, 50, 20);
+}
+
 void track::PluginNodesWrapper::createPluginNodeComponents() {
+    DBG("createPluginNodeComponents() called");
     jassert(pcc != nullptr);
 
     audioNode *node = pcc->getCorrespondingTrack();
@@ -31,8 +50,66 @@ void track::PluginNodesWrapper::createPluginNodeComponents() {
         nc.pluginIndex = i;
 
         addAndMakeVisible(nc);
-        nc.setBounds(i * 200, 0, 190, 50);
+        nc.setBounds(getBoundsForPluginNodeComponent(i));
     }
+
+    DBG("pluginNodeComponents.size() = " << this->pluginNodeComponents.size());
+    if (pluginNodeComponents.size() > 0) {
+        DBG("first plugin node compnoent bounds are "
+            << this->rectToStr(pluginNodeComponents[0]->getBounds()));
+    }
+}
+
+void track::PluginNodesWrapper::mouseDown(const juce::MouseEvent &event) {
+    if (event.mods.isRightButtonDown()) {
+        jassert(knownPluginList != nullptr);
+
+        if (knownPluginList->getTypes().size() == 0) {
+            DBG("No plugins in known plugin list");
+        }
+
+        juce::PopupMenu pluginSelector;
+        pluginSelector.setLookAndFeel(&getLookAndFeel());
+
+        audioNode *node = pcc->getCorrespondingTrack();
+
+        for (auto pluginDescription : knownPluginList->getTypes()) {
+            pluginSelector.addItem(
+                pluginDescription.name, [this, pluginDescription, node] {
+                    // add plugin
+                    DBG("adding " << pluginDescription.name);
+                    node->addPlugin(pluginDescription.fileOrIdentifier);
+
+                    // open its editor
+                    AudioPluginAudioProcessorEditor *editor =
+                        this->findParentComponentOfClass<
+                            AudioPluginAudioProcessorEditor>();
+
+                    int pluginIndex = node->plugins.size() - 1;
+
+                    DBG("pluginIndex = " << pluginIndex);
+
+                    editor->openPluginEditorWindow(pcc->route, pluginIndex);
+
+                    // create node component
+                    this->pluginNodeComponents.emplace_back(
+                        new track::PluginNodeComponent);
+                    PluginNodeComponent &nc =
+                        *this->pluginNodeComponents.back();
+                    nc.pluginIndex = pluginIndex;
+
+                    addAndMakeVisible(nc);
+                    nc.setBounds(getBoundsForPluginNodeComponent(pluginIndex));
+                });
+        }
+
+        pluginSelector.showMenuAsync(juce::PopupMenu::Options());
+    }
+}
+
+juce::Rectangle<int>
+track::PluginNodesWrapper::getBoundsForPluginNodeComponent(int index) {
+    return juce::Rectangle<int>(200 * index, 0, 190, 50);
 }
 
 std::unique_ptr<juce::AudioPluginInstance> *
@@ -101,11 +178,11 @@ void track::PluginChainComponent::resized() {
                        0, closeBtnSize + UI_SUBWINDOW_TITLEBAR_MARGIN,
                        closeBtnSize);
 
+    nodesViewport.setScrollBarsShown(false, true, false, true);
     nodesViewport.setBounds(1, UI_SUBWINDOW_TITLEBAR_HEIGHT, getWidth() - 2,
-                            getHeight() - UI_SUBWINDOW_TITLEBAR_HEIGHT);
-    nodesWrapper.setBounds(0, 0, 2000, getHeight());
-
-    // addPluginBtn.setBounds(10, 10, 100, 100);
+                            getHeight() - UI_SUBWINDOW_TITLEBAR_HEIGHT - 1);
+    nodesWrapper.setBounds(0, 0, 2000,
+                           getHeight() - UI_SUBWINDOW_TITLEBAR_HEIGHT - 1);
 }
 
 track::PluginChainComponent::~PluginChainComponent() {}
@@ -195,40 +272,6 @@ void track::PluginChainComponent::mouseDown(const juce::MouseEvent &event) {
         dragStartBounds = getBounds();
 
     this->toFront(true);
-
-    if (event.mods.isRightButtonDown()) {
-        jassert(knownPluginList != nullptr);
-
-        if (knownPluginList->getTypes().size() == 0) {
-            DBG("No plugins in known plugin list");
-        }
-
-        juce::PopupMenu pluginSelector;
-        pluginSelector.setLookAndFeel(&getLookAndFeel());
-
-        for (auto pluginDescription : knownPluginList->getTypes()) {
-            pluginSelector.addItem(pluginDescription.name, [this,
-                                                            pluginDescription] {
-                // add plugin
-                DBG("adding " << pluginDescription.name);
-                getCorrespondingTrack()->addPlugin(
-                    pluginDescription.fileOrIdentifier);
-
-                // open its editor
-                AudioPluginAudioProcessorEditor *editor =
-                    this->findParentComponentOfClass<
-                        AudioPluginAudioProcessorEditor>();
-
-                int pluginIndex = getCorrespondingTrack()->plugins.size() - 1;
-
-                DBG("pluginIndex = " << pluginIndex);
-
-                editor->openPluginEditorWindow(route, pluginIndex);
-            });
-        }
-
-        pluginSelector.showMenuAsync(juce::PopupMenu::Options());
-    }
 }
 
 track::audioNode *track::PluginChainComponent::getCorrespondingTrack() {
@@ -246,7 +289,7 @@ track::audioNode *track::PluginChainComponent::getCorrespondingTrack() {
 // plugin editor window
 track::PluginEditorWindow::PluginEditorWindow() : juce::Component() {
     closeBtn.font = getInterBoldItalic();
-    closeBtn.behaveLikeANormalFuckingCloseButton = false;
+    closeBtn.behaveLikeANormalCloseButton = false;
     addAndMakeVisible(closeBtn);
 }
 track::PluginEditorWindow::~PluginEditorWindow() {
@@ -418,7 +461,8 @@ void track::CloseButton::mouseUp(const juce::MouseEvent &event) {
     if (!event.mods.isLeftButtonDown())
         return;
 
-    if (behaveLikeANormalFuckingCloseButton) {
+    // absolute cinema
+    if (behaveLikeANormalCloseButton) {
         juce::Component *componentToRemove =
             (juce::Component *)getParentComponent();
         jassert(componentToRemove != nullptr);
@@ -429,12 +473,6 @@ void track::CloseButton::mouseUp(const juce::MouseEvent &event) {
 
         componentToRemoveParent->removeChildComponent(componentToRemove);
     } else {
-        // if this isn't a normal fucking close button perform this absolute
-        // shitwreck to make sure that the desutrcutor (however the fuck you
-        // spell it man i dont got fucking time for this shit right now) for
-        // PluginEditorWindow gets called i've spent the past four days tryin to
-        // fix segfaults all because this stupid desutrctir is not being called
-        // im bout to go fuckin insane
         track::PluginEditorWindow *pew =
             (track::PluginEditorWindow *)getParentComponent();
 

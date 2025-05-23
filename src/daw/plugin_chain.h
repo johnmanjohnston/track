@@ -2,6 +2,7 @@
 #include "../processor.h"
 #include "BinaryData.h"
 #include "juce_audio_processors/juce_audio_processors.h"
+#include "juce_gui_basics/juce_gui_basics.h"
 #include "track.h"
 #include <JuceHeader.h>
 
@@ -21,7 +22,7 @@ class CloseButton : public juce::Component {
     juce::Colour normalColor = juce::Colour(0xFF'585858);
     juce::Colour hoveredColor = juce::Colour(0xFF'808080);
 
-    bool behaveLikeANormalFuckingCloseButton = true;
+    bool behaveLikeANormalCloseButton = true;
 };
 
 class PluginNodeComponent : public juce::Component {
@@ -29,7 +30,11 @@ class PluginNodeComponent : public juce::Component {
     PluginNodeComponent();
     ~PluginNodeComponent();
 
+    juce::TextButton openEditorBtn;
+
     void paint(juce::Graphics &g) override;
+    void resized() override;
+
     int pluginIndex = -1;
     std::unique_ptr<juce::AudioPluginInstance> *getPlugin();
 };
@@ -43,6 +48,19 @@ class PluginNodesWrapper : public juce::Component {
     PluginChainComponent *pcc = nullptr;
 
     std::vector<std::unique_ptr<PluginNodeComponent>> pluginNodeComponents;
+    juce::KnownPluginList *knownPluginList = nullptr;
+
+    void mouseDown(const juce::MouseEvent &event) override;
+
+    juce::Rectangle<int> getBoundsForPluginNodeComponent(int index);
+
+    juce::String rectToStr(juce::Rectangle<int> r) {
+        juce::String retval = "x=" + juce::String(r.getX());
+        retval += "; y=" + juce::String(r.getY());
+        retval += "; width=" + juce::String(r.getWidth());
+        retval += "; height=" + juce::String(r.getHeight());
+        return retval;
+    }
 };
 
 class PluginNodesViewport : public juce::Viewport {
@@ -59,7 +77,7 @@ class PluginChainComponent : public juce::Component {
     PluginNodesViewport nodesViewport;
     PluginNodesWrapper nodesWrapper;
 
-    juce::KnownPluginList *knownPluginList = nullptr;
+    // juce::KnownPluginList *knownPluginList = nullptr;
 
     CloseButton closeBtn;
 
