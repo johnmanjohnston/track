@@ -660,6 +660,7 @@ void track::Tracklist::moveNodeToGroup(track::TrackComponent *caller,
         juce::String identifier =
             pluginInstance->getPluginDescription().fileOrIdentifier;
 
+        // ABSOLUTE CINEMA.
         identifier = identifier.upToLastOccurrenceOf(".vst3", true, true);
 
         DBG("adding plugin to new node, using identifier " << identifier);

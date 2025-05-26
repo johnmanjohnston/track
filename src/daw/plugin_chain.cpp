@@ -8,6 +8,9 @@ track::PluginNodeComponent::PluginNodeComponent() : juce::Component() {
     this->openEditorBtn.setButtonText("open editor");
     addAndMakeVisible(openEditorBtn);
 
+    this->removePluginBtn.setButtonText("remove plugin");
+    addAndMakeVisible(removePluginBtn);
+
     openEditorBtn.onClick = [this] {
         PluginChainComponent *pcc =
             findParentComponentOfClass<PluginChainComponent>();
@@ -18,6 +21,16 @@ track::PluginNodeComponent::PluginNodeComponent() : juce::Component() {
 
         editor->openPluginEditorWindow(pcc->route, pluginIndex);
     };
+
+    removePluginBtn.onClick = [this] {
+        DBG("remove plugin btn clicke");
+
+        PluginChainComponent *pcc =
+            findParentComponentOfClass<PluginChainComponent>();
+        jassert(pcc != nullptr);
+
+        pcc->removePlugin(this->pluginIndex);
+    };
 }
 track::PluginNodeComponent::~PluginNodeComponent() {}
 track::PluginNodesWrapper::PluginNodesWrapper() : juce::Component() {}
@@ -26,18 +39,22 @@ track::PluginNodesViewport::PluginNodesViewport() : juce::Viewport() {}
 track::PluginNodesViewport::~PluginNodesViewport() {}
 
 void track::PluginNodeComponent::paint(juce::Graphics &g) {
-    g.fillAll(juce::Colours::black);
+    if (getPlugin() && getPlugin()->get()) {
 
-    g.setColour(juce::Colours::red);
-    g.drawRect(getBounds(), 1);
+        g.fillAll(juce::Colours::black);
 
-    g.setColour(juce::Colours::white);
-    g.drawText(getPlugin()->get()->getName(), 4, 2, 100, 20,
-               juce::Justification::left);
+        g.setColour(juce::Colours::red);
+        g.drawRect(getBounds(), 1);
+
+        g.setColour(juce::Colours::white);
+        g.drawText(getPlugin()->get()->getName(), 4, 2, 100, 20,
+                   juce::Justification::left);
+    }
 }
 
 void track::PluginNodeComponent::resized() {
     this->openEditorBtn.setBounds(20, 20, 50, 20);
+    this->removePluginBtn.setBounds(20, 60, 50, 20);
 }
 
 void track::PluginNodesWrapper::createPluginNodeComponents() {
@@ -296,6 +313,15 @@ track::audioNode *track::PluginChainComponent::getCorrespondingTrack() {
     return head;
 }
 
+void track::PluginChainComponent::removePlugin(int pluginIndex) {
+    getCorrespondingTrack()->plugins.erase(
+        getCorrespondingTrack()->plugins.begin() + pluginIndex);
+
+    // TODO: optimize this instead of using lazy where to recreate all p
+    nodesWrapper.pluginNodeComponents.clear();
+    nodesWrapper.createPluginNodeComponents();
+}
+
 // plugin editor window
 track::PluginEditorWindow::PluginEditorWindow() : juce::Component() {
     closeBtn.font = getInterBoldItalic();
@@ -310,7 +336,8 @@ track::PluginEditorWindow::~PluginEditorWindow() {
         return;
 
     if (getPlugin()->get()->getActiveEditor() != nullptr) {
-        DBG("active plugin's editor is not nullptr. deleting active editor");
+        DBG("active plugin's editor is not nullptr. deleting active "
+            "editor");
         delete getPlugin()->get()->getActiveEditor();
 
         getPlugin()->get()->editorBeingDeleted(

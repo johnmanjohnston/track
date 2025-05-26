@@ -31,6 +31,7 @@ class PluginNodeComponent : public juce::Component {
     ~PluginNodeComponent();
 
     juce::TextButton openEditorBtn;
+    juce::TextButton removePluginBtn;
 
     void paint(juce::Graphics &g) override;
     void resized() override;
@@ -93,6 +94,8 @@ class PluginChainComponent : public juce::Component {
     std::vector<int> route;
     AudioPluginAudioProcessor *processor = nullptr;
     audioNode *getCorrespondingTrack();
+
+    void removePlugin(int pluginIndex);
 
     // juce::TextButton addPluginBtn;
 
