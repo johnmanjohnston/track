@@ -26,9 +26,13 @@ track::PluginNodesViewport::PluginNodesViewport() : juce::Viewport() {}
 track::PluginNodesViewport::~PluginNodesViewport() {}
 
 void track::PluginNodeComponent::paint(juce::Graphics &g) {
-    g.fillAll(juce::Colours::pink);
+    g.fillAll(juce::Colours::black);
 
-    g.drawText(getPlugin()->get()->getName(), 1, 1, 100, 20,
+    g.setColour(juce::Colours::red);
+    g.drawRect(getBounds(), 1);
+
+    g.setColour(juce::Colours::white);
+    g.drawText(getPlugin()->get()->getName(), 4, 2, 100, 20,
                juce::Justification::left);
 }
 
@@ -109,7 +113,8 @@ void track::PluginNodesWrapper::mouseDown(const juce::MouseEvent &event) {
 
 juce::Rectangle<int>
 track::PluginNodesWrapper::getBoundsForPluginNodeComponent(int index) {
-    return juce::Rectangle<int>(200 * index, 0, 190, 50);
+    int height = getParentComponent()->getBounds().getHeight(); // temporary
+    return juce::Rectangle<int>(200 * index, 0, 190, height);
 }
 
 std::unique_ptr<juce::AudioPluginInstance> *
@@ -181,8 +186,11 @@ void track::PluginChainComponent::resized() {
     nodesViewport.setScrollBarsShown(false, true, false, true);
     nodesViewport.setBounds(1, UI_SUBWINDOW_TITLEBAR_HEIGHT, getWidth() - 2,
                             getHeight() - UI_SUBWINDOW_TITLEBAR_HEIGHT - 1);
-    nodesWrapper.setBounds(0, 0, 2000,
-                           getHeight() - UI_SUBWINDOW_TITLEBAR_HEIGHT - 1);
+
+    juce::Rectangle<int> nodesWrapperBounds = juce::Rectangle<int>(
+        0, 0, 2000, getHeight() - UI_SUBWINDOW_TITLEBAR_HEIGHT);
+
+    nodesWrapper.setBounds(nodesWrapperBounds);
 }
 
 track::PluginChainComponent::~PluginChainComponent() {}
@@ -249,6 +257,7 @@ void track::PluginChainComponent::paint(juce::Graphics &g) {
     g.fillRect(0, titlebarBounds.getHeight(), getWidth(), 2);
     g.drawRect(getLocalBounds(), 2);
 
+    /*
     // what plugins are added?
     g.setColour(juce::Colours::white);
     for (size_t i = 0; i < getCorrespondingTrack()->plugins.size(); ++i) {
@@ -256,6 +265,7 @@ void track::PluginChainComponent::paint(juce::Graphics &g) {
         g.drawText(name, 20, 20 + (i * 12), getWidth(), 8,
                    juce::Justification::left, false);
     }
+    */
 }
 
 void track::PluginChainComponent::mouseDrag(const juce::MouseEvent &event) {
