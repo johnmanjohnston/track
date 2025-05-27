@@ -30,6 +30,7 @@ track::PluginNodeComponent::PluginNodeComponent() : juce::Component() {
         jassert(pcc != nullptr);
 
         pcc->removePlugin(this->pluginIndex);
+        pcc->resized();
     };
 }
 track::PluginNodeComponent::~PluginNodeComponent() {}
@@ -44,7 +45,7 @@ void track::PluginNodeComponent::paint(juce::Graphics &g) {
         g.fillAll(juce::Colours::black);
 
         g.setColour(juce::Colours::red);
-        g.drawRect(getBounds(), 1);
+        g.drawRect(getLocalBounds(), 1);
 
         g.setColour(juce::Colours::white);
         g.drawText(getPlugin()->get()->getName(), 4, 2, 100, 20,
@@ -121,6 +122,8 @@ void track::PluginNodesWrapper::mouseDown(const juce::MouseEvent &event) {
 
                     addAndMakeVisible(nc);
                     nc.setBounds(getBoundsForPluginNodeComponent(pluginIndex));
+
+                    pcc->resized();
                 });
         }
 
@@ -130,8 +133,7 @@ void track::PluginNodesWrapper::mouseDown(const juce::MouseEvent &event) {
 
 juce::Rectangle<int>
 track::PluginNodesWrapper::getBoundsForPluginNodeComponent(int index) {
-    int height = getParentComponent()->getBounds().getHeight(); // temporary
-    return juce::Rectangle<int>(200 * index, 0, 190, height);
+    return juce::Rectangle<int>(200 * index, 0, 190, 162);
 }
 
 std::unique_ptr<juce::AudioPluginInstance> *
@@ -201,11 +203,14 @@ void track::PluginChainComponent::resized() {
                        closeBtnSize);
 
     nodesViewport.setScrollBarsShown(false, true, false, true);
-    nodesViewport.setBounds(1, UI_SUBWINDOW_TITLEBAR_HEIGHT, getWidth() - 2,
-                            getHeight() - UI_SUBWINDOW_TITLEBAR_HEIGHT - 1);
+    nodesViewport.setBounds(1, UI_SUBWINDOW_TITLEBAR_HEIGHT + 5, getWidth() - 2,
+                            getHeight() - UI_SUBWINDOW_TITLEBAR_HEIGHT);
 
     juce::Rectangle<int> nodesWrapperBounds = juce::Rectangle<int>(
-        0, 0, 2000, getHeight() - UI_SUBWINDOW_TITLEBAR_HEIGHT);
+        0, 0,
+        jmax(getWidth() - 5,
+             (int)this->nodesWrapper.pluginNodeComponents.size() * 200),
+        getHeight() - UI_SUBWINDOW_TITLEBAR_HEIGHT - 1);
 
     nodesWrapper.setBounds(nodesWrapperBounds);
 }
