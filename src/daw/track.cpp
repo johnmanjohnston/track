@@ -336,13 +336,14 @@ void track::TrackComponent::mouseDown(const juce::MouseEvent &event) {
 
 void track::TrackComponent::mouseUp(const juce::MouseEvent &event) {
     if (event.mouseWasDraggedSinceMouseDown()) {
-        float rawDisplayNodes =
-            event.getDistanceFromDragStartY() / (float)UI_TRACK_HEIGHT;
-        int displayNodes = (int)rawDisplayNodes;
-        DBG("raw display nodes is " << rawDisplayNodes);
+        Tracklist *tracklist = findParentComponentOfClass<Tracklist>();
+
+        float mouseYInTracklist =
+            event.getEventRelativeTo(tracklist).position.getY() -
+            (UI_TRACK_HEIGHT / 2.f);
+        int displayNodes = (int)(mouseYInTracklist / (float)(UI_TRACK_HEIGHT));
         DBG("display nodes is " << displayNodes);
 
-        Tracklist *tracklist = findParentComponentOfClass<Tracklist>();
         tracklist->moveNodeToGroup(this, displayNodes);
         DBG("done");
     }
@@ -365,7 +366,8 @@ void track::TrackComponent::paint(juce::Graphics &g) {
     textBounds.setY(getLocalBounds().getY() - 8);
 
     /*
-    // gray out muted track names, and draw yellow square around mute button if
+    // gray out muted track names, and draw yellow square around mute button
+    if
     // needed
     juce::Colour trackNameColour = juce::Colour(0xFFDFDFDF);
     if (getCorrespondingTrack()->m) {
@@ -493,8 +495,8 @@ void track::Tracklist::recursivelyDeleteNodePlugins(audioNode *node) {
     for (auto &plugin : node->plugins) {
         /*
         if (plugin->getActiveEditor() != nullptr) {
-            DBG("deleting a node which has a plugin with an EDITOR WHCIH IS "
-                "STILL ACTIVE");
+            DBG("deleting a node which has a plugin with an EDITOR WHCIH IS
+        " "STILL ACTIVE");
             // plugin->editorBeingDeleted(plugin->getActiveEditor());
             delete plugin->getActiveEditor();
         }
@@ -574,8 +576,8 @@ void track::Tracklist::deepCopyGroupInsideGroup(audioNode *childNode,
             deepCopyGroupInsideGroup(&child, newNode);
         }
 
-        // now the annoying thing, copying plugins. (which is why you can't just
-        // push_back() trackNode into groupNode->childNodes)
+        // now the annoying thing, copying plugins. (which is why you can't
+        // just push_back() trackNode into groupNode->childNodes)
         for (auto &pluginInstance : child.plugins) {
             /*
             if (pluginInstance->getActiveEditor() != nullptr) {
@@ -584,7 +586,8 @@ void track::Tracklist::deepCopyGroupInsideGroup(audioNode *childNode,
             }
             */
 
-            // retrieve data then free up original plugin instance's resources
+            // retrieve data then free up original plugin instance's
+            // resources
             juce::MemoryBlock pluginData;
             pluginInstance->getStateInformation(pluginData);
             pluginInstance->releaseResources();
@@ -603,27 +606,12 @@ void track::Tracklist::deepCopyGroupInsideGroup(audioNode *childNode,
     }
 }
 
-// FIXME: moving a group into its child (which is also a group) causes segfault
+// FIXME: moving a group into its child (which is also a group) causes
+// segfault
 void track::Tracklist::moveNodeToGroup(track::TrackComponent *caller,
-                                       int relativeDisplayNodesToMove) {
+                                       int targetIndex) {
 
     audioNode *trackNode = caller->getCorrespondingTrack();
-
-    int callerIndex = -1;
-    // TODO: this is horrendous and you shouldn't need to find the index
-    // like this. maybe store the display node index in each track component
-    // or something. idk.
-    for (size_t i = 0; i < this->trackComponents.size(); ++i) {
-        if (this->trackComponents[i].get() == caller) {
-            callerIndex = i;
-            break;
-        }
-    }
-
-    int targetIndex = callerIndex + relativeDisplayNodesToMove;
-    if (relativeDisplayNodesToMove == 0 || callerIndex < 0 || targetIndex < 0 ||
-        targetIndex >= (int)trackComponents.size())
-        return;
 
     auto &nodeComponentToMoveTo = this->trackComponents[(size_t)targetIndex];
 
