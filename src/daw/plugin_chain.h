@@ -1,8 +1,6 @@
 #include "../editor.h"
 #include "../processor.h"
 #include "BinaryData.h"
-#include "juce_audio_processors/juce_audio_processors.h"
-#include "juce_gui_basics/juce_gui_basics.h"
 #include "track.h"
 #include <JuceHeader.h>
 
@@ -78,8 +76,6 @@ class PluginChainComponent : public juce::Component {
     PluginNodesViewport nodesViewport;
     PluginNodesWrapper nodesWrapper;
 
-    // juce::KnownPluginList *knownPluginList = nullptr;
-
     CloseButton closeBtn;
 
     int titlebarHeight = -1;
@@ -97,8 +93,6 @@ class PluginChainComponent : public juce::Component {
 
     void removePlugin(int pluginIndex);
 
-    // juce::TextButton addPluginBtn;
-
     // TODO: this shouldn't belong in this class
     static const juce::Font getInterBoldItalic() {
         static auto typeface = Typeface::createSystemTypefaceFor(
@@ -107,8 +101,6 @@ class PluginChainComponent : public juce::Component {
 
         return typeface;
     }
-
-    // juce::AudioProcessorEditor *ape = nullptr;
 };
 
 class PluginEditorWindow : public juce::Component, juce::Timer {

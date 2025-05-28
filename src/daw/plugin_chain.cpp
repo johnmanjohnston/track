@@ -1,7 +1,5 @@
 #include "plugin_chain.h"
 #include "defs.h"
-#include "juce_graphics/juce_graphics.h"
-#include "juce_gui_basics/juce_gui_basics.h"
 #include "track.h"
 
 track::PluginNodeComponent::PluginNodeComponent() : juce::Component() {
@@ -42,19 +40,24 @@ track::PluginNodesViewport::~PluginNodesViewport() {}
 void track::PluginNodeComponent::paint(juce::Graphics &g) {
     if (getPlugin() && getPlugin()->get()) {
 
-        g.fillAll(juce::Colours::black);
+        g.fillAll(juce::Colour(0xFF'121212));
 
-        g.setColour(juce::Colours::red);
+        g.setColour(juce::Colours::lightgrey.withAlpha(.3f));
         g.drawRect(getLocalBounds(), 1);
 
         g.setColour(juce::Colours::white);
-        g.drawText(getPlugin()->get()->getName(), 4, 2, 100, 20,
+
+        g.setFont(
+            track::ui::CustomLookAndFeel::getInterSemiBold().withHeight(18.f));
+        g.drawText(getPlugin()->get()->getName(), 5, 3, 100, 20,
                    juce::Justification::left);
     }
 }
 
 void track::PluginNodeComponent::resized() {
-    this->openEditorBtn.setBounds(20, 20, 50, 20);
+    int btnSize = 20;
+    this->openEditorBtn.setBounds(getWidth() - btnSize - 20, 2, btnSize,
+                                  btnSize);
     this->removePluginBtn.setBounds(20, 60, 50, 20);
 }
 
@@ -149,14 +152,7 @@ track::PluginNodeComponent::getPlugin() {
 }
 
 track::PluginChainComponent::PluginChainComponent() : juce::Component() {
-    // setSize(500, 500);
-
-    // addPluginBtn.setButtonText("e");
-    //  closeBtn.setColour(0x1004011, juce::Colours::red);
-    //  closeBtn.getLookAndFeel().setColour(0x1004011, juce::Colours::red);
-    //  closeBtn.setLookAndFeel(nullptr);
     addAndMakeVisible(closeBtn);
-    // addAndMakeVisible(addPluginBtn);
 
     closeBtn.font = getInterBoldItalic();
     addAndMakeVisible(closeBtn);
@@ -164,36 +160,6 @@ track::PluginChainComponent::PluginChainComponent() : juce::Component() {
     nodesWrapper.pcc = this;
     nodesViewport.setViewedComponent(&nodesWrapper);
     addAndMakeVisible(nodesViewport);
-    // addAndMakeVisible(nodesWrapper);
-
-    // nodesWrapper.createPluginNodeComponents();
-
-    /*
-    addPluginBtn.onClick = [this] {
-        DBG("add plugin btn clicked");
-
-        // add actual subplugin
-        juce::String pluginPath =
-            juce::File("/home/johnston/.vst3/ZL Equalizer.vst3/")
-                .getFullPathName();
-        getCorrespondingTrack()->addPlugin(pluginPath);
-
-        DBG("opening editor...");
-        // open subplugin's editor
-        // AudioPluginAudioProcessorEditor *editor =
-        //(AudioPluginAudioProcessorEditor *)getParentComponent();
-        AudioPluginAudioProcessorEditor *editor =
-            this->findParentComponentOfClass<AudioPluginAudioProcessorEditor>();
-
-        int pluginIndex = getCorrespondingTrack()->plugins.size() - 1;
-
-        DBG("trackIndex = " << this->trackIndex);
-        DBG("pluginIndex = " << pluginIndex);
-
-        editor->openPluginEditorWindow(trackIndex, pluginIndex);
-
-    };
-        */
 }
 
 void track::PluginChainComponent::resized() {
@@ -203,8 +169,12 @@ void track::PluginChainComponent::resized() {
                        closeBtnSize);
 
     nodesViewport.setScrollBarsShown(false, true, false, true);
-    nodesViewport.setBounds(1, UI_SUBWINDOW_TITLEBAR_HEIGHT + 5, getWidth() - 2,
-                            getHeight() - UI_SUBWINDOW_TITLEBAR_HEIGHT);
+
+    juce::Rectangle<int> nodesViewportBounds = juce::Rectangle<int>(
+        1, UI_SUBWINDOW_TITLEBAR_HEIGHT + 5, getWidth() - 2,
+        getHeight() - UI_SUBWINDOW_TITLEBAR_HEIGHT);
+    nodesViewportBounds.reduce(4, 0);
+    nodesViewport.setBounds(nodesViewportBounds);
 
     juce::Rectangle<int> nodesWrapperBounds = juce::Rectangle<int>(
         0, 0,
@@ -278,16 +248,6 @@ void track::PluginChainComponent::paint(juce::Graphics &g) {
     // g.drawHorizontalLine(titlebarBounds.getHeight(), 0, getWidth());
     g.fillRect(0, titlebarBounds.getHeight(), getWidth(), 2);
     g.drawRect(getLocalBounds(), 2);
-
-    /*
-    // what plugins are added?
-    g.setColour(juce::Colours::white);
-    for (size_t i = 0; i < getCorrespondingTrack()->plugins.size(); ++i) {
-        juce::String name = getCorrespondingTrack()->plugins[i]->getName();
-        g.drawText(name, 20, 20 + (i * 12), getWidth(), 8,
-                   juce::Justification::left, false);
-    }
-    */
 }
 
 void track::PluginChainComponent::mouseDrag(const juce::MouseEvent &event) {
@@ -398,10 +358,6 @@ void track::PluginEditorWindow::createEditor() {
     jassert(pluginIndex > -1);
     jassert(processor != nullptr);
 
-    /*
-    this->ape = std::unique_ptr<juce::AudioProcessorEditor>(
-        getPlugin()->get()->createEditorIfNeeded());
-        */
     this->ape = getPlugin()->get()->createEditorIfNeeded();
     ape->setBounds(0, UI_SUBWINDOW_TITLEBAR_HEIGHT, 100, 100);
 
@@ -420,10 +376,6 @@ void track::PluginEditorWindow::createEditor() {
 }
 
 void track::PluginEditorWindow::timerCallback() {
-
-    // DBG("ape's dimensions are x,y" << ape->getWidth() << ","
-    // << ape->getHeight());
-
     if (ape->getWidth() != this->getWidth() ||
         ape->getHeight() != (UI_SUBWINDOW_TITLEBAR_HEIGHT + ape->getHeight()))
         setSize(ape->getWidth(),
