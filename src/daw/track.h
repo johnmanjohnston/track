@@ -70,7 +70,9 @@ class audioNode {
 
     // future john, have fun trying to implement hosting audio plugins :skull:
     std::vector<std::unique_ptr<juce::AudioPluginInstance>> plugins;
+    std::vector<bool> bypassedPlugins;
     void addPlugin(juce::String path);
+    void removePlugin(int index);
     void preparePlugins(int newMaxSamplesPerBlock, int newSampleRate);
     int maxSamplesPerBlock = -1;
     int sampleRate = -1;

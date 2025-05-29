@@ -33,6 +33,20 @@ track::PluginNodeComponent::PluginNodeComponent() : juce::Component() {
         pcc->removePlugin(this->pluginIndex);
         pcc->resized();
     };
+
+    bypassBtn.onClick = [this] {
+        PluginChainComponent *pcc =
+            findParentComponentOfClass<PluginChainComponent>();
+        jassert(pcc != nullptr);
+
+        audioNode *node = pcc->getCorrespondingTrack();
+        jassert(node != nullptr);
+
+        node->bypassedPlugins[(size_t)this->pluginIndex] =
+            !getPluginBypassedStatus();
+
+        repaint();
+    };
 }
 track::PluginNodeComponent::~PluginNodeComponent() {}
 track::PluginNodesWrapper::PluginNodesWrapper() : juce::Component() {}
@@ -42,7 +56,6 @@ track::PluginNodesViewport::~PluginNodesViewport() {}
 
 void track::PluginNodeComponent::paint(juce::Graphics &g) {
     if (getPlugin() && getPlugin()->get()) {
-
         g.fillAll(juce::Colour(0xFF'121212));
 
         g.setColour(juce::Colours::lightgrey.withAlpha(.3f));
@@ -50,7 +63,9 @@ void track::PluginNodeComponent::paint(juce::Graphics &g) {
 
         g.setColour(juce::Colours::white);
 
-        g.setColour(juce::Colour(0xFF'A7A7A7));
+        g.setColour(juce::Colour(0xFF'A7A7A7)
+                        .withAlpha(getPluginBypassedStatus() ? .3f : 1.f));
+
         g.setFont(track::ui::CustomLookAndFeel::getInterSemiBold()
                       .withHeight(22.f)
                       .italicised()
@@ -156,7 +171,9 @@ void track::PluginNodesWrapper::mouseDown(const juce::MouseEvent &event) {
 
 juce::Rectangle<int>
 track::PluginNodesWrapper::getBoundsForPluginNodeComponent(int index) {
-    return juce::Rectangle<int>(200 * index, 0, 250, 88);
+    int width = 250;
+    int sideMargin = 4;
+    return juce::Rectangle<int>((width + sideMargin) * index, 0, width, 88);
 }
 
 std::unique_ptr<juce::AudioPluginInstance> *
@@ -169,6 +186,17 @@ track::PluginNodeComponent::getPlugin() {
     jassert(node != nullptr);
 
     return &node->plugins[(size_t)this->pluginIndex];
+}
+
+bool track::PluginNodeComponent::getPluginBypassedStatus() {
+    PluginChainComponent *pcc =
+        findParentComponentOfClass<PluginChainComponent>();
+    jassert(pcc != nullptr);
+
+    audioNode *node = pcc->getCorrespondingTrack();
+    jassert(node != nullptr);
+
+    return node->bypassedPlugins[(size_t)pluginIndex];
 }
 
 track::PluginChainComponent::PluginChainComponent() : juce::Component() {
@@ -299,8 +327,7 @@ track::audioNode *track::PluginChainComponent::getCorrespondingTrack() {
 }
 
 void track::PluginChainComponent::removePlugin(int pluginIndex) {
-    getCorrespondingTrack()->plugins.erase(
-        getCorrespondingTrack()->plugins.begin() + pluginIndex);
+    getCorrespondingTrack()->removePlugin(pluginIndex);
 
     // TODO: optimize this instead of using lazy where to recreate all p
     nodesWrapper.pluginNodeComponents.clear();

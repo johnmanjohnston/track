@@ -38,6 +38,7 @@ class PluginNodeComponent : public juce::Component {
 
     int pluginIndex = -1;
     std::unique_ptr<juce::AudioPluginInstance> *getPlugin();
+    bool getPluginBypassedStatus();
 };
 
 class PluginNodesWrapper : public juce::Component {

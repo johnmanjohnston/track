@@ -3,6 +3,7 @@
 #include "../processor.h"
 #include "clipboard.h"
 #include "defs.h"
+#include "juce_audio_basics/juce_audio_basics.h"
 #include "juce_audio_processors/juce_audio_processors.h"
 #include "juce_core/juce_core.h"
 #include "juce_events/juce_events.h"
@@ -819,6 +820,8 @@ void track::clip::updateBuffer() {
 void track::clip::reverse() { buffer.reverse(0, buffer.getNumSamples()); }
 
 void track::audioNode::addPlugin(juce::String path) {
+    this->bypassedPlugins.push_back(false);
+
     DBG("track::track addPlugin() called");
     juce::OwnedArray<PluginDescription> pluginDescriptions;
     juce::KnownPluginList plist;
@@ -876,6 +879,11 @@ void track::audioNode::addPlugin(juce::String path) {
     DBG("   " << plugin->getMainBusNumOutputChannels() << " outputs");
 
     DBG("plugin added");
+}
+
+void track::audioNode::removePlugin(int index) {
+    this->plugins.erase(this->plugins.begin() + index);
+    this->bypassedPlugins.erase(this->bypassedPlugins.begin() + index);
 }
 
 void track::audioNode::preparePlugins(int newMaxSamplesPerBlock,
@@ -958,12 +966,15 @@ void track::audioNode::process(int numSamples, int currentSample) {
     }
 
     // let subplugins process audio
-    for (std::unique_ptr<juce::AudioPluginInstance> &plugin : plugins) {
-        if (plugin == nullptr)
+    for (size_t i = 0; i < this->plugins.size(); ++i) {
+        if (this->plugins[i] == nullptr)
             return;
 
+        if (this->bypassedPlugins[i] == true)
+            continue;
+
         juce::MidiBuffer mb;
-        plugin->processBlock(buffer, mb);
+        this->plugins[i]->processBlock(this->buffer, mb);
     }
 
     // pan audio
