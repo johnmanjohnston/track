@@ -1,6 +1,7 @@
 #include "../editor.h"
 #include "../processor.h"
 #include "BinaryData.h"
+#include "juce_gui_basics/juce_gui_basics.h"
 #include "track.h"
 #include <JuceHeader.h>
 
@@ -30,6 +31,7 @@ class PluginNodeComponent : public juce::Component {
 
     juce::TextButton openEditorBtn;
     juce::TextButton removePluginBtn;
+    juce::TextButton bypassBtn;
 
     void paint(juce::Graphics &g) override;
     void resized() override;

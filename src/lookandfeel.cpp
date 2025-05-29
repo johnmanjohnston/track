@@ -114,7 +114,8 @@ void track::ui::CustomLookAndFeel::drawButtonBackground(
     // cannot think of another way that does not involve making my own button
     // class/making multiple lookandfeels outline
     if (b.getButtonText().toLowerCase() == "editor" ||
-        b.getButtonText().toLowerCase() == "remove")
+        b.getButtonText().toLowerCase() == "remove" ||
+        b.getButtonText().toLowerCase() == "bypass")
         return;
 
     // draw border
@@ -245,7 +246,8 @@ Font track::ui::CustomLookAndFeel::getPopupMenuFont() {
 Font track::ui::CustomLookAndFeel::getTextButtonFont(TextButton &button,
                                                      int buttonHeight) {
     if (button.getButtonText().toLowerCase() == "editor" ||
-        button.getButtonText().toLowerCase() == "remove") {
+        button.getButtonText().toLowerCase() == "remove" ||
+        button.getButtonText().toLowerCase() == "bypass") {
         return getInterSemiBold()
             .withHeight((float)buttonHeight / 1.6f)
             .italicised()

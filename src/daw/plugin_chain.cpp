@@ -9,6 +9,9 @@ track::PluginNodeComponent::PluginNodeComponent() : juce::Component() {
     this->removePluginBtn.setButtonText("REMOVE");
     addAndMakeVisible(removePluginBtn);
 
+    this->bypassBtn.setButtonText("BYPASS");
+    addAndMakeVisible(bypassBtn);
+
     openEditorBtn.onClick = [this] {
         PluginChainComponent *pcc =
             findParentComponentOfClass<PluginChainComponent>();
@@ -59,16 +62,23 @@ void track::PluginNodeComponent::paint(juce::Graphics &g) {
 }
 
 void track::PluginNodeComponent::resized() {
-    int btnWidth = 60;
-    int btnHeight = 20;
-    int bottomMargin = 8;
-    int buttonSideMargin = 10;
+    int btnWidth = 76;
+    int btnHeight = 21;
+    int initialLeftMargin = 7;
+    int bottomMargin = 7;
+    int buttonSideMargin = 4;
 
-    this->openEditorBtn.setBounds(8, getHeight() - btnHeight - bottomMargin,
+    this->openEditorBtn.setBounds(initialLeftMargin,
+                                  getHeight() - btnHeight - bottomMargin,
                                   btnWidth, btnHeight);
-    this->removePluginBtn.setBounds(btnWidth + buttonSideMargin,
-                                    getHeight() - btnHeight - bottomMargin,
-                                    btnWidth, btnHeight);
+
+    this->removePluginBtn.setBounds(
+        initialLeftMargin + btnWidth + buttonSideMargin,
+        getHeight() - btnHeight - bottomMargin, btnWidth, btnHeight);
+
+    this->bypassBtn.setBounds(
+        initialLeftMargin + ((btnWidth + buttonSideMargin) * 2),
+        getHeight() - btnHeight - bottomMargin, btnWidth, btnHeight);
 }
 
 void track::PluginNodesWrapper::createPluginNodeComponents() {
