@@ -3,10 +3,10 @@
 #include "track.h"
 
 track::PluginNodeComponent::PluginNodeComponent() : juce::Component() {
-    this->openEditorBtn.setButtonText("open editor");
+    this->openEditorBtn.setButtonText("EDITOR");
     addAndMakeVisible(openEditorBtn);
 
-    this->removePluginBtn.setButtonText("remove plugin");
+    this->removePluginBtn.setButtonText("REMOVE");
     addAndMakeVisible(removePluginBtn);
 
     openEditorBtn.onClick = [this] {
@@ -47,18 +47,28 @@ void track::PluginNodeComponent::paint(juce::Graphics &g) {
 
         g.setColour(juce::Colours::white);
 
-        g.setFont(
-            track::ui::CustomLookAndFeel::getInterSemiBold().withHeight(18.f));
-        g.drawText(getPlugin()->get()->getName(), 5, 3, 100, 20,
+        g.setColour(juce::Colour(0xFF'A7A7A7));
+        g.setFont(track::ui::CustomLookAndFeel::getInterSemiBold()
+                      .withHeight(22.f)
+                      .italicised()
+                      .boldened()
+                      .withExtraKerningFactor(-0.03f));
+        g.drawText(getPlugin()->get()->getName(), 10, 8, getWidth(), 20,
                    juce::Justification::left);
     }
 }
 
 void track::PluginNodeComponent::resized() {
-    int btnSize = 20;
-    this->openEditorBtn.setBounds(getWidth() - btnSize - 20, 2, btnSize,
-                                  btnSize);
-    this->removePluginBtn.setBounds(20, 60, 50, 20);
+    int btnWidth = 60;
+    int btnHeight = 20;
+    int bottomMargin = 8;
+    int buttonSideMargin = 10;
+
+    this->openEditorBtn.setBounds(8, getHeight() - btnHeight - bottomMargin,
+                                  btnWidth, btnHeight);
+    this->removePluginBtn.setBounds(btnWidth + buttonSideMargin,
+                                    getHeight() - btnHeight - bottomMargin,
+                                    btnWidth, btnHeight);
 }
 
 void track::PluginNodesWrapper::createPluginNodeComponents() {
@@ -136,7 +146,7 @@ void track::PluginNodesWrapper::mouseDown(const juce::MouseEvent &event) {
 
 juce::Rectangle<int>
 track::PluginNodesWrapper::getBoundsForPluginNodeComponent(int index) {
-    return juce::Rectangle<int>(200 * index, 0, 190, 162);
+    return juce::Rectangle<int>(200 * index, 0, 250, 88);
 }
 
 std::unique_ptr<juce::AudioPluginInstance> *
@@ -178,7 +188,7 @@ void track::PluginChainComponent::resized() {
 
     juce::Rectangle<int> nodesWrapperBounds = juce::Rectangle<int>(
         0, 0,
-        jmax(getWidth() - 5,
+        jmax(getWidth() - 30,
              (int)this->nodesWrapper.pluginNodeComponents.size() * 200),
         getHeight() - UI_SUBWINDOW_TITLEBAR_HEIGHT - 1);
 

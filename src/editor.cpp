@@ -125,14 +125,13 @@ void AudioPluginAudioProcessorEditor::openFxChain(std::vector<int> route) {
     std::unique_ptr<track::PluginChainComponent> &pcc =
         pluginChainComponents.back();
 
-    // pcc->knownPluginList = &this->knownPluginList;
     pcc->nodesWrapper.knownPluginList = &this->knownPluginList;
     pcc->route = route;
     pcc->processor = &processorRef;
     pcc->nodesWrapper.createPluginNodeComponents();
 
     addAndMakeVisible(*pcc);
-    pcc->setBounds(10, 10, 900, 200);
+    pcc->setBounds(10, 10, 900, 124);
     repaint();
 }
 

@@ -110,7 +110,14 @@ void track::ui::CustomLookAndFeel::drawButtonBackground(
 
     g.fillRect(b.getLocalBounds());
 
-    // outline
+    // don't draw border for certain buttons by checking its content. i
+    // cannot think of another way that does not involve making my own button
+    // class/making multiple lookandfeels outline
+    if (b.getButtonText().toLowerCase() == "editor" ||
+        b.getButtonText().toLowerCase() == "remove")
+        return;
+
+    // draw border
     g.setColour(c.darker(0.4f));
     g.drawRect(b.getLocalBounds(), 2);
 }
@@ -237,6 +244,15 @@ Font track::ui::CustomLookAndFeel::getPopupMenuFont() {
 
 Font track::ui::CustomLookAndFeel::getTextButtonFont(TextButton &button,
                                                      int buttonHeight) {
+    if (button.getButtonText().toLowerCase() == "editor" ||
+        button.getButtonText().toLowerCase() == "remove") {
+        return getInterSemiBold()
+            .withHeight((float)buttonHeight / 1.6f)
+            .italicised()
+            .boldened()
+            .withExtraKerningFactor(-.03f);
+    }
+
     // is length is <= 2 then it's one of those "icon" buttons like mute button
     // or FX chain button
     if (button.getButtonText().length() <= 2)
