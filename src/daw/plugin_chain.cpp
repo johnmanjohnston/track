@@ -32,6 +32,8 @@ track::PluginNodeComponent::PluginNodeComponent() : juce::Component() {
 
         pcc->removePlugin(this->pluginIndex);
         pcc->resized();
+
+        // FIXME: removing plugin while its editor is opened causes segfault
     };
 
     bypassBtn.onClick = [this] {

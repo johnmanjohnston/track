@@ -107,7 +107,7 @@ void AudioPluginAudioProcessorEditor::paint(juce::Graphics &g) {
 void AudioPluginAudioProcessorEditor::resized() {
     masterSlider.setBounds((getWidth() / 3) * 2, 2, 250, 70);
 
-    int timeInfoBgWidth = 350;
+    int timeInfoBgWidth = 280;
     int timeInfoBgHeight = 40;
 
     juce::Rectangle<int> timeInfoRectangle = juce::Rectangle<int>(

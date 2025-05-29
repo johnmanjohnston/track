@@ -1,4 +1,6 @@
 #include "transport_status.h"
+#include "../lookandfeel.cpp"
+#include "juce_graphics/juce_graphics.h"
 
 track::TransportStatusComponent::TransportStatusComponent()
     : juce::Component() {}
@@ -6,6 +8,8 @@ track::TransportStatusComponent::TransportStatusComponent()
 track::TransportStatusComponent::~TransportStatusComponent(){};
 
 void track::TransportStatusComponent::paint(juce::Graphics &g) {
+    // this whole function is absolute cinema
+
     // DBG("transport status paint() called");
     // get time info
     // TODO: timing calculations don't work properly for some time signatures
@@ -61,19 +65,36 @@ void track::TransportStatusComponent::paint(juce::Graphics &g) {
 
     g.setColour(juce::Colour(0xFFCDD8E4)); // text color
     juce::Rectangle<int> timeInfoTextRectangle = getLocalBounds();
-    timeInfoTextRectangle.setWidth(timeInfoTextRectangle.getWidth() - 10);
-    timeInfoTextRectangle.setX(timeInfoTextRectangle.getX() + 10);
+    timeInfoTextRectangle.reduce(14, 0);
 
     // draw text for time info
     // bar.beat.division
-    g.setColour(juce::Colour(0xFFCDD8E4));
-    juce::String tempoInformationToDisplay = juce::String(bar);
-    tempoInformationToDisplay.append(".", 1);
-    tempoInformationToDisplay.append(juce::String(beat), 3);
-    tempoInformationToDisplay.append(".", 1);
-    tempoInformationToDisplay.append(juce::String(division), 3);
+    juce::String timeInfoToDisplay = juce::String(bar);
+    timeInfoToDisplay.append(".", 1);
+    timeInfoToDisplay.append(juce::String(beat), 3);
+    timeInfoToDisplay.append(".", 1);
+    timeInfoToDisplay.append(juce::String(division), 3);
 
-    g.setFont(18.f);
-    g.drawText(tempoInformationToDisplay, timeInfoTextRectangle,
+    juce::String tempoToDisplay;
+    tempoToDisplay.append(juce::String(tempo), 4);
+
+    juce::String timeSignatureInfoToDisplay;
+    timeSignatureInfoToDisplay.append(juce::String(timeSignature.numerator), 3);
+    timeSignatureInfoToDisplay.append("/", 1);
+    timeSignatureInfoToDisplay.append(juce::String(timeSignature.numerator), 3);
+
+    g.setColour(juce::Colour(0xFF'CDD8E4).withAlpha(0.7f));
+    g.setFont(track::ui::CustomLookAndFeel::getRobotoMonoThin()
+                  .withHeight(26.f)
+                  .boldened()
+                  .withExtraKerningFactor(-.06f));
+
+    g.drawText(timeInfoToDisplay, timeInfoTextRectangle,
                juce::Justification::left, false);
+
+    g.drawText(tempoToDisplay, timeInfoTextRectangle,
+               juce::Justification::horizontallyCentred, false);
+
+    g.drawText(timeSignatureInfoToDisplay, timeInfoTextRectangle,
+               juce::Justification::right, false);
 }
