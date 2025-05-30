@@ -322,7 +322,11 @@ bool track::TimelineComponent::isInterestedInFileDrag(
 
 void track::TimelineComponent::filesDropped(const juce::StringArray &files,
                                             int x, int y) {
-    // DBG("files dropped; x: " << x << "; y: " << y);
+    // TODO: handle changing samplle rates of dragged file to match with sample
+    // rate of host
+
+    if (viewport->tracklist->trackComponents.size() == 0)
+        return;
 
     int nodeDisplayIndex =
         juce::jmin((y / UI_TRACK_HEIGHT) - 1,
