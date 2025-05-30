@@ -220,16 +220,16 @@ void track::PluginChainComponent::resized() {
 
     nodesViewport.setScrollBarsShown(false, true, false, true);
 
-    juce::Rectangle<int> nodesViewportBounds = juce::Rectangle<int>(
-        1, UI_SUBWINDOW_TITLEBAR_HEIGHT + 5, getWidth() - 2,
-        getHeight() - UI_SUBWINDOW_TITLEBAR_HEIGHT);
-    nodesViewportBounds.reduce(4, 0);
+    juce::Rectangle<int> nodesViewportBounds =
+        juce::Rectangle<int>(1, UI_SUBWINDOW_TITLEBAR_HEIGHT + 5, getWidth(),
+                             getHeight() - UI_SUBWINDOW_TITLEBAR_HEIGHT);
+    nodesViewportBounds.reduce(5, 0);
     nodesViewport.setBounds(nodesViewportBounds);
 
     juce::Rectangle<int> nodesWrapperBounds = juce::Rectangle<int>(
         0, 0,
         jmax(getWidth() - 30,
-             (int)this->nodesWrapper.pluginNodeComponents.size() * 200),
+             ((int)this->nodesWrapper.pluginNodeComponents.size() + 1) * 250),
         getHeight() - UI_SUBWINDOW_TITLEBAR_HEIGHT - 1);
 
     nodesWrapper.setBounds(nodesWrapperBounds);

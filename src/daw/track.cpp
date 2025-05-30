@@ -486,6 +486,23 @@ void track::Tracklist::addNewNode(bool isTrack) {
     repaint();
 }
 
+bool track::Tracklist::isDescendant(audioNode *parent, audioNode *possibleChild,
+                                    bool directDescandant) {
+    for (audioNode &child : parent->childNodes) {
+        if (directDescandant) {
+            if (&child == possibleChild)
+                return true;
+            continue;
+        }
+
+        if (&child == possibleChild ||
+            isDescendant(&child, possibleChild, false))
+            return true;
+    }
+
+    return false;
+}
+
 void track::Tracklist::recursivelyDeleteNodePlugins(audioNode *node) {
     if (!node->isTrack) {
         for (audioNode &child : node->childNodes) {
@@ -607,10 +624,10 @@ void track::Tracklist::deepCopyGroupInsideGroup(audioNode *childNode,
     }
 }
 
-// FIXME: moving a group into its child (which is also a group) causes
-// segfault
 void track::Tracklist::moveNodeToGroup(track::TrackComponent *caller,
                                        int targetIndex) {
+    if (targetIndex < 0 || (size_t)targetIndex > trackComponents.size() - 1)
+        return;
 
     audioNode *trackNode = caller->getCorrespondingTrack();
 
@@ -619,6 +636,18 @@ void track::Tracklist::moveNodeToGroup(track::TrackComponent *caller,
     audioNode *parentNode = nodeComponentToMoveTo->getCorrespondingTrack();
     if (parentNode->isTrack) {
         DBG("rejecting moving track inside a track");
+        return;
+    }
+
+    DBG("checking descentandcy");
+    bool x = isDescendant(parentNode, trackNode, true);
+    if (x) {
+        return;
+    }
+
+    bool y = isDescendant(trackNode, parentNode, false);
+    if (y) {
+        DBG("SECOND DESCENDANCY CHECK FAILED");
         return;
     }
 

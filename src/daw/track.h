@@ -161,6 +161,8 @@ class Tracklist : public juce::Component {
     // void deleteTrack(int trackIndex);
     void deleteTrack(std::vector<int> route);
     void recursivelyDeleteNodePlugins(audioNode *node);
+    bool isDescendant(audioNode *parent, audioNode *possibleChild,
+                      bool directDescandant);
     void moveNodeToGroup(track::TrackComponent *caller, int targetIndex);
     void deepCopyGroupInsideGroup(audioNode *childNode, audioNode *parentNode);
 
