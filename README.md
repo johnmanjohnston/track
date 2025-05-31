@@ -11,16 +11,16 @@ From the Releases section, download the appropriate file for your operating syst
 ### Downloading Source and Dependencies
 ```bash
 # clone this repo and cd into it
-git clone https://github.com/johnmanjohnston/track.git
-cd track
+$ git clone https://github.com/johnmanjohnston/track.git
+$ cd track
 
 # clone JUCE
-git clone https://github.com/juce-framework/JUCE.git
+$ git clone https://github.com/juce-framework/JUCE.git
 ```
 
 ```
 # generate build files with CMake
-cmake .
+$ cmake .
 ```
 
 You should then see the required files to build for your platform
@@ -41,7 +41,7 @@ inside JUCE/modules/juce_audio_processors/format_types/juce_VST3PluginFormat.cpp
 #### Linux-based
 run Make
 ```bash
-make
+$ make
 ```
 
 #### Windows (Visual Studio)
