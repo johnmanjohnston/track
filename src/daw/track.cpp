@@ -335,6 +335,21 @@ void track::TrackComponent::mouseDown(const juce::MouseEvent &event) {
     }
 }
 
+void track::TrackComponent::mouseDrag(const juce::MouseEvent &event) {
+    if (event.mouseWasDraggedSinceMouseDown() &&
+        event.mods.isLeftButtonDown()) {
+        DBG("tc is being dragged");
+
+        Tracklist *tracklist = findParentComponentOfClass<Tracklist>();
+        float mouseYInTracklist =
+            event.getEventRelativeTo(tracklist).position.getY() -
+            (UI_TRACK_HEIGHT / 2.f);
+        int displayNodes = (int)(mouseYInTracklist / (float)(UI_TRACK_HEIGHT));
+
+        tracklist->updateInsertIndicator(displayNodes);
+    }
+}
+
 void track::TrackComponent::mouseUp(const juce::MouseEvent &event) {
     if (event.mouseWasDraggedSinceMouseDown()) {
         Tracklist *tracklist = findParentComponentOfClass<Tracklist>();
@@ -345,7 +360,69 @@ void track::TrackComponent::mouseUp(const juce::MouseEvent &event) {
         int displayNodes = (int)(mouseYInTracklist / (float)(UI_TRACK_HEIGHT));
         DBG("display nodes is " << displayNodes);
 
-        tracklist->moveNodeToGroup(this, displayNodes);
+        // clang-format off
+        if ((size_t)displayNodes >= tracklist->trackComponents.size() || displayNodes < 0)
+            return;
+
+        if (tracklist->trackComponents[(size_t)displayNodes]->getCorrespondingTrack()->isTrack) {
+            AudioPluginAudioProcessor *p = (AudioPluginAudioProcessor *)processor;
+      
+            // check if both tracks belong to the same parent 
+            std::vector<int> r1 = tracklist->trackComponents[(size_t)displayNodes]->route;
+            int r1End = r1.back();
+            r1.pop_back();
+
+            std::vector<int> r2 = this->route;
+            r2.pop_back();
+
+            if (r1 == r2) {
+                DBG("BOTH ARE SIBLINGS");
+                if (this->route.size() == 1) {
+                    // trivially move node
+                    // TODO: copy plugins 
+                    // TODO: handle moving groups
+
+                    //DBG("displaynodes is " << displayNodes);
+                    //DBG("route[0] is " << route[0]);
+
+                    int insertionNode = displayNodes;
+                    int sourceNode = route[0];
+
+                    bool movingUp = insertionNode < sourceNode;
+                    if (movingUp) {
+                        sourceNode++;
+                    }
+
+                    insertionNode = juce::jmin((size_t)insertionNode, p->tracks.size() - 1);
+                    audioNode& newNode = *p->tracks.emplace(p->tracks.begin() + insertionNode);
+                    audioNode& originalNode = p->tracks[(size_t)sourceNode]; // don't use getCorrespondingTrack() because route is invalid due to emplacing a node
+
+                    newNode.trackName = originalNode.trackName; 
+                    newNode.clips = originalNode.clips;
+                    newNode.bypassedPlugins = originalNode.bypassedPlugins;
+
+                    p->tracks.erase(p->tracks.begin() + sourceNode);
+
+                }
+                else {
+                    audioNode *head = &p->tracks[(size_t)route[0]];
+                    for (size_t i = 1; i < r1.size(); ++i) {
+                        head = &head->childNodes[i];
+                    }
+                }
+
+                tracklist->trackComponents.clear();
+                tracklist->createTrackComponents();
+                tracklist->setTrackComponentBounds();
+            }
+
+        } else {
+            tracklist->moveNodeToGroup(this, displayNodes);
+        }
+
+        tracklist->updateInsertIndicator(-1);
+
+        // clang-format on
         DBG("done");
     }
 }
@@ -452,6 +529,8 @@ track::Tracklist::Tracklist() : juce::Component() {
 
     newTrackBtn.onClick = [this] { addNewNode(); };
     newGroupBtn.onClick = [this] { addNewNode(false); };
+
+    addAndMakeVisible(insertIndicator);
 }
 track::Tracklist::~Tracklist() {}
 
@@ -461,7 +540,8 @@ void track::Tracklist::addNewNode(bool isTrack) {
     audioNode &t = p->tracks.back();
     t.processor = this->processor;
     t.isTrack = isTrack;
-    t.trackName = isTrack ? "Untitled Track" : "Untitled Group";
+    t.trackName = isTrack ? "Track" : "Group";
+    t.trackName += " " + juce::String(trackComponents.size() + 1);
 
     jassert(t.processor != nullptr);
 
@@ -823,6 +903,18 @@ void track::Tracklist::setTrackComponentBounds() {
 
     if (getParentComponent())
         getParentComponent()->repaint();
+}
+
+void track::Tracklist::updateInsertIndicator(int index) {
+    if (index > -1) {
+        this->insertIndicator.setVisible(true);
+        this->insertIndicator.setBounds(0, UI_TRACK_HEIGHT * index,
+                                        UI_TRACK_WIDTH, UI_TRACK_HEIGHT);
+        repaint();
+        return;
+    }
+
+    this->insertIndicator.setVisible(false);
 }
 
 // TODO: update this function to take care of more advanced audio clip

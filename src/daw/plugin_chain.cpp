@@ -1,5 +1,6 @@
 #include "plugin_chain.h"
 #include "defs.h"
+#include "juce_graphics/juce_graphics.h"
 #include "track.h"
 
 track::PluginNodeComponent::PluginNodeComponent() : juce::Component() {
@@ -60,6 +61,7 @@ void track::PluginNodeComponent::paint(juce::Graphics &g) {
     if (getPlugin() && getPlugin()->get()) {
         g.fillAll(juce::Colour(0xFF'121212));
 
+        // border
         g.setColour(juce::Colours::lightgrey.withAlpha(.3f));
         g.drawRect(getLocalBounds(), 1);
 
@@ -68,11 +70,13 @@ void track::PluginNodeComponent::paint(juce::Graphics &g) {
         g.setColour(juce::Colour(0xFF'A7A7A7)
                         .withAlpha(getPluginBypassedStatus() ? .3f : 1.f));
 
-        g.setFont(track::ui::CustomLookAndFeel::getInterSemiBold()
-                      .withHeight(22.f)
-                      .italicised()
-                      .boldened()
-                      .withExtraKerningFactor(-0.03f));
+        auto pluginDataFont = (track::ui::CustomLookAndFeel::getInterSemiBold()
+                                   .italicised()
+                                   .boldened()
+                                   .withExtraKerningFactor(-0.03f));
+
+        // draw name
+        g.setFont(pluginDataFont.withHeight(22.f));
         g.drawText(getPlugin()->get()->getName(), 10, 8, getWidth(), 20,
                    juce::Justification::left);
     }
@@ -164,6 +168,8 @@ void track::PluginNodesWrapper::mouseDown(const juce::MouseEvent &event) {
                     nc.setBounds(getBoundsForPluginNodeComponent(pluginIndex));
 
                     pcc->resized();
+                    pcc->nodesViewport.setViewPosition(
+                        pcc->nodesWrapper.getWidth(), 0);
                 });
         }
 
@@ -229,7 +235,8 @@ void track::PluginChainComponent::resized() {
     juce::Rectangle<int> nodesWrapperBounds = juce::Rectangle<int>(
         0, 0,
         jmax(getWidth() - 30,
-             ((int)this->nodesWrapper.pluginNodeComponents.size() + 1) * 250),
+             ((int)this->nodesWrapper.pluginNodeComponents.size() + 1) *
+                 (250 + 4)),
         getHeight() - UI_SUBWINDOW_TITLEBAR_HEIGHT - 1);
 
     nodesWrapper.setBounds(nodesWrapperBounds);

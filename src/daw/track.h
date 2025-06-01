@@ -108,6 +108,7 @@ class TrackComponent : public juce::Component {
 
     void mouseDown(const juce::MouseEvent &event) override;
     void mouseUp(const juce::MouseEvent &event) override;
+    void mouseDrag(const juce::MouseEvent &event) override;
 
     // instances of TrackComponent are responsible for only handling the UI for
     // an indiviaul track (only the left section which shows track name, volume
@@ -135,6 +136,13 @@ class TrackComponent : public juce::Component {
     juce::Label trackNameLabel;
 };
 
+class InsertIndicator : public juce::Component {
+  public:
+    InsertIndicator() {}
+    ~InsertIndicator() {}
+    void paint(juce::Graphics &g) { g.fillAll(juce::Colours::magenta); }
+};
+
 class Tracklist : public juce::Component {
   public:
     Tracklist();
@@ -155,10 +163,16 @@ class Tracklist : public juce::Component {
     void createTrackComponents();
     void setTrackComponentBounds();
 
+    InsertIndicator insertIndicator;
+    void updateInsertIndicator(int index);
+    /*int insertIndicatorIndex = -1; // when trying to reorder nodes, which
+       index
+                                   // should we highlight to show user?
+*/
+
     void mouseDown(const juce::MouseEvent &event) override;
 
     void addNewNode(bool isTrack = true);
-    // void deleteTrack(int trackIndex);
     void deleteTrack(std::vector<int> route);
     void recursivelyDeleteNodePlugins(audioNode *node);
     bool isDescendant(audioNode *parent, audioNode *possibleChild,
