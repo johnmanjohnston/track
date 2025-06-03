@@ -5,6 +5,7 @@
 #include "daw/timeline.h"
 #include "daw/track.h"
 #include "juce_audio_processors/juce_audio_processors.h"
+#include "lookandfeel.h"
 #include "processor.h"
 
 AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
@@ -99,13 +100,17 @@ void AudioPluginAudioProcessorEditor::paint(juce::Graphics &g) {
 
     // draw "track" logo
     g.setColour(juce::Colour(0xFF727272));
-    g.setFont(24.f);
+    g.setFont(track::ui::CustomLookAndFeel::getInterRegular()
+                  .italicised()
+                  .boldened()
+                  .withHeight(26.f)
+                  .withExtraKerningFactor(-.05f));
     g.drawFittedText("track", juce::Rectangle<int>(34, 1, 100, 50),
                      juce::Justification::left, 1);
 }
 
 void AudioPluginAudioProcessorEditor::resized() {
-    masterSlider.setBounds((getWidth() / 3) * 2, 2, 250, 70);
+    masterSlider.setBounds((getWidth() / 3) * 2, -8, 250, 70);
 
     int timeInfoBgWidth = 280;
     int timeInfoBgHeight = 40;
