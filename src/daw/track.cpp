@@ -397,12 +397,27 @@ void track::TrackComponent::mouseUp(const juce::MouseEvent &event) {
                     audioNode& newNode = *p->tracks.emplace(p->tracks.begin() + insertionNode);
                     audioNode& originalNode = p->tracks[(size_t)sourceNode]; // don't use getCorrespondingTrack() because route is invalid due to emplacing a node
 
+                    newNode.isTrack = originalNode.isTrack;
                     newNode.trackName = originalNode.trackName; 
                     newNode.clips = originalNode.clips;
                     newNode.bypassedPlugins = originalNode.bypassedPlugins;
 
-                    p->tracks.erase(p->tracks.begin() + sourceNode);
+                    if (!originalNode.isTrack) {
+                        for (auto& child : originalNode.childNodes) {
+                            auto& newChild = newNode.childNodes.emplace_back();
+                            newChild.clips = child.clips;
+                            newChild.bypassedPlugins = child.bypassedPlugins;
+                            newChild.isTrack = child.isTrack;
+                            newChild.trackName = child.trackName;
 
+                            if (!child.isTrack) {
+                                // copy its child nodes
+                                tracklist->deepCopyGroupInsideGroup(&child, &newChild); 
+                            }
+                        }
+                    }
+
+                    p->tracks.erase(p->tracks.begin() + sourceNode);
                 }
                 else {
                     audioNode *head = &p->tracks[(size_t)route[0]];
