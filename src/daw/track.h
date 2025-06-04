@@ -119,6 +119,7 @@ class TrackComponent : public juce::Component {
     void *processor = nullptr;
     int siblingIndex = -1;
     std::vector<int> route;
+    int displayIndex = -1;
 
     juce::TextButton muteBtn;
     juce::TextButton fxBtn; // like in REAPER
@@ -161,6 +162,7 @@ class Tracklist : public juce::Component {
         return retval;
     }
     void createTrackComponents();
+    void setDisplayIndexes();
     void setTrackComponentBounds();
 
     InsertIndicator insertIndicator;

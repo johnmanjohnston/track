@@ -7,6 +7,7 @@
 #include "juce_audio_processors/juce_audio_processors.h"
 #include "juce_core/juce_core.h"
 #include "juce_events/juce_events.h"
+#include "juce_graphics/juce_graphics.h"
 #include "juce_gui_basics/juce_gui_basics.h"
 #include "timeline.h"
 #include <cstddef>
@@ -364,6 +365,12 @@ void track::TrackComponent::mouseUp(const juce::MouseEvent &event) {
         if ((size_t)displayNodes >= tracklist->trackComponents.size() || displayNodes < 0)
             return;
 
+        // FIXME: when moving groups a certain way, segfault is triggered.
+        // imagine the structure as 
+        // - track
+        // - group
+        // - track
+        // and if you move the group such that the index indicator is directly above the group, and you mouseUp, then segfault happens
         if (tracklist->trackComponents[(size_t)displayNodes]->getCorrespondingTrack()->isTrack) {
             AudioPluginAudioProcessor *p = (AudioPluginAudioProcessor *)processor;
       
@@ -443,12 +450,33 @@ void track::TrackComponent::mouseUp(const juce::MouseEvent &event) {
 }
 
 void track::TrackComponent::paint(juce::Graphics &g) {
-    g.fillAll(juce::Colour(0xFF5F5F5F));   // bg
-    g.setColour(juce::Colour(0xFF535353)); // outline
-    g.drawRect(getLocalBounds(), 2);
+    juce::Colour bg = juce::Colour(0xFF'5F5F5F);
+    juce::Colour groupBg = bg.brighter(0.3f);
+    juce::Colour outline = juce::Colour(0xFF'535353);
+    g.fillAll(bg);
+
+    if (getCorrespondingTrack()->isTrack) {
+        g.setColour(bg);
+    } else {
+        g.setColour(groupBg);
+    }
+    g.fillRect(getLocalBounds().withTrimmedLeft(UI_TRACK_INDEX_WIDTH));
+
+    // outline
+    g.setColour(outline);
+    g.drawRect(getLocalBounds(), 1);
+
+    // divide line between index number and actual track info
+    g.drawRect(UI_TRACK_INDEX_WIDTH, 0, 2, getHeight(), 2);
 
     g.setColour(juce::Colours::lightgrey);
     g.fillRect(0, 0, 5 * (route.size() - 1), getHeight());
+
+    g.setColour(juce::Colours::white.withAlpha(0.4f));
+    g.setFont(
+        track::ui::CustomLookAndFeel::getInterSemiBold().withHeight(18.f));
+    g.drawText(juce::String(displayIndex + 1), 0, 0, UI_TRACK_INDEX_WIDTH,
+               UI_TRACK_HEIGHT, juce::Justification::centred);
 
     juce::String trackName = getCorrespondingTrack() == nullptr
                                  ? "null trackk"
@@ -457,29 +485,6 @@ void track::TrackComponent::paint(juce::Graphics &g) {
     juce::Rectangle<int> textBounds = getLocalBounds();
     textBounds.setX(getLocalBounds().getX() + 14);
     textBounds.setY(getLocalBounds().getY() - 8);
-
-    /*
-    // gray out muted track names, and draw yellow square around mute button
-    if
-    // needed
-    juce::Colour trackNameColour = juce::Colour(0xFFDFDFDF);
-    if (getCorrespondingTrack()->m) {
-        // draw yellow square
-        g.setColour(juce::Colours::yellow);
-        g.setOpacity(0.5f);
-        auto btnBounds = muteBtn.getBounds();
-        btnBounds.expand(1, 1);
-        g.drawRect(btnBounds);
-
-        g.setColour(trackNameColour.withAlpha(.5f));
-    }
-
-    else {
-        g.setColour(trackNameColour);
-    }
-
-    g.drawText(trackName, textBounds, juce::Justification::left, true);
-    */
 }
 
 void track::TrackComponent::resized() {
@@ -488,7 +493,8 @@ void track::TrackComponent::resized() {
     // return;
 
     int xOffset = (route.size() - 1) * 10;
-    trackNameLabel.setBounds(getLocalBounds().getX() + 10 + xOffset,
+    trackNameLabel.setBounds(UI_TRACK_INDEX_WIDTH + getLocalBounds().getX() +
+                                 10 + xOffset,
                              (UI_TRACK_HEIGHT / 4) - 5, 100, 20);
     int btnSize = 24;
     int btnHeight = btnSize;
@@ -514,7 +520,7 @@ void track::TrackComponent::resized() {
 
     int sliderHeight = 20;
     int sliderWidth = 130;
-    gainSlider.setBounds(8,
+    gainSlider.setBounds(UI_TRACK_INDEX_WIDTH + 8,
                          (UI_TRACK_HEIGHT / 2) - (sliderHeight / 2) +
                              (int)(UI_TRACK_HEIGHT * .2f),
                          sliderWidth, sliderHeight);
@@ -567,6 +573,7 @@ void track::Tracklist::addNewNode(bool isTrack) {
     trackComponents.back().get()->processor = processor;
     trackComponents.back().get()->route = route;
     trackComponents.back().get()->initializeGainSlider();
+    trackComponents.back().get()->displayIndex = trackComponents.size() - 1;
 
     // set track label text
     trackComponents.back().get()->trackNameLabel.setText(
@@ -861,18 +868,24 @@ int track::Tracklist::findChildren(audioNode *parentNode,
     return foundItems;
 }
 
+void track::Tracklist::setDisplayIndexes() {
+    for (size_t i = 0; i < this->trackComponents.size(); ++i) {
+        this->trackComponents[i]->displayIndex = i;
+    }
+}
+
 void track::Tracklist::createTrackComponents() {
     AudioPluginAudioProcessor *p =
         (AudioPluginAudioProcessor *)(this->processor);
 
-    int i = 0;
+    int j = 0;
     int foundItems = 0;
     DBG("");
     for (audioNode &t : p->tracks) {
         std::vector<int> route;
-        route.push_back(i);
+        route.push_back(j);
 
-        this->trackComponents.push_back(std::make_unique<TrackComponent>(i));
+        this->trackComponents.push_back(std::make_unique<TrackComponent>(j));
         trackComponents.back().get()->processor = processor;
         trackComponents.back().get()->route = route;
         trackComponents.back().get()->initializeGainSlider();
@@ -882,11 +895,15 @@ void track::Tracklist::createTrackComponents() {
 
         DBG("found " << t.trackName << " (root node)");
         foundItems = findChildren(&t, route, foundItems, 1);
+
+        trackComponents.back().get()->displayIndex = foundItems;
+
         DBG("");
 
-        i++;
+        j++;
     }
 
+    setDisplayIndexes();
     setTrackComponentBounds();
     repaint();
 }

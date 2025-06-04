@@ -95,7 +95,7 @@ void AudioPluginAudioProcessorEditor::paint(juce::Graphics &g) {
     g.setFont(lnf.getRobotoMonoThin());
 
     // draw top bar bg
-    g.setColour(juce::Colour(0xFFCBCBCB));
+    g.setColour(juce::Colour(0xFFCBCBCB).brighter(0.2f));
     g.fillRect(0, 0, getWidth(), track::UI_TOPBAR_HEIGHT);
 
     // draw "track" logo
@@ -122,7 +122,8 @@ void AudioPluginAudioProcessorEditor::resized() {
 
     transportStatus.setBounds(timeInfoRectangle);
 
-    scanBtn.setBounds(1, 1, 50, 20);
+    int scanBtnWidth = 50;
+    scanBtn.setBounds(getWidth() - scanBtnWidth, 1, 50, 20);
 }
 
 void AudioPluginAudioProcessorEditor::openFxChain(std::vector<int> route) {
