@@ -174,6 +174,7 @@ class Tracklist : public juce::Component {
 
     void mouseDown(const juce::MouseEvent &event) override;
 
+    void copyNode(audioNode *dest, audioNode *src);
     void addNewNode(bool isTrack = true);
     void deleteTrack(std::vector<int> route);
     void recursivelyDeleteNodePlugins(audioNode *node);

@@ -401,21 +401,17 @@ void track::TrackComponent::mouseUp(const juce::MouseEvent &event) {
                     }
 
                     insertionNode = juce::jmin((size_t)insertionNode, p->tracks.size() - 1);
+
                     audioNode& newNode = *p->tracks.emplace(p->tracks.begin() + insertionNode);
                     audioNode& originalNode = p->tracks[(size_t)sourceNode]; // don't use getCorrespondingTrack() because route is invalid due to emplacing a node
+                    tracklist->copyNode(&newNode, &originalNode);
 
-                    newNode.isTrack = originalNode.isTrack;
-                    newNode.trackName = originalNode.trackName; 
-                    newNode.clips = originalNode.clips;
-                    newNode.bypassedPlugins = originalNode.bypassedPlugins;
-
+                    /*
                     if (!originalNode.isTrack) {
                         for (auto& child : originalNode.childNodes) {
+
                             auto& newChild = newNode.childNodes.emplace_back();
-                            newChild.clips = child.clips;
-                            newChild.bypassedPlugins = child.bypassedPlugins;
-                            newChild.isTrack = child.isTrack;
-                            newChild.trackName = child.trackName;
+                            tracklist->copyNode(&newChild, &child);
 
                             if (!child.isTrack) {
                                 // copy its child nodes
@@ -423,6 +419,7 @@ void track::TrackComponent::mouseUp(const juce::MouseEvent &event) {
                             }
                         }
                     }
+                    */
 
                     p->tracks.erase(p->tracks.begin() + sourceNode);
                 }
@@ -431,6 +428,8 @@ void track::TrackComponent::mouseUp(const juce::MouseEvent &event) {
                     for (size_t i = 1; i < r1.size(); ++i) {
                         head = &head->childNodes[i];
                     }
+
+
                 }
 
                 tracklist->trackComponents.clear();
@@ -555,6 +554,41 @@ track::Tracklist::Tracklist() : juce::Component() {
 }
 track::Tracklist::~Tracklist() {}
 
+void track::Tracklist::copyNode(audioNode *dest, audioNode *src) {
+    // TODO: copy plugins
+    dest->isTrack = src->isTrack;
+    dest->trackName = src->trackName;
+    dest->bypassedPlugins = src->bypassedPlugins;
+    dest->gain = src->gain;
+    dest->processor = processor;
+
+    if (src->isTrack) {
+        dest->clips = src->clips;
+    } else {
+        for (auto &child : src->childNodes) {
+            auto &newChild = dest->childNodes.emplace_back();
+            copyNode(&newChild, &child);
+        }
+    }
+
+    for (auto &pluginInstance : src->plugins) {
+        juce::MemoryBlock pluginData;
+        pluginInstance->getStateInformation(pluginData);
+        pluginInstance->releaseResources();
+
+        juce::String identifier =
+            pluginInstance->getPluginDescription().fileOrIdentifier;
+
+        identifier = identifier.upToLastOccurrenceOf(".vst3", true, true);
+
+        // add plugin to new node and copy data
+        DBG("adding plugin to new node, using identifier " << identifier);
+        dest->addPlugin(identifier);
+        dest->plugins[dest->plugins.size() - 1]->setStateInformation(
+            pluginData.getData(), pluginData.getSize());
+    }
+}
+
 void track::Tracklist::addNewNode(bool isTrack) {
     auto p = (AudioPluginAudioProcessor *)this->processor;
     p->tracks.emplace_back();
@@ -630,26 +664,6 @@ void track::Tracklist::recursivelyDeleteNodePlugins(audioNode *node) {
 
 // vokd track::Tracklist::deleteTrack(int trackIndex) {
 void track::Tracklist::deleteTrack(std::vector<int> route) {
-    /*
-    DBG("deleting track " << trackIndex);
-
-    AudioPluginAudioProcessor *p = (AudioPluginAudioProcessor *)processor;
-    p->tracks.erase(p->tracks.begin() + trackIndex);
-
-    TimelineComponent *tc = (TimelineComponent *)timelineComponent;
-    tc->updateClipComponents();
-
-    // update trackComponent indices
-    trackComponents.erase(trackComponents.begin() + trackIndex);
-    for (int i = trackIndex; i < trackComponents.size(); ++i) {
-        trackComponents[i].get()->siblingIndex--;
-    }
-
-    this->setTrackComponentBounds();
-    tc->repaint();
-    repaint();
-    */
-
     juce::MessageManagerLock mmlock;
     AudioPluginAudioProcessor *p = (AudioPluginAudioProcessor *)processor;
 
@@ -754,12 +768,17 @@ void track::Tracklist::moveNodeToGroup(track::TrackComponent *caller,
     }
 
     audioNode *newNode = &parentNode->childNodes.emplace_back();
+    std::vector<int> routeCopy = caller->route;
+
+    // calling copyNode() should take care of all the gobbledygook below
+    copyNode(newNode, trackNode);
+
+    /*
     newNode->trackName = trackNode->trackName;
     newNode->gain = trackNode->gain;
     newNode->isTrack = trackNode->isTrack;
     newNode->processor = processor;
 
-    std::vector<int> routeCopy = caller->route;
     if (trackNode->isTrack)
         newNode->clips = trackNode->clips;
     else
@@ -788,6 +807,7 @@ void track::Tracklist::moveNodeToGroup(track::TrackComponent *caller,
         newNode->plugins[newNode->plugins.size() - 1]->setStateInformation(
             pluginData.getData(), pluginData.getSize());
     }
+    */
 
     // node is copied. now delete orginal node
     AudioPluginAudioProcessor *p = (AudioPluginAudioProcessor *)processor;
