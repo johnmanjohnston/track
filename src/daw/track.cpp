@@ -366,12 +366,6 @@ void track::TrackComponent::mouseUp(const juce::MouseEvent &event) {
         if ((size_t)displayNodes >= tracklist->trackComponents.size() || displayNodes < 0)
             return;
 
-        // FIXME: when moving groups a certain way, segfault is triggered.
-        // imagine the structure as 
-        // - track
-        // - group
-        // - track
-        // and if you move the group such that the index indicator is directly above the group, and you mouseUp, then segfault happens
         if (tracklist->trackComponents[(size_t)displayNodes]->getCorrespondingTrack()->isTrack) {
             AudioPluginAudioProcessor *p = (AudioPluginAudioProcessor *)processor;
       
@@ -405,6 +399,7 @@ void track::TrackComponent::mouseUp(const juce::MouseEvent &event) {
 
                     audioNode& newNode = *p->tracks.emplace(p->tracks.begin() + insertionNode);
                     audioNode& originalNode = p->tracks[(size_t)sourceNode]; // don't use getCorrespondingTrack() because route is invalid due to emplacing a node
+                    
                     tracklist->copyNode(&newNode, &originalNode);
 
                     /*
@@ -425,12 +420,27 @@ void track::TrackComponent::mouseUp(const juce::MouseEvent &event) {
                     p->tracks.erase(p->tracks.begin() + sourceNode);
                 }
                 else {
-                    audioNode *head = &p->tracks[(size_t)route[0]];
-                    for (size_t i = 1; i < r1.size(); ++i) {
-                        head = &head->childNodes[i];
+                    audioNode* head = &p->tracks[(size_t)route[0]];
+                    for (size_t i = 1; i < route.size()-1; ++i) {
+                        head = &head->childNodes[(size_t)route[i]];
                     }
 
+                    int sourceNode = route.back();
+                    int insertionNode = r1End;
 
+                    bool movingUp = insertionNode < sourceNode;
+                    if (movingUp) {
+                        sourceNode++;
+                    }
+
+                    insertionNode = juce::jmin((size_t)insertionNode, head->childNodes.size()-1);
+                    
+                    audioNode& newNode = *head->childNodes.emplace(head->childNodes.begin() + insertionNode);
+                    audioNode& originalNode = head->childNodes[(size_t)sourceNode];
+
+                    tracklist->copyNode(&newNode, &originalNode);
+
+                    head->childNodes.erase(head->childNodes.begin() + sourceNode);
                 }
 
                 tracklist->trackComponents.clear();
@@ -440,6 +450,8 @@ void track::TrackComponent::mouseUp(const juce::MouseEvent &event) {
 
         } else {
             DBG("- CALLING moveNodeToGroup()");
+            DBG("this->displayIndex = " << this->displayIndex);
+            DBG("displayNodes = " << displayNodes);
             tracklist->moveNodeToGroup(this, displayNodes);
         }
 
@@ -557,7 +569,6 @@ track::Tracklist::Tracklist() : juce::Component() {
 track::Tracklist::~Tracklist() {}
 
 void track::Tracklist::copyNode(audioNode *dest, audioNode *src) {
-    DBG("copyNode() called. copying src's data to dest");
     dest->isTrack = src->isTrack;
     dest->trackName = src->trackName;
     dest->bypassedPlugins = src->bypassedPlugins;
@@ -568,9 +579,6 @@ void track::Tracklist::copyNode(audioNode *dest, audioNode *src) {
     dest->pan = src->pan;
     dest->maxSamplesPerBlock = src->maxSamplesPerBlock;
     dest->sampleRate = src->sampleRate;
-
-    DBG("dest's pan is " << dest->pan);
-    DBG("src's pan is " << src->pan);
 
     if (src->isTrack) {
         dest->clips = src->clips;
@@ -757,7 +765,8 @@ void track::Tracklist::deepCopyGroupInsideGroup(audioNode *childNode,
 
 void track::Tracklist::moveNodeToGroup(track::TrackComponent *caller,
                                        int targetIndex) {
-    if (targetIndex < 0 || (size_t)targetIndex > trackComponents.size() - 1)
+    if (targetIndex < 0 || (size_t)targetIndex > trackComponents.size() - 1 ||
+        caller->displayIndex == targetIndex)
         return;
 
     audioNode *trackNode = caller->getCorrespondingTrack();
