@@ -244,7 +244,12 @@ void track::TimelineComponent::updateClipComponents() {
 
     clipComponents.clear();
 
+    DBG("updateClipComponents() called");
+    DBG("viewport->tracklist->trackComponents.size() = "
+        << viewport->tracklist->trackComponents.size());
+
     for (size_t i = 0; i < viewport->tracklist->trackComponents.size(); ++i) {
+        DBG("i = " << i);
         audioNode *node =
             viewport->tracklist->trackComponents[i]->getCorrespondingTrack();
 

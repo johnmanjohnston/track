@@ -443,12 +443,12 @@ void track::TrackComponent::mouseUp(const juce::MouseEvent &event) {
                     head->childNodes.erase(head->childNodes.begin() + sourceNode);
                 }
 
-                track::TimelineComponent* timelineComponent = (TimelineComponent*)tracklist->timelineComponent;
-                timelineComponent->updateClipComponents();
-
                 tracklist->trackComponents.clear();
                 tracklist->createTrackComponents();
                 tracklist->setTrackComponentBounds();
+
+                track::TimelineComponent* timelineComponent = (TimelineComponent*)tracklist->timelineComponent;
+                timelineComponent->updateClipComponents();
             }
 
         } else {
