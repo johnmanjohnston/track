@@ -25,8 +25,6 @@ track::PluginNodeComponent::PluginNodeComponent() : juce::Component() {
     };
 
     removePluginBtn.onClick = [this] {
-        DBG("remove plugin btn clicke");
-
         PluginChainComponent *pcc =
             findParentComponentOfClass<PluginChainComponent>();
         jassert(pcc != nullptr);
@@ -103,7 +101,6 @@ void track::PluginNodeComponent::resized() {
 }
 
 void track::PluginNodesWrapper::createPluginNodeComponents() {
-    DBG("createPluginNodeComponents() called");
     jassert(pcc != nullptr);
 
     audioNode *node = pcc->getCorrespondingTrack();
@@ -499,8 +496,6 @@ track::CloseButton::CloseButton() : juce::Component(), font() {}
 track::CloseButton::~CloseButton() {}
 
 void track::CloseButton::paint(juce::Graphics &g) {
-    DBG("CLoseBUtton::paint()");
-
     g.setFont(font.withHeight(22.f));
     g.setColour(isHoveredOver == true ? hoveredColor : normalColor);
     g.drawText("X", 0, 0, getWidth(), getHeight(), juce::Justification::centred,

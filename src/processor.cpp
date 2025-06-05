@@ -80,35 +80,7 @@ void AudioPluginAudioProcessor::prepareToPlay(double sampleRate,
 
     this->maxSamplesPerBlock = samplesPerBlock;
 
-    // Use this method as the place to do any pre-playback
-    // initialisation that you need..
     juce::ignoreUnused(sampleRate, samplesPerBlock);
-
-    // this is for hosting sub plugins; revisit this later
-    /*
-        juce::String pluginPath =
-            // juce::File("C:\\Program Files\\Common
-    Files\\VST3\\MeldaProduction\\EQ\\MEqualizer.vst3").getFullPathName();
-            juce::File("C:\\Program Files\\Common
-    Files\\VST3\\ValhallaSupermassive.vst3").getFullPathName();
-    OwnedArray<PluginDescription> pluginDescriptions;
-    KnownPluginList plist;
-
-    if (!prepared)
-        pluginFormatManager.addDefaultFormats(); // only add default formats
-    once, otherwise you fail an assertion
-
-    for (int i = 0; i < pluginFormatManager.getNumFormats(); ++i)
-        plist.scanAndAddFile(pluginPath, true, pluginDescriptions,
-                             *pluginFormatManager.getFormat(i));
-
-    jassert(pluginDescriptions.size() > 0);
-    plugin = pluginFormatManager.createPluginInstance(
-        *pluginDescriptions[0], sampleRate, samplesPerBlock, msg);
-
-    plugin->setPlayConfigDetails(2, 2, sampleRate, samplesPerBlock);
-    plugin.get()->prepareToPlay(sampleRate, samplesPerBlock);
-    */
 
     for (track::audioNode &t : tracks) {
         t.processor = this;
@@ -125,27 +97,7 @@ void AudioPluginAudioProcessor::prepareToPlay(double sampleRate,
         afm.registerBasicFormats();
     }
 
-    std::unique_ptr<juce::AudioFormatReader> reader(afm.createReaderFor(path));
-
-    if (reader.get() != nullptr) {
-        auto duration = reader->lengthInSamples / reader->sampleRate;
-        fileBuffer.setSize((int)reader->numChannels,
-                           (int)reader->lengthInSamples);
-
-        reader->read(&fileBuffer, 0, (int)reader->lengthInSamples, 0, true,
-                     true);
-
-        DBG("Audio file loaded with "
-            << reader->lengthInSamples << " samples, with sample rate of "
-            << reader->sampleRate << " lasting " << duration << " seconds");
-    }
-
-    else {
-        DBG("reader not created");
-    }
-
     bool createDummyTracks = false;
-
     if (createDummyTracks) {
         auto &g1 = tracks.emplace_back();
         g1.isTrack = false;

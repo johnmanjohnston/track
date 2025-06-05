@@ -340,8 +340,6 @@ void track::TrackComponent::mouseDown(const juce::MouseEvent &event) {
 void track::TrackComponent::mouseDrag(const juce::MouseEvent &event) {
     if (event.mouseWasDraggedSinceMouseDown() &&
         event.mods.isLeftButtonDown()) {
-        DBG("tc is being dragged");
-
         Tracklist *tracklist = findParentComponentOfClass<Tracklist>();
         float mouseYInTracklist =
             event.getEventRelativeTo(tracklist).position.getY() -
@@ -355,6 +353,7 @@ void track::TrackComponent::mouseDrag(const juce::MouseEvent &event) {
 void track::TrackComponent::mouseUp(const juce::MouseEvent &event) {
     if (event.mouseWasDraggedSinceMouseDown()) {
         Tracklist *tracklist = findParentComponentOfClass<Tracklist>();
+        tracklist->updateInsertIndicator(-1);
 
         float mouseYInTracklist =
             event.getEventRelativeTo(tracklist).position.getY() -
@@ -452,26 +451,20 @@ void track::TrackComponent::mouseUp(const juce::MouseEvent &event) {
             }
 
         } else {
-            DBG("- CALLING moveNodeToGroup()");
-            DBG("this->displayIndex = " << this->displayIndex);
-            DBG("displayNodes = " << displayNodes);
             tracklist->moveNodeToGroup(this, displayNodes);
-
                 
             track::TimelineComponent* timelineComponent = (TimelineComponent*)tracklist->timelineComponent;
             timelineComponent->updateClipComponents();
         }
 
-        tracklist->updateInsertIndicator(-1);
-
         // clang-format on
-        DBG("done");
+        DBG("Finished attempted node movement");
     }
 }
 
 void track::TrackComponent::paint(juce::Graphics &g) {
     juce::Colour bg = juce::Colour(0xFF'5F5F5F);
-    juce::Colour groupBg = bg.brighter(0.3f);
+    juce::Colour groupBg = bg.brighter(0.2f);
     juce::Colour outline = juce::Colour(0xFF'535353);
     bool isFirstNodeInGroup = route.size() != 0 && siblingIndex == 0;
 
@@ -527,17 +520,9 @@ void track::TrackComponent::paint(juce::Graphics &g) {
 
     g.setColour(juce::Colours::white.withAlpha(0.4f));
     g.setFont(
-        track::ui::CustomLookAndFeel::getInterSemiBold().withHeight(18.f));
+        track::ui::CustomLookAndFeel::getInterSemiBold().withHeight(17.f));
     g.drawText(juce::String(displayIndex + 1), 0, 0, UI_TRACK_INDEX_WIDTH,
                UI_TRACK_HEIGHT, juce::Justification::centred);
-
-    juce::String trackName = getCorrespondingTrack() == nullptr
-                                 ? "null trackk"
-                                 : getCorrespondingTrack()->trackName;
-
-    juce::Rectangle<int> textBounds = getLocalBounds();
-    textBounds.setX(getLocalBounds().getX() + 14);
-    textBounds.setY(getLocalBounds().getY() - 8);
 }
 
 void track::TrackComponent::resized() {
@@ -572,7 +557,7 @@ void track::TrackComponent::resized() {
     fxBtn.setBounds(fxBounds);
 
     int sliderHeight = 20;
-    int sliderWidth = 130;
+    int sliderWidth = 120;
     gainSlider.setBounds(xOffset + UI_TRACK_INDEX_WIDTH + 4,
                          (UI_TRACK_HEIGHT / 2) - (sliderHeight / 2) +
                              (int)(UI_TRACK_HEIGHT * .2f),
@@ -819,7 +804,6 @@ void track::Tracklist::moveNodeToGroup(track::TrackComponent *caller,
         return;
     }
 
-    DBG("checking descentandcy");
     bool x = isDescendant(parentNode, trackNode, true);
     if (x) {
         return;
