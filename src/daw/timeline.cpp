@@ -286,31 +286,19 @@ void track::TimelineComponent::resizeTimelineComponent() {
 }
 
 void track::TimelineComponent::deleteClip(clip *c, int trackIndex) {
-    int clipIndex = 0;
+    int clipIndex = -1;
 
-    for (auto &clip : processorRef->tracks[trackIndex].clips) {
-        if (clip.startPositionSample == c->startPositionSample) {
+    audioNode *node = viewport->tracklist->trackComponents[(size_t)trackIndex]
+                          ->getCorrespondingTrack();
+
+    for (size_t i = 0; i < node->clips.size(); ++i) {
+        if (c == &node->clips[i]) {
+            clipIndex = i;
             break;
         }
-        ++clipIndex;
     }
 
-    DBG("clipIndex is " << clipIndex << "; trackIndex is " << trackIndex);
-
-    // TODO: turns out i was being a donut. this bug _shouldn't_ be
-    // happening anymore
-    if (trackIndex != 0) {
-        processorRef->tracks[trackIndex].clips.erase(
-            processorRef->tracks[trackIndex].clips.begin() + clipIndex);
-    } else {
-        // for some reason when removing the leftmost clip of the first
-        // track, the program crashes; so instead of removing clips on the
-        // first track, just get rid of its data and move it to the left so
-        // that we cannot see it
-        processorRef->tracks[trackIndex].clips[clipIndex].buffer.setSize(0, 1);
-        processorRef->tracks[trackIndex].clips[clipIndex].startPositionSample =
-            -999999999;
-    }
+    node->clips.erase(node->clips.begin() + clipIndex);
 
     updateClipComponents();
 }

@@ -443,6 +443,9 @@ void track::TrackComponent::mouseUp(const juce::MouseEvent &event) {
                     head->childNodes.erase(head->childNodes.begin() + sourceNode);
                 }
 
+                track::TimelineComponent* timelineComponent = (TimelineComponent*)tracklist->timelineComponent;
+                timelineComponent->updateClipComponents();
+
                 tracklist->trackComponents.clear();
                 tracklist->createTrackComponents();
                 tracklist->setTrackComponentBounds();
@@ -453,6 +456,10 @@ void track::TrackComponent::mouseUp(const juce::MouseEvent &event) {
             DBG("this->displayIndex = " << this->displayIndex);
             DBG("displayNodes = " << displayNodes);
             tracklist->moveNodeToGroup(this, displayNodes);
+
+                
+            track::TimelineComponent* timelineComponent = (TimelineComponent*)tracklist->timelineComponent;
+            timelineComponent->updateClipComponents();
         }
 
         tracklist->updateInsertIndicator(-1);
