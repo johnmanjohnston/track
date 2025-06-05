@@ -247,10 +247,11 @@ track::TrackComponent::TrackComponent::getCorrespondingTrack() {
     return head;
 }
 
-void track::TrackComponent::initializeGainSlider() {
+void track::TrackComponent::initializSliders() {
     // DBG("intiailizGainSlider() called");
     // DBG("track's gain is " << getCorrespondingTrack()->gain);
     gainSlider.setValue(getCorrespondingTrack()->gain);
+    panSlider.setValue(getCorrespondingTrack()->pan);
 }
 
 track::TrackComponent::TrackComponent(int trackIndex) : juce::Component() {
@@ -438,6 +439,7 @@ void track::TrackComponent::mouseUp(const juce::MouseEvent &event) {
             }
 
         } else {
+            DBG("- CALLING moveNodeToGroup()");
             tracklist->moveNodeToGroup(this, displayNodes);
         }
 
@@ -555,12 +557,20 @@ track::Tracklist::Tracklist() : juce::Component() {
 track::Tracklist::~Tracklist() {}
 
 void track::Tracklist::copyNode(audioNode *dest, audioNode *src) {
-    // TODO: copy plugins
+    DBG("copyNode() called. copying src's data to dest");
     dest->isTrack = src->isTrack;
     dest->trackName = src->trackName;
     dest->bypassedPlugins = src->bypassedPlugins;
     dest->gain = src->gain;
     dest->processor = processor;
+    dest->s = src->s;
+    dest->m = src->m;
+    dest->pan = src->pan;
+    dest->maxSamplesPerBlock = src->maxSamplesPerBlock;
+    dest->sampleRate = src->sampleRate;
+
+    DBG("dest's pan is " << dest->pan);
+    DBG("src's pan is " << src->pan);
 
     if (src->isTrack) {
         dest->clips = src->clips;
@@ -606,7 +616,7 @@ void track::Tracklist::addNewNode(bool isTrack) {
     this->trackComponents.push_back(std::make_unique<TrackComponent>(i));
     trackComponents.back().get()->processor = processor;
     trackComponents.back().get()->route = route;
-    trackComponents.back().get()->initializeGainSlider();
+    trackComponents.back().get()->initializSliders();
     trackComponents.back().get()->displayIndex = trackComponents.size() - 1;
 
     // set track label text
@@ -699,6 +709,7 @@ void track::Tracklist::deepCopyGroupInsideGroup(audioNode *childNode,
                                                 audioNode *parentNode) {
     for (auto &child : childNode->childNodes) {
         audioNode *newNode = &parentNode->childNodes.emplace_back();
+        /*
         newNode->trackName = child.trackName;
         newNode->isTrack = child.isTrack;
         newNode->gain = child.gain;
@@ -709,6 +720,10 @@ void track::Tracklist::deepCopyGroupInsideGroup(audioNode *childNode,
         else {
             deepCopyGroupInsideGroup(&child, newNode);
         }
+        */
+
+        copyNode(newNode, &child);
+        continue;
 
         // now the annoying thing, copying plugins. (which is why you can't
         // just push_back() trackNode into groupNode->childNodes)
@@ -866,7 +881,7 @@ int track::Tracklist::findChildren(audioNode *parentNode,
         this->trackComponents.push_back(std::make_unique<TrackComponent>(i));
         trackComponents.back().get()->processor = processor;
         trackComponents.back().get()->route = route;
-        trackComponents.back().get()->initializeGainSlider();
+        trackComponents.back().get()->initializSliders();
         trackComponents.back().get()->trackNameLabel.setText(
             childNode->trackName, juce::NotificationType::dontSendNotification);
 
@@ -908,7 +923,7 @@ void track::Tracklist::createTrackComponents() {
         this->trackComponents.push_back(std::make_unique<TrackComponent>(j));
         trackComponents.back().get()->processor = processor;
         trackComponents.back().get()->route = route;
-        trackComponents.back().get()->initializeGainSlider();
+        trackComponents.back().get()->initializSliders();
         trackComponents.back().get()->trackNameLabel.setText(
             t.trackName, juce::NotificationType::dontSendNotification);
         addAndMakeVisible(*trackComponents.back());
