@@ -7,10 +7,11 @@ extern int UI_TRACK_HEIGHT;
 constexpr int UI_MINIMUM_TRACK_HEIGHT = 20;
 constexpr int UI_MAXIMUM_TRACK_HEIGHT = 120;
 
-constexpr int UI_TRACK_VERTICAL_MARGIN = 2;
+constexpr int UI_TRACK_VERTICAL_MARGIN = 0;
 constexpr int UI_TRACK_VERTICAL_OFFSET = 22;
 constexpr int UI_TRACK_WIDTH = 300;
-constexpr int UI_TRACK_INDEX_WIDTH = 24;
+constexpr int UI_TRACK_INDEX_WIDTH = 22;
+constexpr int UI_TRACK_DEPTH_INCREMENTS = 8;
 
 constexpr int UI_TOPBAR_HEIGHT = 50;
 

@@ -473,24 +473,57 @@ void track::TrackComponent::paint(juce::Graphics &g) {
     juce::Colour bg = juce::Colour(0xFF'5F5F5F);
     juce::Colour groupBg = bg.brighter(0.3f);
     juce::Colour outline = juce::Colour(0xFF'535353);
-    g.fillAll(bg);
+    bool isFirstNodeInGroup = route.size() != 0 && siblingIndex == 0;
+
+    int lineThickness = 1;
+    float cornerSize = 5.f;
+    g.fillAll(groupBg);
+
+    juce::Rectangle<float> indentedBounds =
+        getLocalBounds()
+            .withTrimmedLeft(
+                (((int)route.size() - 1) * UI_TRACK_DEPTH_INCREMENTS) +
+                UI_TRACK_INDEX_WIDTH)
+            .withWidth(UI_TRACK_WIDTH)
+            .withHeight(UI_MAXIMUM_TRACK_HEIGHT + 10)
+            .withY(0)
+            .toFloat();
+    if (isFirstNodeInGroup)
+        indentedBounds.expand(-1, 0);
 
     if (getCorrespondingTrack()->isTrack) {
         g.setColour(bg);
+
+        if (isFirstNodeInGroup) {
+            g.fillRoundedRectangle(indentedBounds, cornerSize);
+        } else {
+            g.fillRect(indentedBounds);
+        }
     } else {
         g.setColour(groupBg);
+        g.fillRect(getLocalBounds().withTrimmedLeft(UI_TRACK_INDEX_WIDTH));
     }
-    g.fillRect(getLocalBounds().withTrimmedLeft(UI_TRACK_INDEX_WIDTH));
 
     // outline
     g.setColour(outline);
-    g.drawRect(getLocalBounds(), 1);
+    if (isFirstNodeInGroup)
+        g.drawRoundedRectangle(indentedBounds, cornerSize, lineThickness);
+    else
+        g.drawRect(indentedBounds, lineThickness);
 
     // divide line between index number and actual track info
+    g.setColour(bg);
+    g.fillRect(0, 0, UI_TRACK_INDEX_WIDTH, getHeight());
+    g.setColour(outline);
     g.drawRect(UI_TRACK_INDEX_WIDTH, 0, 2, getHeight(), 2);
 
-    g.setColour(juce::Colours::lightgrey);
-    g.fillRect(0, 0, 5 * (route.size() - 1), getHeight());
+    // depth markers
+    g.setColour(outline.withAlpha(0.5f));
+    for (int i = 0; i < (int)route.size() - 2; ++i) {
+        g.drawRect((UI_TRACK_INDEX_WIDTH) +
+                       ((i + 1) * UI_TRACK_DEPTH_INCREMENTS),
+                   0, 2, getHeight(), 1);
+    }
 
     g.setColour(juce::Colours::white.withAlpha(0.4f));
     g.setFont(
@@ -512,17 +545,17 @@ void track::TrackComponent::resized() {
     // trackNameLabel.setBounds((route.size() - 1) * 10, 0, getWidth(), 20);
     // return;
 
-    int xOffset = (route.size() - 1) * 10;
+    int xOffset = (route.size() - 1) * UI_TRACK_DEPTH_INCREMENTS;
     trackNameLabel.setBounds(UI_TRACK_INDEX_WIDTH + getLocalBounds().getX() +
-                                 10 + xOffset,
+                                 5 + xOffset,
                              (UI_TRACK_HEIGHT / 4) - 5, 100, 20);
     int btnSize = 24;
     int btnHeight = btnSize;
     int btnWidth = btnSize;
 
     juce::Rectangle<int> btnBounds = juce::Rectangle<int>(
-        xOffset + UI_TRACK_WIDTH - 115, (UI_TRACK_HEIGHT / 2) - (btnHeight / 2),
-        btnWidth, btnHeight);
+        UI_TRACK_WIDTH - 100, (UI_TRACK_HEIGHT / 2) - (btnHeight / 2), btnWidth,
+        btnHeight);
 
     muteBtn.setBounds(btnBounds);
 
@@ -540,7 +573,7 @@ void track::TrackComponent::resized() {
 
     int sliderHeight = 20;
     int sliderWidth = 130;
-    gainSlider.setBounds(UI_TRACK_INDEX_WIDTH + 8,
+    gainSlider.setBounds(xOffset + UI_TRACK_INDEX_WIDTH + 4,
                          (UI_TRACK_HEIGHT / 2) - (sliderHeight / 2) +
                              (int)(UI_TRACK_HEIGHT * .2f),
                          sliderWidth, sliderHeight);
@@ -991,8 +1024,10 @@ void track::Tracklist::setTrackComponentBounds() {
 void track::Tracklist::updateInsertIndicator(int index) {
     if (index > -1) {
         this->insertIndicator.setVisible(true);
-        this->insertIndicator.setBounds(0, UI_TRACK_HEIGHT * index,
-                                        UI_TRACK_WIDTH, UI_TRACK_HEIGHT);
+        this->insertIndicator.toFront(false);
+        this->insertIndicator.setBounds(
+            0, (UI_TRACK_HEIGHT * index) + (UI_TRACK_HEIGHT / 2) - 4,
+            UI_TRACK_WIDTH, 1);
         repaint();
         return;
     }
