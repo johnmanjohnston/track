@@ -1045,7 +1045,7 @@ void track::clip::reverse() { buffer.reverse(0, buffer.getNumSamples()); }
 void track::audioNode::addPlugin(juce::String path) {
     this->bypassedPlugins.push_back(false);
 
-    DBG("track::track addPlugin() called");
+    DBG("track::track addPlugin() called with path " << path);
     juce::OwnedArray<PluginDescription> pluginDescriptions;
     juce::KnownPluginList plist;
     juce::AudioPluginFormatManager apfm;
@@ -1058,7 +1058,7 @@ void track::audioNode::addPlugin(juce::String path) {
     this->maxSamplesPerBlock = p->maxSamplesPerBlock;
 
     jassert(sampleRate > 0);
-    jassert(maxSamplesPerBlock > 0);
+    // jassert(maxSamplesPerBlock > 0);
 
     apfm.addDefaultFormats();
 
@@ -1095,6 +1095,12 @@ void track::audioNode::addPlugin(juce::String path) {
 
     DBG("preparing plugin to play with sample rate,maxSamplesPerBlock"
         << sampleRate << " " << maxSamplesPerBlock);
+
+    // TODO: is this really a good idea?
+    if (maxSamplesPerBlock <= 0) {
+        DBG("setting maxSamplesPerBlock to 512");
+        maxSamplesPerBlock = 512;
+    }
     plugin->prepareToPlay(sampleRate, maxSamplesPerBlock);
 
     DBG("LOGGING OUTPUTS:");

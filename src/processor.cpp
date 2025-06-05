@@ -2,6 +2,7 @@
 #include "daw/track.h"
 #include "editor.h"
 #include "juce_audio_basics/juce_audio_basics.h"
+#include "juce_core/juce_core.h"
 
 AudioPluginAudioProcessor::AudioPluginAudioProcessor()
     : AudioProcessor(
@@ -308,51 +309,126 @@ juce::AudioProcessorEditor *AudioPluginAudioProcessor::createEditor() {
     return new AudioPluginAudioProcessorEditor(*this);
 }
 
+juce::XmlElement *
+AudioPluginAudioProcessor::serializeNode(track::audioNode *node) {
+    DBG("serializing node " << node->trackName);
+    juce::XmlElement *nodeElement = new juce::XmlElement("node");
+    nodeElement->setAttribute("istrack", node->isTrack);
+    nodeElement->setAttribute("name", node->trackName);
+
+    for (auto &pluginInstance : node->plugins) {
+        juce::XmlElement *pluginElement = new juce::XmlElement("plugin");
+
+        juce::String identifier =
+            pluginInstance->getPluginDescription()
+                .fileOrIdentifier.upToLastOccurrenceOf(".vst3", true, true);
+        pluginElement->setAttribute("identifier", identifier);
+
+        juce::MemoryBlock pluginData;
+        pluginInstance->getStateInformation(pluginData);
+        pluginElement->setAttribute("data", pluginData.toBase64Encoding());
+
+        nodeElement->addChildElement(pluginElement);
+    }
+
+    if (node->isTrack) {
+        for (size_t i = 0; i < node->clips.size(); ++i) {
+            juce::XmlElement *clipElement = new juce::XmlElement("clip");
+            track::clip *c = &node->clips[i];
+
+            clipElement->setAttribute("active", c->active);
+
+            clipElement->setAttribute("path", c->path);
+            clipElement->setAttribute("start", c->startPositionSample);
+            clipElement->setAttribute("name", c->name);
+
+            nodeElement->addChildElement(clipElement);
+        }
+    } else {
+        for (track::audioNode &child : node->childNodes) {
+            nodeElement->addChildElement(serializeNode(&child));
+        }
+    }
+
+    return nodeElement;
+}
+
+void AudioPluginAudioProcessor::deserializeNode(juce::XmlElement *nodeElement,
+                                                track::audioNode *node) {
+    DBG("deserializing - " << node->trackName);
+    node->isTrack = nodeElement->getBoolAttribute("istrack", true);
+    node->trackName = nodeElement->getStringAttribute("name");
+    node->processor = this;
+    node->sampleRate = getSampleRate();
+    node->maxSamplesPerBlock = 512;
+
+    juce::XmlElement *pluginElement = nodeElement->getChildByName("plugin");
+    while (pluginElement != nullptr) {
+        juce::String identifier =
+            pluginElement->getStringAttribute("identifier");
+        node->addPlugin(identifier);
+
+        // get plugin
+        auto &pluginInstance = *node->plugins.back();
+
+        // get and assign data from base64
+        juce::String encodedPluginData =
+            pluginElement->getStringAttribute("data");
+        juce::MemoryBlock pluginData;
+
+        pluginData.fromBase64Encoding(encodedPluginData);
+        pluginInstance.setStateInformation(pluginData.getData(),
+                                           pluginData.getSize());
+
+        pluginElement = pluginElement->getNextElementWithTagName("plugin");
+    }
+
+    if (node->isTrack) {
+        juce::XmlElement *clipElement = nodeElement->getChildByName("clip");
+
+        while (clipElement != nullptr) {
+            // get clip data
+            juce::String path = clipElement->getStringAttribute("path");
+            juce::String clipName = clipElement->getStringAttribute("name");
+            int start = clipElement->getIntAttribute("start");
+            bool active = clipElement->getIntAttribute("active");
+
+            // create clip instance
+            node->clips.emplace_back();
+            track::clip *c = &node->clips.back();
+            c->active = active;
+            c->path = path;
+            c->name = clipName;
+            c->startPositionSample = start;
+            c->updateBuffer();
+
+            clipElement = clipElement->getNextElementWithTagName("clip");
+        }
+    } else {
+        juce::XmlElement *childElement = nodeElement->getChildByName("node");
+        while (childElement != nullptr) {
+            track::audioNode *child = &node->childNodes.emplace_back();
+            deserializeNode(childElement, child);
+
+            childElement = childElement->getNextElementWithTagName("node");
+        }
+    }
+}
+
 void AudioPluginAudioProcessor::getStateInformation(
     juce::MemoryBlock &destData) {
     auto state = apvts.copyState();
     std::unique_ptr<juce::XmlElement> xml(state.createXml());
 
-    xml->deleteAllChildElementsWithTagName("track");
+    xml->deleteAllChildElementsWithTagName("node");
 
     DBG("getStateInformation() called");
 
-    /*
-    xml->addChildElement(new juce::XmlElement("huzzah"));
-    xml->getChildByName("huzzah")->setAttribute("val",
-                                                "wowowiw this is a string");
-                                                */
-
-    /*
-    <track name="Jarvis" index="0">
-        <clip
-            path="/clearly/you/dont/have/an/airfryer.wav"
-            start="44100"
-            name="ironman">
-        </clip>
-    </track>
-    */
-    for (int i = 0; i < tracks.size(); ++i) {
-        juce::XmlElement *trackElement = new juce::XmlElement("track");
-        trackElement->setAttribute("name", tracks[i].trackName);
-        trackElement->setAttribute("index", i);
-
-        for (int j = 0; j < tracks[i].clips.size(); ++j) {
-            juce::XmlElement *clipElement = new juce::XmlElement("clip");
-            track::clip *c = &tracks[i].clips[j];
-
-            clipElement->setAttribute("active", c->active);
-            clipElement->setAttribute("path", c->path);
-            clipElement->setAttribute("start", c->startPositionSample);
-            clipElement->setAttribute("name", c->name);
-
-            trackElement->addChildElement(clipElement);
-        }
-
-        xml->addChildElement(trackElement);
+    for (size_t i = 0; i < tracks.size(); ++i) {
+        xml->addChildElement(serializeNode(&tracks[i]));
     }
 
-    // copyXmlToBinary(*xml, destData);
+    copyXmlToBinary(*xml, destData);
 
     DBG(xml->createDocument(""));
 }
@@ -365,60 +441,15 @@ void AudioPluginAudioProcessor::setStateInformation(const void *data,
         if (xmlState->hasTagName(apvts.state.getType()))
             apvts.replaceState(juce::ValueTree::fromXml(*xmlState));
 
-        /*
-        DBG("setStateInformation() called");
-        auto a = xmlState.get()->getChildByName("huzzah");
-        if (a == nullptr)
-            DBG("! a IS NULL :(((");
-        else {
-            DBG("a is NOT null :)");
-            auto &x = a->getAttributeValue(0);
-            DBG(x);
-        }
-        */
-
-        /*
-        auto a = xmlState->getChildByName("track");
-        jassert(a != nullptr);
-        auto &v = a->getAttributeValue(0);
-        DBG("v = " << v);
-        */
-
         tracks.clear();
 
-        juce::XmlElement *trackElement = xmlState->getChildByName("track");
-        while (trackElement != nullptr) {
-            // get track data
-            juce::String trackName = trackElement->getStringAttribute("name");
-            // DBG("FOUND TRACK " << trackName);
-            juce::XmlElement *clipElement =
-                trackElement->getChildByName("clip");
+        juce::XmlElement *nodeElement = xmlState->getChildByName("node");
 
-            // create track instance
-            tracks.emplace_back();
-            track::audioNode *t = &tracks.back();
-            t->trackName = trackName;
-
-            while (clipElement != nullptr) {
-                // get clip data
-                juce::String path = clipElement->getStringAttribute("path");
-                juce::String clipName = clipElement->getStringAttribute("name");
-                int start = clipElement->getIntAttribute("start");
-                bool active = clipElement->getIntAttribute("active");
-
-                // create clip instance
-                t->clips.emplace_back();
-                track::clip *c = &t->clips.back();
-                c->active = active;
-                c->path = path;
-                c->name = clipName;
-                c->startPositionSample = start;
-                c->updateBuffer();
-
-                clipElement = clipElement->getNextElementWithTagName("clip");
-            }
-
-            trackElement = trackElement->getNextElementWithTagName("track");
+        while (nodeElement != nullptr) {
+            track::audioNode *node = &tracks.emplace_back();
+            DBG("root deserialization call for " << node->trackName);
+            deserializeNode(nodeElement, node);
+            nodeElement = nodeElement->getNextElementWithTagName("node");
         }
     }
 

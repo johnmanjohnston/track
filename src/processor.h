@@ -1,5 +1,6 @@
 #pragma once
 #include "daw/track.h"
+#include "juce_core/juce_core.h"
 #include <JuceHeader.h>
 #include <juce_audio_processors/juce_audio_processors.h>
 
@@ -32,6 +33,8 @@ class AudioPluginAudioProcessor : public juce::AudioProcessor {
     const juce::String getProgramName(int index) override;
     void changeProgramName(int index, const juce::String &newName) override;
 
+    juce::XmlElement *serializeNode(track::audioNode *node);
+    void deserializeNode(juce::XmlElement *nodeElement, track::audioNode *node);
     void getStateInformation(juce::MemoryBlock &destData) override;
     void setStateInformation(const void *data, int sizeInBytes) override;
 
