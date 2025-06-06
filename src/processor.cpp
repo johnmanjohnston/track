@@ -1,8 +1,7 @@
 #include "processor.h"
+#include "daw/defs.h"
 #include "daw/track.h"
 #include "editor.h"
-#include "juce_audio_basics/juce_audio_basics.h"
-#include "juce_core/juce_core.h"
 
 AudioPluginAudioProcessor::AudioPluginAudioProcessor()
     : AudioProcessor(
@@ -78,6 +77,7 @@ void AudioPluginAudioProcessor::changeProgramName(int index,
 
 void AudioPluginAudioProcessor::prepareToPlay(double sampleRate,
                                               int samplesPerBlock) {
+    track::SAMPLE_RATE = sampleRate;
 
     this->maxSamplesPerBlock = samplesPerBlock;
 

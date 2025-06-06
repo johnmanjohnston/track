@@ -136,32 +136,32 @@ void track::TimelineComponent::mouseDown(const juce::MouseEvent &event) {
                             clipboard::typecode == TYPECODE_CLIP);
         contextMenu.addSubMenu("Grid", gridMenu);
 
-        contextMenu.showMenuAsync(
-            juce::PopupMenu::Options(), [this, event](int result) {
-                if (result == MENU_PASTE_CLIP) {
-                    DBG("paste clip");
-                    if (clipboard::typecode != TYPECODE_CLIP)
-                        return;
+        contextMenu.showMenuAsync(juce::PopupMenu::Options(), [this, event](
+                                                                  int result) {
+            if (result == MENU_PASTE_CLIP) {
+                DBG("paste clip");
+                if (clipboard::typecode != TYPECODE_CLIP)
+                    return;
 
-                    // create clip for processor
-                    clip *orginalClip = (clip *)clipboard::retrieveData();
-                    std::unique_ptr<clip> newClip(new clip());
-                    newClip->path = orginalClip->path;
-                    newClip->buffer = orginalClip->buffer;
-                    newClip->active = orginalClip->active;
-                    newClip->name = orginalClip->name;
-                    newClip->startPositionSample =
-                        (event.getMouseDownX() * 44100) / UI_ZOOM_MULTIPLIER;
+                // create clip for processor
+                clip *orginalClip = (clip *)clipboard::retrieveData();
+                std::unique_ptr<clip> newClip(new clip());
+                newClip->path = orginalClip->path;
+                newClip->buffer = orginalClip->buffer;
+                newClip->active = orginalClip->active;
+                newClip->name = orginalClip->name;
+                newClip->startPositionSample =
+                    (event.getMouseDownX() * SAMPLE_RATE) / UI_ZOOM_MULTIPLIER;
 
-                    int trackIndex = juce::jmin(
-                        trackIndex = event.getMouseDownY() / UI_TRACK_HEIGHT,
-                        (int)processorRef->tracks.size() - 1);
-                    processorRef->tracks[(size_t)trackIndex].clips.push_back(
-                        *newClip);
+                int trackIndex = juce::jmin(
+                    trackIndex = event.getMouseDownY() / UI_TRACK_HEIGHT,
+                    (int)processorRef->tracks.size() - 1);
+                processorRef->tracks[(size_t)trackIndex].clips.push_back(
+                    *newClip);
 
-                    updateClipComponents();
-                }
-            });
+                updateClipComponents();
+            }
+        });
     }
 }
 
@@ -221,13 +221,13 @@ void track::TimelineComponent::paint(juce::Graphics &g) {
 
     // draw clips
     for (auto &&clip : this->clipComponents) {
-        clip->setBounds(clip->correspondingClip->startPositionSample / 44100.0 *
-                            UI_ZOOM_MULTIPLIER,
+        clip->setBounds(clip->correspondingClip->startPositionSample /
+                            SAMPLE_RATE * UI_ZOOM_MULTIPLIER,
                         UI_TRACK_VERTICAL_OFFSET +
                             (clip->nodeDisplayIndex * UI_TRACK_HEIGHT) +
                             (UI_TRACK_VERTICAL_MARGIN * clip->nodeDisplayIndex),
                         clip->correspondingClip->buffer.getNumSamples() /
-                            44100.0 * UI_ZOOM_MULTIPLIER,
+                            SAMPLE_RATE * UI_ZOOM_MULTIPLIER,
                         UI_TRACK_HEIGHT);
 
         // handle offline clips
@@ -277,7 +277,7 @@ void track::TimelineComponent::resizeTimelineComponent() {
 
     // DBG("largestEnd is " << largestEnd);
     jassert(UI_ZOOM_MULTIPLIER > 0);
-    largestEnd /= 44100 / UI_ZOOM_MULTIPLIER;
+    largestEnd /= 40000 / UI_ZOOM_MULTIPLIER;
     largestEnd += 2000;
     // DBG("now, largestEnd is " << largestEnd);
 

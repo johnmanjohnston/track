@@ -1,5 +1,6 @@
 #pragma once
 #include "BinaryData.h"
+#include "juce_gui_basics/juce_gui_basics.h"
 #include <JuceHeader.h>
 
 namespace track {
@@ -188,6 +189,8 @@ class Tracklist : public juce::Component {
 
     juce::TextButton newTrackBtn;
     juce::TextButton newGroupBtn;
+    juce::TextButton unsoloAllBtn;
+    juce::TextButton unmuteAllBtn;
 };
 
 class TrackViewport : public juce::Viewport {

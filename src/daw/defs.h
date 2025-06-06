@@ -8,7 +8,7 @@ constexpr int UI_MINIMUM_TRACK_HEIGHT = 20;
 constexpr int UI_MAXIMUM_TRACK_HEIGHT = 120;
 
 constexpr int UI_TRACK_VERTICAL_MARGIN = 0;
-constexpr int UI_TRACK_VERTICAL_OFFSET = 22;
+constexpr int UI_TRACK_VERTICAL_OFFSET = 19;
 constexpr int UI_TRACK_WIDTH = 300;
 constexpr int UI_TRACK_INDEX_WIDTH = 22;
 constexpr int UI_TRACK_DEPTH_INCREMENTS = 8;
@@ -20,6 +20,8 @@ constexpr int UI_SUBWINDOW_TITLEBAR_MARGIN = 5;
 
 extern int BPM; // set in playhead
 extern int SNAP_DIVISION;
+
+extern double SAMPLE_RATE; // set in prepareToPlay()
 
 // must align with internal JUCE modifications
 #define COMMAND_UPDATE_VST3_EMBEDDED_BOUNDS 420

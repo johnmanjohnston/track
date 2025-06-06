@@ -5,6 +5,7 @@
 #include "daw/timeline.h"
 #include "daw/track.h"
 #include "juce_audio_processors/juce_audio_processors.h"
+#include "juce_graphics/juce_graphics.h"
 #include "lookandfeel.h"
 #include "processor.h"
 
@@ -100,13 +101,23 @@ void AudioPluginAudioProcessorEditor::paint(juce::Graphics &g) {
 
     // draw "track" logo
     g.setColour(juce::Colour(0xFF727272));
-    g.setFont(track::ui::CustomLookAndFeel::getInterRegular()
-                  .italicised()
-                  .boldened()
-                  .withHeight(26.f)
-                  .withExtraKerningFactor(-.05f));
+    auto epicFont =
+        (track::ui::CustomLookAndFeel::getInterRegular().withExtraKerningFactor(
+            -.05f));
+
+    g.setFont(epicFont.withHeight(26.f).italicised().boldened());
+
     g.drawFittedText("track", juce::Rectangle<int>(34, 1, 100, 50),
                      juce::Justification::left, 1);
+
+    /*
+    g.setFont(epicFont.withHeight(14.f));
+    juce::String audioInfoText = "[" + juce::String(track::SAMPLE_RATE / 1000) +
+                                 "kHz " + juce::String(track::BLOCK_SIZE) +
+                                 "spls" + "]";
+    g.drawText(audioInfoText, getWidth() - 200 - 2, 0, 200, 20,
+               juce::Justification::right);
+*/
 }
 
 void AudioPluginAudioProcessorEditor::resized() {
@@ -123,7 +134,7 @@ void AudioPluginAudioProcessorEditor::resized() {
     transportStatus.setBounds(timeInfoRectangle);
 
     int scanBtnWidth = 50;
-    scanBtn.setBounds(getWidth() - scanBtnWidth, 1, 50, 20);
+    scanBtn.setBounds(getWidth() - scanBtnWidth - 200, 1, 50, 20);
 }
 
 void AudioPluginAudioProcessorEditor::openFxChain(std::vector<int> route) {

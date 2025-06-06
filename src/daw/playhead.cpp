@@ -10,7 +10,9 @@ void track::PlayheadComponent::paint(juce::Graphics &g) {
     if (getBounds().getX() < UI_TRACK_WIDTH)
         return;
 
-    g.fillAll(juce::Colours::orange);
+    g.fillAll(juce::Colour(0xFF'E9FFFF));
+    g.setColour(juce::Colours::black);
+    g.drawRect(getLocalBounds());
 }
 
 void track::PlayheadComponent::updateBounds() {
@@ -27,8 +29,8 @@ void track::PlayheadComponent::updateBounds() {
     } else
         BPM = 120;
 
-    setBounds((curSample / 44100.0 * UI_ZOOM_MULTIPLIER) + UI_TRACK_WIDTH -
+    setBounds((curSample / SAMPLE_RATE * UI_ZOOM_MULTIPLIER) + UI_TRACK_WIDTH -
                   tv->getViewPositionX(),
-              UI_TOPBAR_HEIGHT, 1, 1080);
+              UI_TOPBAR_HEIGHT + 5, 3, 720 - UI_TOPBAR_HEIGHT - 5 - 8);
     repaint();
 }

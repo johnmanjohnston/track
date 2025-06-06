@@ -21,7 +21,7 @@ track::ClipComponent::ClipComponent(clip *c)
     }
 
     this->correspondingClip = c;
-    thumbnail.setSource(&correspondingClip->buffer, 44100.0, 2);
+    thumbnail.setSource(&correspondingClip->buffer, SAMPLE_RATE, 2);
 
     thumbnail.addChangeListener(this);
 
@@ -116,6 +116,7 @@ void track::ClipComponent::mouseDown(const juce::MouseEvent &event) {
 #define MENU_CUT_CLIP 2
 #define MENU_TOGGLE_CLIP_ACTIVATION 3
 #define MENU_COPY_CLIP 4
+#define MENU_SHOW_IN_EXPLORER 5
 
         contextMenu.addItem(MENU_COPY_CLIP, "Copy clip");
         contextMenu.addItem(MENU_CUT_CLIP, "Cut");
@@ -123,6 +124,7 @@ void track::ClipComponent::mouseDown(const juce::MouseEvent &event) {
         contextMenu.addItem(MENU_REVERSE_CLIP, "Reverse");
         contextMenu.addItem(MENU_TOGGLE_CLIP_ACTIVATION,
                             "Toggle activate/deactive clip");
+        contextMenu.addItem(MENU_SHOW_IN_EXPLORER, "Show in explorer");
 
         juce::PopupMenu::Options options;
 
@@ -130,7 +132,7 @@ void track::ClipComponent::mouseDown(const juce::MouseEvent &event) {
             if (result == MENU_REVERSE_CLIP) {
                 this->correspondingClip->reverse();
                 thumbnailCache.clear();
-                thumbnail.setSource(&correspondingClip->buffer, 44100.0, 2);
+                thumbnail.setSource(&correspondingClip->buffer, SAMPLE_RATE, 2);
                 repaint();
             }
 
@@ -161,6 +163,11 @@ void track::ClipComponent::mouseDown(const juce::MouseEvent &event) {
 
                 clipboard::setData(newClip, TYPECODE_CLIP);
             }
+
+            else if (result == MENU_SHOW_IN_EXPLORER) {
+                juce::File f(correspondingClip->path);
+                f.revealToUser();
+            }
         });
     }
 
@@ -176,14 +183,14 @@ void track::ClipComponent::mouseDrag(const juce::MouseEvent &event) {
 
     int distanceMoved = startDragX + event.getDistanceFromDragStartX();
     int rawSamplePos = startDragStartPositionSample +
-                       ((distanceMoved * 44100) / UI_ZOOM_MULTIPLIER);
+                       ((distanceMoved * SAMPLE_RATE) / UI_ZOOM_MULTIPLIER);
 
     // if alt held, don't snap
     if (event.mods.isAltDown()) {
         correspondingClip->startPositionSample = rawSamplePos;
     } else {
         double secondsPerBeat = 60.f / BPM;
-        int samplesPerBar = (secondsPerBeat * 44100) * 4;
+        int samplesPerBar = (secondsPerBeat * SAMPLE_RATE) * 4;
         int samplesPerSnap = samplesPerBar / SNAP_DIVISION;
 
         int snappedSamplePos =
@@ -202,11 +209,6 @@ void track::ClipComponent::mouseUp(const juce::MouseEvent &event) {
         isBeingDragged = false;
 
         int distanceMovedHorizontally = event.getDistanceFromDragStartX();
-
-        /*
-        this->correspondingClip->startPositionSample +=
-            (distanceMovedHorizontally * 44100) / UI_ZOOM_MULTIPLIER;
-            */
 
         TimelineComponent *tc = (TimelineComponent *)getParentComponent();
         jassert(tc != nullptr);
@@ -325,7 +327,7 @@ void track::TrackComponent::mouseDown(const juce::MouseEvent &event) {
         contextMenu.setLookAndFeel(&getLookAndFeel());
 
         contextMenu.addItem(
-            "delete " + getCorrespondingTrack()->trackName, [this] {
+            "Delete " + getCorrespondingTrack()->trackName, [this] {
                 Tracklist *tracklist =
                     (Tracklist *)findParentComponentOfClass<Tracklist>();
 
@@ -336,12 +338,12 @@ void track::TrackComponent::mouseDown(const juce::MouseEvent &event) {
         if (getCorrespondingTrack()->isTrack == false) {
             contextMenu.addSeparator();
 
-            contextMenu.addItem("add child track", [this] {
+            contextMenu.addItem("Add child track", [this] {
                 Tracklist *tracklist = findParentComponentOfClass<Tracklist>();
                 tracklist->addNewNode(true, getCorrespondingTrack());
             });
 
-            contextMenu.addItem("add child group", [this] {
+            contextMenu.addItem("Add child group", [this] {
                 Tracklist *tracklist = findParentComponentOfClass<Tracklist>();
                 tracklist->addNewNode(false, getCorrespondingTrack());
             });
@@ -537,6 +539,18 @@ void track::TrackComponent::paint(juce::Graphics &g) {
         track::ui::CustomLookAndFeel::getInterSemiBold().withHeight(17.f));
     g.drawText(juce::String(displayIndex + 1), 0, 0, UI_TRACK_INDEX_WIDTH,
                UI_TRACK_HEIGHT, juce::Justification::centred);
+
+    // draw mute marker
+    if (getCorrespondingTrack()->m) {
+        int btnSize = 24;
+        juce::Rectangle<int> btnBounds = juce::Rectangle<int>(
+            UI_TRACK_WIDTH - 100, (UI_TRACK_HEIGHT / 2) - (btnSize / 2),
+            btnSize, btnSize);
+
+        btnBounds.expand(1, 1);
+        g.setColour(juce::Colour(0xFF'FACD51));
+        g.drawRect(btnBounds);
+    }
 }
 
 void track::TrackComponent::resized() {
@@ -599,6 +613,22 @@ track::Tracklist::Tracklist() : juce::Component() {
 
     addAndMakeVisible(newGroupBtn);
     newGroupBtn.setButtonText("ADD GROUP");
+
+    addAndMakeVisible(unmuteAllBtn);
+    unmuteAllBtn.setButtonText("UNMUTE ALL");
+    unmuteAllBtn.onClick = [this] {
+        for (auto &tc : trackComponents) {
+            tc->getCorrespondingTrack()->m = false;
+        }
+    };
+
+    addAndMakeVisible(unsoloAllBtn);
+    unsoloAllBtn.setButtonText("UNSOLO ALL");
+    unmuteAllBtn.onClick = [this] {
+        for (auto &tc : trackComponents) {
+            tc->getCorrespondingTrack()->s = false;
+        }
+    };
 
     newTrackBtn.onClick = [this] { addNewNode(); };
     newGroupBtn.onClick = [this] { addNewNode(false); };
@@ -992,8 +1022,16 @@ void track::Tracklist::setTrackComponentBounds() {
         tc->repaint();
     }
 
-    newTrackBtn.setBounds(0, 0, 80, UI_TRACK_VERTICAL_OFFSET);
-    newGroupBtn.setBounds(80 + 20, 0, 80, UI_TRACK_VERTICAL_OFFSET);
+    int btnWidth = 71;
+    int btnMargin = 3;
+    int xOffset = 0;
+    newTrackBtn.setBounds(xOffset, 0, btnWidth, UI_TRACK_VERTICAL_OFFSET);
+    newGroupBtn.setBounds(xOffset + btnWidth + btnMargin, 0, btnWidth,
+                          UI_TRACK_VERTICAL_OFFSET);
+    unsoloAllBtn.setBounds(xOffset + (2 * (btnWidth + btnMargin)), 0, btnWidth,
+                           UI_TRACK_VERTICAL_OFFSET);
+    unmuteAllBtn.setBounds(xOffset + (3 * (btnWidth + btnMargin)), 0, btnWidth,
+                           UI_TRACK_VERTICAL_OFFSET);
     // DBG("setTrackComponentBounds() called");
 
     if (getParentComponent()) {

@@ -1,6 +1,5 @@
 #pragma once
 #include "daw/playhead.h"
-// #include "daw/plugin_chain.h"
 #include "daw/timeline.h"
 #include "daw/track.h"
 #include "daw/transport_status.h"
