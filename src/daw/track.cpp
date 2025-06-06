@@ -333,6 +333,20 @@ void track::TrackComponent::mouseDown(const juce::MouseEvent &event) {
                 tracklist->deleteTrack(this->route);
             });
 
+        if (getCorrespondingTrack()->isTrack == false) {
+            contextMenu.addSeparator();
+
+            contextMenu.addItem("add child track", [this] {
+                Tracklist *tracklist = findParentComponentOfClass<Tracklist>();
+                tracklist->addNewNode(true, getCorrespondingTrack());
+            });
+
+            contextMenu.addItem("add child group", [this] {
+                Tracklist *tracklist = findParentComponentOfClass<Tracklist>();
+                tracklist->addNewNode(false, getCorrespondingTrack());
+            });
+        }
+
         contextMenu.showMenuAsync(juce::PopupMenu::Options());
     }
 }
@@ -632,36 +646,23 @@ void track::Tracklist::copyNode(audioNode *dest, audioNode *src) {
     }
 }
 
-void track::Tracklist::addNewNode(bool isTrack) {
-    auto p = (AudioPluginAudioProcessor *)this->processor;
-    p->tracks.emplace_back();
-    audioNode &t = p->tracks.back();
-    t.processor = this->processor;
-    t.isTrack = isTrack;
-    t.trackName = isTrack ? "Track" : "Group";
-    t.trackName += " " + juce::String(trackComponents.size() + 1);
+void track::Tracklist::addNewNode(bool isTrack, audioNode *parent) {
+    AudioPluginAudioProcessor *p = (AudioPluginAudioProcessor *)this->processor;
+    audioNode *newNode = nullptr;
+    if (parent == nullptr) {
+        newNode = &p->tracks.emplace_back();
+    } else {
+        newNode = &parent->childNodes.emplace_back();
+    }
 
-    jassert(t.processor != nullptr);
+    newNode->processor = p;
+    newNode->isTrack = isTrack;
+    newNode->trackName = isTrack ? "Track" : "Group";
+    newNode->trackName += " " + juce::String(trackComponents.size() + 1);
 
-    int i = p->tracks.size() - 1;
-    std::vector<int> route;
-    route.push_back(i);
-    this->trackComponents.push_back(std::make_unique<TrackComponent>(i));
-    trackComponents.back().get()->processor = processor;
-    trackComponents.back().get()->route = route;
-    trackComponents.back().get()->initializSliders();
-    trackComponents.back().get()->displayIndex = trackComponents.size() - 1;
-
-    // set track label text
-    trackComponents.back().get()->trackNameLabel.setText(
-        trackComponents.back().get()->getCorrespondingTrack()->trackName,
-        juce::NotificationType::dontSendNotification);
-
-    addAndMakeVisible(*trackComponents.back());
-
-    DBG("New node component added");
+    trackComponents.clear();
+    createTrackComponents();
     setTrackComponentBounds();
-
     repaint();
 }
 
@@ -892,7 +893,9 @@ void track::Tracklist::mouseDown(const juce::MouseEvent &event) {
         juce::PopupMenu contextMenu;
         contextMenu.setLookAndFeel(&getLookAndFeel());
 
-        contextMenu.addItem("add new track", [this] { this->addNewNode(); });
+        contextMenu.addItem("Add new track", [this] { this->addNewNode(); });
+        contextMenu.addItem("Add new group",
+                            [this] { this->addNewNode(false); });
 
         contextMenu.showMenuAsync(juce::PopupMenu::Options());
     }
