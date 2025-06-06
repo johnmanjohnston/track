@@ -1118,7 +1118,7 @@ void track::audioNode::removePlugin(int index) {
 void track::audioNode::preparePlugins(int newMaxSamplesPerBlock,
                                       int newSampleRate) {
     for (std::unique_ptr<juce::AudioPluginInstance> &plugin : plugins) {
-        plugin->prepareToPlay(newMaxSamplesPerBlock, newSampleRate);
+        plugin->prepareToPlay(sampleRate, newMaxSamplesPerBlock);
     }
 }
 
