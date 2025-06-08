@@ -355,7 +355,7 @@ AudioPluginAudioProcessor::serializeNode(track::audioNode *node) {
 
 void AudioPluginAudioProcessor::deserializeNode(juce::XmlElement *nodeElement,
                                                 track::audioNode *node) {
-    DBG("deserializing - " << node->trackName);
+    DBG("deserializing - " << nodeElement->getStringAttribute("name"));
     node->isTrack = nodeElement->getBoolAttribute("istrack", true);
     node->trackName = nodeElement->getStringAttribute("name");
     node->processor = this;

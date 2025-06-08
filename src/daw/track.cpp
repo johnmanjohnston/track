@@ -738,6 +738,9 @@ void track::Tracklist::recursivelyDeleteNodePlugins(audioNode *node) {
 
 // vokd track::Tracklist::deleteTrack(int trackIndex) {
 void track::Tracklist::deleteTrack(std::vector<int> route) {
+    TimelineComponent *tc = (TimelineComponent *)this->timelineComponent;
+    tc->clipComponents.clear();
+
     juce::MessageManagerLock mmlock;
     AudioPluginAudioProcessor *p = (AudioPluginAudioProcessor *)processor;
 
@@ -767,6 +770,7 @@ void track::Tracklist::deleteTrack(std::vector<int> route) {
     this->trackComponents.clear();
     this->createTrackComponents();
     this->setTrackComponentBounds();
+    tc->updateClipComponents();
 }
 
 void track::Tracklist::deepCopyGroupInsideGroup(audioNode *childNode,

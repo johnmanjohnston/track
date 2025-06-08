@@ -38,9 +38,11 @@ void track::TimelineViewport::mouseWheelMove(
         juce::ModifierKeys::currentModifiers.isCommandDown()) {
 
         TimelineComponent *tc = (TimelineComponent *)getViewedComponent();
-        int orginalWidth = tc->getWidth();
-        int x = getViewPositionX();
-        float ratio = (float)orginalWidth / (float)x;
+        // ev.x is mouse coordiantes in viweport
+        // getViewPositionX() is x scroll left
+
+        int mouseXCoordinates = ev.x + getViewPositionX();
+        int oldZoom = UI_ZOOM_MULTIPLIER;
 
         if (mouseWheelDetails.deltaY < 0 &&
             UI_ZOOM_MULTIPLIER > UI_MINIMUM_ZOOM_MULTIPLIER) {
@@ -52,8 +54,13 @@ void track::TimelineViewport::mouseWheelMove(
 
         tc->resizeTimelineComponent();
 
-        int newWidth = tc->getWidth();
-        int newX = (int)((float)newWidth / (float)ratio);
+        float scale =
+            (float)tc->getWidth() /
+            (float)((float)tc->getWidth() * oldZoom / UI_ZOOM_MULTIPLIER);
+
+        int newMouseXCoords = mouseXCoordinates * scale;
+        int newX = newMouseXCoords - ev.x;
+
         setViewPosition(newX, getViewPositionY());
 
         repaint();
@@ -316,9 +323,11 @@ void track::TimelineComponent::filesDropped(const juce::StringArray &files,
     if (viewport->tracklist->trackComponents.size() == 0)
         return;
 
-    int nodeDisplayIndex =
-        juce::jmin((y / UI_TRACK_HEIGHT) - 1,
-                   (int)viewport->tracklist->trackComponents.size() - 1);
+    int nodeDisplayIndex = ((y + (UI_TRACK_HEIGHT / 2)) / UI_TRACK_HEIGHT) - 1;
+    nodeDisplayIndex =
+        juce::jlimit(0, (int)viewport->tracklist->trackComponents.size() - 1,
+                     nodeDisplayIndex);
+
     DBG("track index is " << nodeDisplayIndex);
 
     std::unique_ptr<clip> c(new clip());
