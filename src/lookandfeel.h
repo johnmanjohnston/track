@@ -27,6 +27,9 @@ class CustomLookAndFeel : public juce::LookAndFeel_V4 {
         setColour(PopupMenu::backgroundColourId, juce::Colour(0xFF'1F1F1F));
         setColour(PopupMenu::highlightedBackgroundColourId,
                   juce::Colour(0xFF'454545));
+
+        setColour(Label::outlineWhenEditingColourId,
+                  juce::Colours::transparentWhite);
     }
 
     static const juce::Font getRobotoMonoThin();
@@ -48,6 +51,9 @@ class CustomLookAndFeel : public juce::LookAndFeel_V4 {
                               bool shouldDrawButtonAsDown) override;
 
     void drawPopupMenuBackground(Graphics &g, int width, int height) override;
+
+    void drawLabel(Graphics &g, Label &label) override;
+
     Font getPopupMenuFont() override;
 
     Font getTextButtonFont(TextButton &button, int buttonHeight) override;

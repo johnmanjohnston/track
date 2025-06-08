@@ -239,6 +239,48 @@ void track::ui::CustomLookAndFeel::drawPopupMenuBackground(Graphics &g,
     g.drawRect(juce::Rectangle<int>(0, 0, width, height), 1);
 }
 
+void track::ui::CustomLookAndFeel::drawLabel(Graphics &g, Label &label) {
+    g.fillAll(label.findColour(Label::backgroundColourId));
+
+    auto textArea =
+        getLabelBorderSize(label).subtractedFrom(label.getLocalBounds());
+
+    if (!label.isBeingEdited()) {
+        auto alpha = label.isEnabled() ? 1.0f : 0.5f;
+        const Font font(getLabelFont(label));
+
+        g.setColour(
+            label.findColour(Label::textColourId).withMultipliedAlpha(alpha));
+        g.setFont(font);
+
+        g.drawFittedText(
+            label.getText(), textArea, label.getJustificationType(),
+            jmax(1, (int)((float)textArea.getHeight() / font.getHeight())),
+            label.getMinimumHorizontalScale());
+
+        g.setColour(label.findColour(Label::outlineColourId)
+                        .withMultipliedAlpha(alpha));
+    } else if (label.isEnabled()) {
+        g.setColour(label.findColour(Label::outlineColourId));
+    }
+
+    // text editor moves by 1px and is annoying, check if y is odd/even to
+    // make sure you move only y value onle once
+    if (label.isBeingEdited()) {
+        TextEditor *te = label.getCurrentTextEditor();
+        te->setFont(label.getFont());
+
+        // ABSOLUTE CINEMA.
+        juce::Rectangle<int> bounds = te->getBounds();
+        if (bounds.getY() % 2 == 0)
+            bounds.setY(bounds.getY() - 1);
+
+        te->setBounds(bounds);
+    }
+
+    // g.drawRect(label.getLocalBounds());
+}
+
 Font track::ui::CustomLookAndFeel::getPopupMenuFont() {
     return getInterRegular().withHeight(20.f).withExtraKerningFactor(-.03f);
 }

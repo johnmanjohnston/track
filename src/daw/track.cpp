@@ -86,7 +86,7 @@ void track::ClipComponent::paint(juce::Graphics &g) {
                                thumbnail.getTotalLength(), .7f);
     }
 
-    if (isMouseOver(true) && !isBeingDragged) {
+    if (isMouseOver(false) && !isBeingDragged) {
         g.setColour(juce::Colours::white.withAlpha(.07f));
         g.fillRoundedRectangle(getLocalBounds().toFloat(), cornerSize);
     }
