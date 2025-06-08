@@ -200,6 +200,9 @@ void track::ClipComponent::mouseDrag(const juce::MouseEvent &event) {
         correspondingClip->startPositionSample = snappedSamplePos;
     }
 
+    TimelineComponent *tc = findParentComponentOfClass<TimelineComponent>();
+    tc->resizeClipComponent(this);
+
     repaint();
 }
 

@@ -1,10 +1,6 @@
 #include "timeline.h"
 #include "clipboard.h"
 #include "defs.h"
-#include "juce_core/juce_core.h"
-#include "juce_graphics/juce_graphics.h"
-#include "juce_graphics/native/juce_EventTracing.h"
-#include "juce_gui_basics/juce_gui_basics.h"
 #include "track.h"
 #include <memory>
 
@@ -84,6 +80,7 @@ void track::TimelineViewport::mouseWheelMove(
             (tracklist->trackComponents.size() + 2) * (size_t)UI_TRACK_HEIGHT;
         timelineComponent->setSize(timelineComponent->getWidth(),
                                    juce::jmax(tcHeight, this->getHeight()));
+        timelineComponent->resized();
         timelineComponent->repaint();
 
         if (timelineComponent->getHeight() <= this->getHeight()) {
@@ -225,24 +222,30 @@ void track::TimelineComponent::paint(juce::Graphics &g) {
 
     if (clipComponentsUpdated == false)
         updateClipComponents();
+}
 
+void track::TimelineComponent::resizeClipComponent(track::ClipComponent *clip) {
+    clip->setBounds(clip->correspondingClip->startPositionSample / SAMPLE_RATE *
+                        UI_ZOOM_MULTIPLIER,
+                    UI_TRACK_VERTICAL_OFFSET +
+                        (clip->nodeDisplayIndex * UI_TRACK_HEIGHT) +
+                        (UI_TRACK_VERTICAL_MARGIN * clip->nodeDisplayIndex),
+                    clip->correspondingClip->buffer.getNumSamples() /
+                        SAMPLE_RATE * UI_ZOOM_MULTIPLIER,
+                    UI_TRACK_HEIGHT);
+
+    // handle offline clips
+    if (clip->correspondingClip->buffer.getNumSamples() == 0) {
+        juce::Rectangle<int> offlineClipBounds = clip->getBounds();
+        offlineClipBounds.setWidth(110);
+        clip->setBounds(offlineClipBounds);
+    }
+}
+
+void track::TimelineComponent::resized() {
     // draw clips
     for (auto &&clip : this->clipComponents) {
-        clip->setBounds(clip->correspondingClip->startPositionSample /
-                            SAMPLE_RATE * UI_ZOOM_MULTIPLIER,
-                        UI_TRACK_VERTICAL_OFFSET +
-                            (clip->nodeDisplayIndex * UI_TRACK_HEIGHT) +
-                            (UI_TRACK_VERTICAL_MARGIN * clip->nodeDisplayIndex),
-                        clip->correspondingClip->buffer.getNumSamples() /
-                            SAMPLE_RATE * UI_ZOOM_MULTIPLIER,
-                        UI_TRACK_HEIGHT);
-
-        // handle offline clips
-        if (clip->correspondingClip->buffer.getNumSamples() == 0) {
-            juce::Rectangle<int> offlineClipBounds = clip->getBounds();
-            offlineClipBounds.setWidth(110);
-            clip->setBounds(offlineClipBounds);
-        }
+        resizeClipComponent(clip.get());
     }
 }
 
@@ -267,14 +270,17 @@ void track::TimelineComponent::updateClipComponents() {
         }
     }
 
+    resized();
     resizeTimelineComponent();
 }
 
 void track::TimelineComponent::resizeTimelineComponent() {
     int largestEnd = -1;
 
-    for (audioNode &t : processorRef->tracks) {
-        for (clip &c : t.clips) {
+    for (auto &tc : viewport->tracklist->trackComponents) {
+        audioNode *node = tc->getCorrespondingTrack();
+
+        for (clip &c : node->clips) {
             if ((c.buffer.getNumSamples() + c.startPositionSample) >
                 largestEnd) {
                 largestEnd = c.buffer.getNumSamples() + c.startPositionSample;
@@ -284,7 +290,7 @@ void track::TimelineComponent::resizeTimelineComponent() {
 
     // DBG("largestEnd is " << largestEnd);
     jassert(UI_ZOOM_MULTIPLIER > 0);
-    largestEnd /= 40000 / UI_ZOOM_MULTIPLIER;
+    largestEnd /= (SAMPLE_RATE / UI_ZOOM_MULTIPLIER);
     largestEnd += 2000;
     // DBG("now, largestEnd is " << largestEnd);
 
@@ -317,8 +323,8 @@ bool track::TimelineComponent::isInterestedInFileDrag(
 
 void track::TimelineComponent::filesDropped(const juce::StringArray &files,
                                             int x, int y) {
-    // TODO: handle changing samplle rates of dragged file to match with sample
-    // rate of host
+    // TODO: handle changing samplle rates of dragged file to match with
+    // sample rate of host
 
     if (viewport->tracklist->trackComponents.size() == 0)
         return;

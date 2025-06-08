@@ -29,6 +29,8 @@ class TimelineComponent : public juce::Component,
     void mouseDown(const juce::MouseEvent &event) override;
 
     void paint(juce::Graphics &g) override;
+    void resizeClipComponent(ClipComponent *clip);
+    void resized() override;
 
     TimelineViewport *viewport = nullptr;
     AudioPluginAudioProcessor *processorRef = nullptr;
