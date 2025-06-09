@@ -40,21 +40,11 @@ class AudioPluginAudioProcessor : public juce::AudioProcessor {
 
     int maxSamplesPerBlock = -1;
 
-    // juce::String path =
-    //"C:/Users/USER/Downloads/hyperpop-trap-drums_151bpm_B_major.wav";
-
     std::vector<track::audioNode> tracks;
 
     juce::AudioProcessorValueTreeState apvts;
 
-    /*
-    AudioPluginFormatManager pluginFormatManager;
-    juce::OwnedArray<PluginDescription> foundPlugins;
-    KnownPluginList pluginList;
-    bool active = false;
-    std::unique_ptr<juce::AudioPluginInstance> plugin;
-    juce::String msg;
-    */
+    void updateLatency();
 
   private:
     juce::Random random;

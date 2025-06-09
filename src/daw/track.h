@@ -86,6 +86,9 @@ class audioNode {
     bool isTrack = true;
     std::vector<clip> clips;
     std::vector<audioNode> childNodes;
+
+    int getLatencySamples();
+    int getTotalLatencySamples();
 };
 
 class group {

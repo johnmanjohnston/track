@@ -302,6 +302,11 @@ void track::PluginChainComponent::paint(juce::Graphics &g) {
     // g.drawHorizontalLine(titlebarBounds.getHeight(), 0, getWidth());
     g.fillRect(0, titlebarBounds.getHeight(), getWidth(), 2);
     g.drawRect(getLocalBounds(), 2);
+
+    g.setColour(juce::Colours::white);
+    g.setFont(g.getCurrentFont().withHeight(18.f));
+    g.drawText(juce::String(getCorrespondingTrack()->getTotalLatencySamples()),
+               50, 0, 100, 50, juce::Justification::right);
 }
 
 void track::PluginChainComponent::mouseDrag(const juce::MouseEvent &event) {

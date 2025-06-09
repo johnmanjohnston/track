@@ -81,7 +81,7 @@ void AudioPluginAudioProcessor::prepareToPlay(double sampleRate,
 
     this->maxSamplesPerBlock = samplesPerBlock;
 
-    juce::ignoreUnused(sampleRate, samplesPerBlock);
+    updateLatency();
 
     for (track::audioNode &t : tracks) {
         t.processor = this;
@@ -440,7 +440,7 @@ void AudioPluginAudioProcessor::getStateInformation(
 
     copyXmlToBinary(*xml, destData);
 
-    DBG(xml->createDocument(""));
+    // DBG(xml->createDocument(""));
 }
 
 void AudioPluginAudioProcessor::setStateInformation(const void *data,
@@ -463,7 +463,21 @@ void AudioPluginAudioProcessor::setStateInformation(const void *data,
         }
     }
 
-    DBG(xmlState->createDocument(""));
+    // DBG(xmlState->createDocument(""));
+}
+
+void AudioPluginAudioProcessor::updateLatency() {
+    DBG("updateLatency() called");
+    int totalLatency = 0;
+    for (track::audioNode &node : this->tracks) {
+        DBG("calculating latency for node "
+            << node.trackName << " which returned sample count of "
+            << node.getTotalLatencySamples());
+        totalLatency += node.getTotalLatencySamples();
+    }
+
+    DBG("updateLatency() called. new latency is " << totalLatency);
+    setLatencySamples(totalLatency);
 }
 
 void AudioPluginAudioProcessor::reset() {

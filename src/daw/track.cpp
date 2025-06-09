@@ -1151,6 +1151,8 @@ void track::audioNode::addPlugin(juce::String path) {
     }
     plugin->prepareToPlay(sampleRate, maxSamplesPerBlock);
 
+    p->updateLatency();
+
     DBG("LOGGING OUTPUTS:");
     DBG("   " << plugin->getMainBusNumInputChannels() << " inputs");
     DBG("   " << plugin->getMainBusNumOutputChannels() << " outputs");
@@ -1161,6 +1163,31 @@ void track::audioNode::addPlugin(juce::String path) {
 void track::audioNode::removePlugin(int index) {
     this->plugins.erase(this->plugins.begin() + index);
     this->bypassedPlugins.erase(this->bypassedPlugins.begin() + index);
+
+    AudioPluginAudioProcessor *p = (AudioPluginAudioProcessor *)processor;
+    p->updateLatency();
+}
+
+int track::audioNode::getLatencySamples() {
+    int retval = 0;
+
+    for (auto &pluginInstance : plugins) {
+        retval += pluginInstance->getLatencySamples();
+    }
+
+    return retval;
+}
+
+int track::audioNode::getTotalLatencySamples() {
+    int retval = 0;
+
+    retval += this->getLatencySamples();
+
+    for (audioNode &node : this->childNodes) {
+        retval += node.getTotalLatencySamples();
+    }
+
+    return retval;
 }
 
 void track::audioNode::preparePlugins(int newMaxSamplesPerBlock,
