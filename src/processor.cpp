@@ -1,7 +1,7 @@
 #include "processor.h"
 #include "daw/defs.h"
-#include "daw/track.h"
 #include "editor.h"
+#include "juce_audio_processors/juce_audio_processors.h"
 
 AudioPluginAudioProcessor::AudioPluginAudioProcessor()
     : AudioProcessor(
@@ -316,7 +316,9 @@ AudioPluginAudioProcessor::serializeNode(track::audioNode *node) {
     nodeElement->setAttribute("istrack", node->isTrack);
     nodeElement->setAttribute("name", node->trackName);
 
-    for (auto &pluginInstance : node->plugins) {
+    jassert(node->plugins.size() == node->bypassedPlugins.size());
+    for (size_t i = 0; i < node->plugins.size(); ++i) {
+        auto &pluginInstance = node->plugins[i];
         juce::XmlElement *pluginElement = new juce::XmlElement("plugin");
 
         juce::String identifier =
@@ -327,6 +329,7 @@ AudioPluginAudioProcessor::serializeNode(track::audioNode *node) {
         juce::MemoryBlock pluginData;
         pluginInstance->getStateInformation(pluginData);
         pluginElement->setAttribute("data", pluginData.toBase64Encoding());
+        pluginElement->setAttribute("bypass", node->bypassedPlugins[i]);
 
         nodeElement->addChildElement(pluginElement);
     }
@@ -361,9 +364,10 @@ void AudioPluginAudioProcessor::deserializeNode(juce::XmlElement *nodeElement,
     node->processor = this;
     node->sampleRate = getSampleRate();
     node->maxSamplesPerBlock = 512;
+    node->bypassedPlugins.clear();
 
     juce::XmlElement *pluginElement = nodeElement->getChildByName("plugin");
-    while (pluginElement != nullptr) {
+    for (size_t i = 0; pluginElement != nullptr; ++i) {
         juce::String identifier =
             pluginElement->getStringAttribute("identifier");
         node->addPlugin(identifier);
@@ -379,6 +383,12 @@ void AudioPluginAudioProcessor::deserializeNode(juce::XmlElement *nodeElement,
         pluginData.fromBase64Encoding(encodedPluginData);
         pluginInstance.setStateInformation(pluginData.getData(),
                                            pluginData.getSize());
+        bool bypassed = pluginElement->getBoolAttribute("bypass", false);
+
+        // push_back()ing the value of bypassed or emplace_back() and calling
+        // back() to modify value doesn't work so we do it this weird way
+        node->bypassedPlugins.push_back(bypassed);
+        node->bypassedPlugins[i] = bypassed;
 
         pluginElement = pluginElement->getNextElementWithTagName("plugin");
     }
