@@ -157,11 +157,22 @@ void track::TimelineComponent::mouseDown(const juce::MouseEvent &event) {
                 newClip->startPositionSample =
                     (event.getMouseDownX() * SAMPLE_RATE) / UI_ZOOM_MULTIPLIER;
 
-                int trackIndex = juce::jmin(
-                    trackIndex = event.getMouseDownY() / UI_TRACK_HEIGHT,
-                    (int)processorRef->tracks.size() - 1);
-                processorRef->tracks[(size_t)trackIndex].clips.push_back(
-                    *newClip);
+                int y = event.getMouseDownY();
+                int nodeDisplayIndex =
+                    ((y + (UI_TRACK_HEIGHT / 2)) / UI_TRACK_HEIGHT) - 1;
+                nodeDisplayIndex = juce::jlimit(
+                    0, (int)viewport->tracklist->trackComponents.size() - 1,
+                    nodeDisplayIndex);
+
+                audioNode *node =
+                    viewport->tracklist
+                        ->trackComponents[(size_t)nodeDisplayIndex]
+                        ->getCorrespondingTrack();
+                if (node->isTrack) {
+                    node->clips.push_back(*newClip);
+                } else {
+                    DBG("reject pasting clip into group");
+                }
 
                 updateClipComponents();
             }
