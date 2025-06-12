@@ -385,9 +385,7 @@ void AudioPluginAudioProcessor::deserializeNode(juce::XmlElement *nodeElement,
                                            pluginData.getSize());
         bool bypassed = pluginElement->getBoolAttribute("bypass", false);
 
-        // push_back()ing the value of bypassed or emplace_back() and calling
-        // back() to modify value doesn't work so we do it this weird way
-        node->bypassedPlugins.push_back(bypassed);
+        // addPlugin() already adds element to bypassedPlugins vector
         node->bypassedPlugins[i] = bypassed;
 
         pluginElement = pluginElement->getNextElementWithTagName("plugin");
