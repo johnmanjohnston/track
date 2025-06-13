@@ -74,9 +74,7 @@ class audioNode {
     std::vector<bool> bypassedPlugins;
     void addPlugin(juce::String path);
     void removePlugin(int index);
-    void preparePlugins(int newMaxSamplesPerBlock, int newSampleRate);
-    int maxSamplesPerBlock = -1;
-    int sampleRate = -1;
+    void preparePlugins();
 
     void process(int numSamples, int currentSample);
     juce::AudioBuffer<float> buffer;

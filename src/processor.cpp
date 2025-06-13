@@ -2,6 +2,8 @@
 #include "daw/defs.h"
 #include "editor.h"
 #include "juce_audio_processors/juce_audio_processors.h"
+#include "juce_core/juce_core.h"
+#include <complex>
 
 AudioPluginAudioProcessor::AudioPluginAudioProcessor()
     : AudioProcessor(
@@ -78,6 +80,7 @@ void AudioPluginAudioProcessor::changeProgramName(int index,
 void AudioPluginAudioProcessor::prepareToPlay(double sampleRate,
                                               int samplesPerBlock) {
     track::SAMPLE_RATE = sampleRate;
+    track::SAMPLES_PER_BLOCK = samplesPerBlock;
 
     this->maxSamplesPerBlock = samplesPerBlock;
 
@@ -85,10 +88,7 @@ void AudioPluginAudioProcessor::prepareToPlay(double sampleRate,
 
     for (track::audioNode &t : tracks) {
         t.processor = this;
-        t.maxSamplesPerBlock = samplesPerBlock;
-        t.sampleRate = sampleRate;
-        DBG("SET TRACK'S SAMPLE RATE");
-        t.preparePlugins(samplesPerBlock, sampleRate);
+        t.preparePlugins();
     }
 
     if (prepared)
@@ -362,8 +362,6 @@ void AudioPluginAudioProcessor::deserializeNode(juce::XmlElement *nodeElement,
     node->isTrack = nodeElement->getBoolAttribute("istrack", true);
     node->trackName = nodeElement->getStringAttribute("name");
     node->processor = this;
-    node->sampleRate = getSampleRate();
-    node->maxSamplesPerBlock = 512;
     node->bypassedPlugins.clear();
 
     juce::XmlElement *pluginElement = nodeElement->getChildByName("plugin");
@@ -429,8 +427,14 @@ void AudioPluginAudioProcessor::getStateInformation(
     std::unique_ptr<juce::XmlElement> xml(state.createXml());
 
     xml->deleteAllChildElementsWithTagName("node");
+    xml->deleteAllChildElementsWithTagName("projectsettings");
 
     DBG("getStateInformation() called");
+
+    juce::XmlElement *projectSettings = new juce::XmlElement("projectsettings");
+    projectSettings->setAttribute("samplerate", getSampleRate());
+
+    xml->addChildElement(projectSettings);
 
     for (size_t i = 0; i < tracks.size(); ++i) {
         xml->addChildElement(serializeNode(&tracks[i]));
@@ -450,6 +454,10 @@ void AudioPluginAudioProcessor::setStateInformation(const void *data,
             apvts.replaceState(juce::ValueTree::fromXml(*xmlState));
 
         tracks.clear();
+
+        juce::XmlElement *projectSettings =
+            xmlState->getChildByName("projectsettings");
+        track::SAMPLE_RATE = projectSettings->getDoubleAttribute("samplerate");
 
         juce::XmlElement *nodeElement = xmlState->getChildByName("node");
 

@@ -5,6 +5,7 @@
 #include "daw/timeline.h"
 #include "daw/track.h"
 #include "juce_audio_processors/juce_audio_processors.h"
+#include "juce_core/juce_core.h"
 #include "juce_graphics/juce_graphics.h"
 #include "lookandfeel.h"
 #include "processor.h"
@@ -110,14 +111,37 @@ void AudioPluginAudioProcessorEditor::paint(juce::Graphics &g) {
     g.drawFittedText("track", juce::Rectangle<int>(34, 1, 100, 50),
                      juce::Justification::left, 1);
 
-    /*
     g.setFont(epicFont.withHeight(14.f));
-    juce::String audioInfoText = "[" + juce::String(track::SAMPLE_RATE / 1000) +
-                                 "kHz " + juce::String(track::BLOCK_SIZE) +
-                                 "spls" + "]";
-    g.drawText(audioInfoText, getWidth() - 200 - 2, 0, 200, 20,
+
+    // [x86_64-linux VST3 44.1kHz]
+
+    juce::String audioInfoText = "[";
+
+#ifdef __x86_64__
+    audioInfoText += "x86_64-";
+#endif
+
+#if JUCE_LINUX
+    audioInfoText += "linux ";
+#elif JUCE_WINDOWS
+    audioInfoText += "win";
+#elif JUCE_MAC
+    audioInfoText += "mac";
+#elif JUCE_BSD
+    audioInfoText += "bsd";
+#endif
+
+    audioInfoText +=
+        AudioProcessor::getWrapperTypeDescription(processorRef.wrapperType);
+    audioInfoText += " ";
+
+    audioInfoText += juce::String(track::SAMPLE_RATE / 1000);
+    audioInfoText += "kHz ";
+    audioInfoText += juce::String(track::SAMPLES_PER_BLOCK);
+    audioInfoText += "spls";
+    audioInfoText += "]";
+    g.drawText(audioInfoText, getWidth() - 250 - 2, 0, 250, 20,
                juce::Justification::right);
-*/
 }
 
 void AudioPluginAudioProcessorEditor::resized() {
@@ -134,7 +158,7 @@ void AudioPluginAudioProcessorEditor::resized() {
     transportStatus.setBounds(timeInfoRectangle);
 
     int scanBtnWidth = 50;
-    scanBtn.setBounds(getWidth() - scanBtnWidth - 200, 1, 50, 20);
+    scanBtn.setBounds(getWidth() - scanBtnWidth - 300, 1, 50, 20);
 }
 
 void AudioPluginAudioProcessorEditor::openFxChain(std::vector<int> route) {

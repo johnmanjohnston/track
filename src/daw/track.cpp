@@ -649,8 +649,6 @@ void track::Tracklist::copyNode(audioNode *dest, audioNode *src) {
     dest->s = src->s;
     dest->m = src->m;
     dest->pan = src->pan;
-    dest->maxSamplesPerBlock = src->maxSamplesPerBlock;
-    dest->sampleRate = src->sampleRate;
 
     if (src->isTrack) {
         dest->clips = src->clips;
@@ -1102,10 +1100,13 @@ void track::audioNode::addPlugin(juce::String path) {
     jassert(processor != nullptr);
 
     AudioPluginAudioProcessor *p = (AudioPluginAudioProcessor *)processor;
-    this->sampleRate = p->getSampleRate();
-    this->maxSamplesPerBlock = p->maxSamplesPerBlock;
 
-    jassert(sampleRate > 0);
+    if (track::SAMPLE_RATE < 0) {
+        DBG("track::SAMPLE_RATE = 0; defaulting to 44100Hz");
+        track::SAMPLE_RATE = 44100;
+    }
+
+    // jassert(track::SAMPLE_RATE > 0);
     // jassert(maxSamplesPerBlock > 0);
 
     apfm.addDefaultFormats();
@@ -1121,15 +1122,17 @@ void track::audioNode::addPlugin(juce::String path) {
     DBG("creating plugin instance");
     jassert(pluginDescriptions.size() > 0);
 
-    plugin = apfm.createPluginInstance(*pluginDescriptions[0], sampleRate,
-                                       maxSamplesPerBlock, errorMsg);
+    plugin =
+        apfm.createPluginInstance(*pluginDescriptions[0], track::SAMPLE_RATE,
+                                  track::SAMPLES_PER_BLOCK, errorMsg);
 
     DBG("LOGGING OUTPUTS:");
     DBG("   " << plugin->getMainBusNumInputChannels() << " inputs");
     DBG("   " << plugin->getMainBusNumOutputChannels() << " outputs");
 
     // DBG("setting plugin play config details");
-    plugin->setPlayConfigDetails(2, 2, sampleRate, maxSamplesPerBlock);
+    plugin->setPlayConfigDetails(2, 2, track::SAMPLE_RATE,
+                                 track::SAMPLES_PER_BLOCK);
 
     /*
     DBG("setting buses");
@@ -1141,15 +1144,12 @@ void track::audioNode::addPlugin(juce::String path) {
     plugin->setRateAndBufferSizeDetails(sampleRate, maxSamplesPerBlock);
     */
 
-    DBG("preparing plugin to play with sample rate,maxSamplesPerBlock"
-        << sampleRate << " " << maxSamplesPerBlock);
-
     // TODO: is this really a good idea?
-    if (maxSamplesPerBlock <= 0) {
+    if (track::SAMPLES_PER_BLOCK <= 0) {
         DBG("setting maxSamplesPerBlock to 512");
-        maxSamplesPerBlock = 512;
+        track::SAMPLES_PER_BLOCK = 512;
     }
-    plugin->prepareToPlay(sampleRate, maxSamplesPerBlock);
+    plugin->prepareToPlay(track::SAMPLE_RATE, track::SAMPLES_PER_BLOCK);
 
     p->updateLatency();
 
@@ -1190,10 +1190,9 @@ int track::audioNode::getTotalLatencySamples() {
     return retval;
 }
 
-void track::audioNode::preparePlugins(int newMaxSamplesPerBlock,
-                                      int newSampleRate) {
+void track::audioNode::preparePlugins() {
     for (std::unique_ptr<juce::AudioPluginInstance> &plugin : plugins) {
-        plugin->prepareToPlay(sampleRate, newMaxSamplesPerBlock);
+        plugin->prepareToPlay(track::SAMPLE_RATE, track::SAMPLES_PER_BLOCK);
     }
 }
 
