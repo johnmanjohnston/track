@@ -433,6 +433,7 @@ void AudioPluginAudioProcessor::getStateInformation(
 
     juce::XmlElement *projectSettings = new juce::XmlElement("projectsettings");
     projectSettings->setAttribute("samplerate", getSampleRate());
+    projectSettings->setAttribute("samplesperblock", track::SAMPLES_PER_BLOCK);
 
     xml->addChildElement(projectSettings);
 
@@ -458,6 +459,8 @@ void AudioPluginAudioProcessor::setStateInformation(const void *data,
         juce::XmlElement *projectSettings =
             xmlState->getChildByName("projectsettings");
         track::SAMPLE_RATE = projectSettings->getDoubleAttribute("samplerate");
+        track::SAMPLES_PER_BLOCK =
+            projectSettings->getIntAttribute("samplesperblock");
 
         juce::XmlElement *nodeElement = xmlState->getChildByName("node");
 
