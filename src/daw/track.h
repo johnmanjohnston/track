@@ -16,6 +16,8 @@ class clip {
     bool isLooping;
     bool active = true;
 
+    int trimLeft = -1;
+
     juce::AudioBuffer<float> buffer; // irrespective of looping
     void updateBuffer();
     void reverse();
@@ -47,6 +49,7 @@ class ClipComponent : public juce::Component, public juce::ChangeListener {
     bool isBeingDragged = false;
     int startDragX = -1;
     int startDragStartPositionSample = -1;
+    int startTrimLeftPositionSample = -1;
 
     // TODO: this function should not be in this class
     juce::Font getInterSemiBold() {

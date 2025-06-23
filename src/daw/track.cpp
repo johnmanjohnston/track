@@ -82,7 +82,8 @@ void track::ClipComponent::paint(juce::Graphics &g) {
                                   thumbnailTopMargin);
         thumbnailBounds.setY(thumbnailBounds.getY() + thumbnailTopMargin);
 
-        thumbnail.drawChannels(g, thumbnailBounds, 0,
+        thumbnail.drawChannels(g, thumbnailBounds,
+                               correspondingClip->trimLeft / track::SAMPLE_RATE,
                                thumbnail.getTotalLength(), .7f);
     }
 
@@ -174,6 +175,7 @@ void track::ClipComponent::mouseDown(const juce::MouseEvent &event) {
     else {
         startDragX = getLocalBounds().getX();
         startDragStartPositionSample = correspondingClip->startPositionSample;
+        startTrimLeftPositionSample = correspondingClip->trimLeft;
     }
 }
 
@@ -184,6 +186,14 @@ void track::ClipComponent::mouseDrag(const juce::MouseEvent &event) {
     int distanceMoved = startDragX + event.getDistanceFromDragStartX();
     int rawSamplePos = startDragStartPositionSample +
                        ((distanceMoved * SAMPLE_RATE) / UI_ZOOM_MULTIPLIER);
+
+    // if ctrl held, trim
+    if (event.mods.isCtrlDown()) {
+        int rawSamplePosTrimLeft =
+            startTrimLeftPositionSample +
+            ((distanceMoved * SAMPLE_RATE) / UI_ZOOM_MULTIPLIER);
+        correspondingClip->trimLeft = rawSamplePosTrimLeft;
+    }
 
     // if alt held, don't snap
     if (event.mods.isAltDown()) {
