@@ -95,6 +95,49 @@ void track::ClipComponent::paint(juce::Graphics &g) {
     g.setColour(juce::Colour(0xFF'000515));
     g.drawRoundedRectangle(getLocalBounds().toFloat(), cornerSize, 1.4f);
 
+    // trim handles
+    if (drawTrimHandles != 0) {
+        g.setColour(juce::Colours::white.withAlpha(0.4f));
+        g.drawRoundedRectangle(getLocalBounds().toFloat(), cornerSize, 2.f);
+    }
+
+    g.setColour(juce::Colour(0xFFAECBED));
+    int handleWidth = 3;
+
+    float y = 0.0f;
+    float w = handleWidth;
+    float radius = cornerSize;
+    float h = getHeight();
+
+    Path p;
+    if (drawTrimHandles == -1) {
+        float x = 0.f;
+
+        p.startNewSubPath(x + w, y);
+        p.lineTo(x + radius, y);
+        p.addArc(x, y, radius, radius, 0.0f, -MathConstants<float>::halfPi);
+        p.lineTo(x, y + h - radius);
+        p.addArc(x, y + h - radius, radius, radius,
+                 -MathConstants<float>::halfPi, -MathConstants<float>::halfPi);
+        p.lineTo(x + w, y + h);
+        p.closeSubPath();
+        g.fillPath(p);
+
+    } else if (drawTrimHandles == 1) {
+        float x = getWidth() - handleWidth;
+
+        p.startNewSubPath(x, y);
+        p.lineTo(x + w - radius, y);
+        p.addArc(x + w - radius, y, radius, radius, 0.0f,
+                 MathConstants<float>::halfPi);
+        p.lineTo(x + w, y + h - radius);
+        p.addArc(x + w - radius, y + h - radius, radius, radius,
+                 MathConstants<float>::halfPi, MathConstants<float>::pi);
+        p.lineTo(x, y + h);
+        p.closeSubPath();
+        g.fillPath(p);
+    }
+
     /*
     if (this->correspondingClip->active)
         g.setColour(juce::Colour(0xFF33587F));
@@ -176,6 +219,7 @@ void track::ClipComponent::mouseDown(const juce::MouseEvent &event) {
         startDragX = getLocalBounds().getX();
         startDragStartPositionSample = correspondingClip->startPositionSample;
         startTrimLeftPositionSample = correspondingClip->trimLeft;
+        mouseClickX = event.x;
     }
 }
 
@@ -189,10 +233,13 @@ void track::ClipComponent::mouseDrag(const juce::MouseEvent &event) {
 
     // if ctrl held, trim
     if (event.mods.isCtrlDown()) {
-        int rawSamplePosTrimLeft =
-            startTrimLeftPositionSample +
-            ((distanceMoved * SAMPLE_RATE) / UI_ZOOM_MULTIPLIER);
-        correspondingClip->trimLeft = rawSamplePosTrimLeft;
+        // trim left
+        if (mouseClickX <= track::TRIM_REGION_WIDTH) {
+            int rawSamplePosTrimLeft =
+                startTrimLeftPositionSample +
+                ((distanceMoved * SAMPLE_RATE) / UI_ZOOM_MULTIPLIER);
+            correspondingClip->trimLeft = rawSamplePosTrimLeft;
+        }
     }
 
     // if alt held, don't snap
@@ -230,6 +277,26 @@ void track::ClipComponent::mouseUp(const juce::MouseEvent &event) {
 
     DBG(event.getDistanceFromDragStartX());
     repaint();
+}
+
+void track::ClipComponent::mouseMove(const juce::MouseEvent &event) {
+    DBG("event.x=" << event.x);
+    if (event.x <= track::TRIM_REGION_WIDTH) {
+        DBG("drawTrimHandles = -1");
+        drawTrimHandles = -1;
+        repaint();
+        return;
+    }
+    if (event.x >= (getWidth() - track::TRIM_REGION_WIDTH)) {
+        drawTrimHandles = 1;
+        repaint();
+        return;
+    }
+
+    if (drawTrimHandles != 0) {
+        drawTrimHandles = 0;
+        repaint();
+    }
 }
 
 track::audioNode *

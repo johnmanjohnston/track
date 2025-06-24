@@ -44,12 +44,19 @@ class ClipComponent : public juce::Component, public juce::ChangeListener {
     void mouseUp(const juce::MouseEvent &event) override;
 
     void mouseEnter(const juce::MouseEvent &) override { repaint(); }
-    void mouseExit(const juce::MouseEvent &) override { repaint(); }
+    void mouseExit(const juce::MouseEvent &) override {
+        drawTrimHandles = 0;
+        repaint();
+    }
+    void mouseMove(const juce::MouseEvent &event) override;
 
     bool isBeingDragged = false;
     int startDragX = -1;
     int startDragStartPositionSample = -1;
     int startTrimLeftPositionSample = -1;
+    int mouseClickX = -1;
+
+    int drawTrimHandles = 0; // -1 for left, 1 for right, 0 for neither
 
     // TODO: this function should not be in this class
     juce::Font getInterSemiBold() {
