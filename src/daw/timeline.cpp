@@ -242,7 +242,8 @@ void track::TimelineComponent::resizeClipComponent(track::ClipComponent *clip) {
                         (clip->nodeDisplayIndex * UI_TRACK_HEIGHT) +
                         (UI_TRACK_VERTICAL_MARGIN * clip->nodeDisplayIndex),
                     (clip->correspondingClip->buffer.getNumSamples() -
-                     clip->correspondingClip->trimLeft) /
+                     clip->correspondingClip->trimLeft -
+                     clip->correspondingClip->trimRight) /
                         SAMPLE_RATE * UI_ZOOM_MULTIPLIER,
                     UI_TRACK_HEIGHT);
 

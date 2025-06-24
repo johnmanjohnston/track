@@ -17,6 +17,7 @@ class clip {
     bool active = true;
 
     int trimLeft = -1;
+    int trimRight = -1;
 
     juce::AudioBuffer<float> buffer; // irrespective of looping
     void updateBuffer();
@@ -54,6 +55,7 @@ class ClipComponent : public juce::Component, public juce::ChangeListener {
     int startDragX = -1;
     int startDragStartPositionSample = -1;
     int startTrimLeftPositionSample = -1;
+    int startTrimRightPositionSample = -1;
     int mouseClickX = -1;
 
     int drawTrimHandles = 0; // -1 for left, 1 for right, 0 for neither

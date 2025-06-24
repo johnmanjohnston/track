@@ -84,7 +84,10 @@ void track::ClipComponent::paint(juce::Graphics &g) {
 
         thumbnail.drawChannels(g, thumbnailBounds,
                                correspondingClip->trimLeft / track::SAMPLE_RATE,
-                               thumbnail.getTotalLength(), .7f);
+                               (correspondingClip->buffer.getNumSamples() -
+                                correspondingClip->trimRight) /
+                                   track::SAMPLE_RATE,
+                               .7f);
     }
 
     if (isMouseOver(false) && !isBeingDragged) {
@@ -219,6 +222,7 @@ void track::ClipComponent::mouseDown(const juce::MouseEvent &event) {
         startDragX = getLocalBounds().getX();
         startDragStartPositionSample = correspondingClip->startPositionSample;
         startTrimLeftPositionSample = correspondingClip->trimLeft;
+        startTrimRightPositionSample = correspondingClip->trimRight;
         mouseClickX = event.x;
     }
 }
@@ -239,6 +243,31 @@ void track::ClipComponent::mouseDrag(const juce::MouseEvent &event) {
                 startTrimLeftPositionSample +
                 ((distanceMoved * SAMPLE_RATE) / UI_ZOOM_MULTIPLIER);
             correspondingClip->trimLeft = rawSamplePosTrimLeft;
+        }
+
+        // trim right
+        else if (event.x >= (getWidth() - track::TRIM_REGION_WIDTH)) {
+            DBG("mouseClickX = " << mouseClickX);
+            DBG("getWidth() - track::TRIM_REGION_WIDTH = "
+                << getWidth() - track::TRIM_REGION_WIDTH);
+
+            int rawSamplePosTrimRight =
+                startTrimRightPositionSample +
+                ((-distanceMoved * SAMPLE_RATE) / UI_ZOOM_MULTIPLIER);
+            correspondingClip->trimRight = rawSamplePosTrimRight;
+
+            DBG("raw right = " << rawSamplePosTrimRight);
+
+            // trimming left involves changing trim left AND moving start sample
+            // which already happens anyway below, but trimming from right
+            // involves only changing trim right; so we resize and repaint to
+            // finish trimming right
+            TimelineComponent *tc =
+                findParentComponentOfClass<TimelineComponent>();
+            tc->resizeClipComponent(this);
+
+            repaint();
+            return;
         }
     }
 
