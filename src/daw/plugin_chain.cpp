@@ -1,6 +1,7 @@
 #include "plugin_chain.h"
 #include "defs.h"
 #include "juce_graphics/juce_graphics.h"
+#include "juce_gui_basics/juce_gui_basics.h"
 #include "track.h"
 
 track::PluginNodeComponent::PluginNodeComponent() : juce::Component() {
@@ -131,8 +132,9 @@ void track::PluginNodesWrapper::mouseDown(const juce::MouseEvent &event) {
             DBG("No plugins in known plugin list");
         }
 
+        juce::PopupMenu pluginMenu;
         juce::PopupMenu pluginSelector;
-        pluginSelector.setLookAndFeel(&getLookAndFeel());
+        pluginMenu.setLookAndFeel(&getLookAndFeel());
 
         audioNode *node = pcc->getCorrespondingTrack();
 
@@ -170,7 +172,8 @@ void track::PluginNodesWrapper::mouseDown(const juce::MouseEvent &event) {
                 });
         }
 
-        pluginSelector.showMenuAsync(juce::PopupMenu::Options());
+        pluginMenu.addSubMenu("Add plugin", pluginSelector);
+        pluginMenu.showMenuAsync(juce::PopupMenu::Options());
     }
 }
 
