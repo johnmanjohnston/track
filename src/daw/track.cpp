@@ -243,6 +243,8 @@ void track::ClipComponent::mouseDrag(const juce::MouseEvent &event) {
                 startTrimLeftPositionSample +
                 ((distanceMoved * SAMPLE_RATE) / UI_ZOOM_MULTIPLIER);
             correspondingClip->trimLeft = rawSamplePosTrimLeft;
+
+            DBG("raw left = " << rawSamplePosTrimLeft);
         }
 
         // trim right
@@ -309,9 +311,9 @@ void track::ClipComponent::mouseUp(const juce::MouseEvent &event) {
 }
 
 void track::ClipComponent::mouseMove(const juce::MouseEvent &event) {
-    DBG("event.x=" << event.x);
+    // DBG("event.x=" << event.x);
     if (event.x <= track::TRIM_REGION_WIDTH) {
-        DBG("drawTrimHandles = -1");
+        // DBG("drawTrimHandles = -1");
         drawTrimHandles = -1;
         repaint();
         return;
@@ -1324,20 +1326,29 @@ void track::audioNode::process(int numSamples, int currentSample) {
 
             int clipStart = c.startPositionSample;
             int clipEnd = c.startPositionSample + c.buffer.getNumSamples();
+            int clipUsableNumSamples = c.buffer.getNumSamples() - c.trimLeft;
 
             // bounds check
             if (clipEnd > currentSample &&
                 clipStart < currentSample + outputBufferLength) {
+
+                DBG("clip in bounds: "
+                    << c.name << "; clipstart: " << c.startPositionSample
+                    << "; trimleft=" << c.trimLeft << "; clipstart+trimleft="
+                    << c.startPositionSample + c.trimLeft
+                    << "; cursample=" << currentSample);
+
                 // where in buffer should clip start?
                 int outputOffset =
                     (clipStart < currentSample) ? 0 : clipStart - currentSample;
                 // starting point in clip's buffer?
                 int clipBufferStart =
                     (clipStart < currentSample) ? currentSample - clipStart : 0;
+                clipBufferStart += c.trimLeft;
                 // how many samples can we safely copy?
                 int samplesToCopy =
                     juce::jmin(outputBufferLength - outputOffset,
-                               c.buffer.getNumSamples() - clipBufferStart);
+                               clipUsableNumSamples - clipBufferStart);
 
                 if (c.buffer.getNumChannels() > 1) {
                     for (int channel = 0; channel < buffer.getNumChannels();
