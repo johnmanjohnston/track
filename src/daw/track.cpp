@@ -1328,6 +1328,9 @@ void track::audioNode::process(int numSamples, int currentSample) {
             int clipEnd = c.startPositionSample + c.buffer.getNumSamples();
             int clipUsableNumSamples = c.buffer.getNumSamples() - c.trimLeft;
 
+            if (clipUsableNumSamples <= 0)
+                continue;
+
             // bounds check
             if (clipEnd > currentSample &&
                 clipStart < currentSample + outputBufferLength) {
@@ -1336,19 +1339,24 @@ void track::audioNode::process(int numSamples, int currentSample) {
                     << c.name << "; clipstart: " << c.startPositionSample
                     << "; trimleft=" << c.trimLeft << "; clipstart+trimleft="
                     << c.startPositionSample + c.trimLeft
-                    << "; cursample=" << currentSample);
+                    << "; cursample=" << currentSample
+                    << "; clipUsableNumSamples=" << clipUsableNumSamples);
 
                 // where in buffer should clip start?
                 int outputOffset =
                     (clipStart < currentSample) ? 0 : clipStart - currentSample;
                 // starting point in clip's buffer?
                 int clipBufferStart =
-                    (clipStart < currentSample) ? currentSample - clipStart : 0;
-                clipBufferStart += c.trimLeft;
+                    c.trimLeft + ((clipStart < currentSample)
+                                      ? currentSample - clipStart
+                                      : 0);
                 // how many samples can we safely copy?
-                int samplesToCopy =
-                    juce::jmin(outputBufferLength - outputOffset,
-                               clipUsableNumSamples - clipBufferStart);
+                int samplesToCopy = juce::jmin(
+                    outputBufferLength - outputOffset,
+                    c.buffer.getNumSamples() - c.trimRight - clipBufferStart);
+
+                if (samplesToCopy <= 0)
+                    continue;
 
                 if (c.buffer.getNumChannels() > 1) {
                     for (int channel = 0; channel < buffer.getNumChannels();
