@@ -102,9 +102,7 @@ void AudioPluginAudioProcessorEditor::paint(juce::Graphics &g) {
 
     // draw "track" logo
     g.setColour(juce::Colour(0xFF727272));
-    auto epicFont =
-        (track::ui::CustomLookAndFeel::getInterRegular().withExtraKerningFactor(
-            -.05f));
+    auto epicFont = lnf.getInterRegular().withExtraKerningFactor(-.05f);
 
     g.setFont(epicFont.withHeight(26.f).italicised().boldened());
 

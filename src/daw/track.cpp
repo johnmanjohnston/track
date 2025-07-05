@@ -647,7 +647,8 @@ void track::TrackComponent::paint(juce::Graphics &g) {
 
     g.setColour(juce::Colours::white.withAlpha(0.4f));
     g.setFont(
-        track::ui::CustomLookAndFeel::getInterSemiBold().withHeight(17.f));
+        getInterSemiBoldFromThisFunctionBecauseOtherwiseThisWillNotBuildOnWindowsForSomeStupidReason()
+            .withHeight(17.f));
     g.drawText(juce::String(displayIndex + 1), 0, 0, UI_TRACK_INDEX_WIDTH,
                UI_TRACK_HEIGHT, juce::Justification::centred);
 

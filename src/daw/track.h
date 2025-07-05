@@ -148,6 +148,16 @@ class TrackComponent : public juce::Component {
         return Font(typeface);
     }
 
+    juce::Font
+    getInterSemiBoldFromThisFunctionBecauseOtherwiseThisWillNotBuildOnWindowsForSomeStupidReason() {
+        static auto typeface = Typeface::createSystemTypefaceFor(
+            BinaryData::Inter_18ptSemiBold_ttf,
+            BinaryData::Inter_18ptSemiBold_ttfSize);
+
+        return Font(typeface);
+ 
+    }
+
     juce::Label trackNameLabel;
 };
 
