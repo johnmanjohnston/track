@@ -159,11 +159,18 @@ void track::ClipComponent::mouseDown(const juce::MouseEvent &event) {
         juce::PopupMenu contextMenu;
         contextMenu.setLookAndFeel(&getLookAndFeel());
 
+        // future john: if you're wondering why for clips you define item result
+        // IDs like this, but only for clips and not other popup menus, it's
+        // because defining item result IDs make it easier to reorder items, and
+        // clip components will have many items in its popup menus, but not
+        // other components' popup menus
+
 #define MENU_REVERSE_CLIP 1
 #define MENU_CUT_CLIP 2
 #define MENU_TOGGLE_CLIP_ACTIVATION 3
 #define MENU_COPY_CLIP 4
 #define MENU_SHOW_IN_EXPLORER 5
+#define MENU_SPLIT_CLIP 6
 
         contextMenu.addItem(MENU_COPY_CLIP, "Copy clip");
         contextMenu.addItem(MENU_CUT_CLIP, "Cut");
@@ -172,10 +179,14 @@ void track::ClipComponent::mouseDown(const juce::MouseEvent &event) {
         contextMenu.addItem(MENU_TOGGLE_CLIP_ACTIVATION,
                             "Toggle activate/deactive clip");
         contextMenu.addItem(MENU_SHOW_IN_EXPLORER, "Show in explorer");
+        contextMenu.addItem(
+            MENU_SPLIT_CLIP,
+            "split at " + juce::String(((float)event.x / UI_ZOOM_MULTIPLIER) *
+                                       SAMPLE_RATE));
 
         juce::PopupMenu::Options options;
 
-        contextMenu.showMenuAsync(options, [this](int result) {
+        contextMenu.showMenuAsync(options, [this, event](int result) {
             if (result == MENU_REVERSE_CLIP) {
                 this->correspondingClip->reverse();
                 thumbnailCache.clear();
@@ -214,6 +225,16 @@ void track::ClipComponent::mouseDown(const juce::MouseEvent &event) {
             else if (result == MENU_SHOW_IN_EXPLORER) {
                 juce::File f(correspondingClip->path);
                 f.revealToUser();
+            }
+
+            else if (result == MENU_SPLIT_CLIP) {
+                int splitSample =
+                    ((float)event.x / UI_ZOOM_MULTIPLIER) * SAMPLE_RATE;
+
+                TimelineComponent *tc =
+                    findParentComponentOfClass<TimelineComponent>();
+                tc->splitClip(this->correspondingClip, splitSample,
+                              nodeDisplayIndex);
             }
         });
     }

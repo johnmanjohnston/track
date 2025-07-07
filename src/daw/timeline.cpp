@@ -329,6 +329,44 @@ void track::TimelineComponent::deleteClip(clip *c, int trackIndex) {
     updateClipComponents();
 }
 
+// FIXME: splitting once works okay. trying to split an already splitted clip
+// results in funky behaviour
+void track::TimelineComponent::splitClip(clip *c, int splitSample,
+                                         int nodeDisplayIndex) {
+    audioNode *node =
+        viewport->tracklist->trackComponents[(size_t)nodeDisplayIndex]
+            ->getCorrespondingTrack();
+
+    // handle split 1
+    int clipIndex = -1;
+
+    for (size_t i = 0; i < node->clips.size(); ++i) {
+        if (c == &node->clips[i]) {
+            clipIndex = i;
+            break;
+        }
+    }
+
+    clip *c1 = &node->clips[(size_t)clipIndex];
+    c1->trimRight += c->buffer.getNumSamples() - splitSample;
+
+    // handle split 2
+    clip c2;
+    c2.name = c->name;
+    c2.path = c->path;
+    c2.buffer = c->buffer;
+    c2.startPositionSample = c->startPositionSample + splitSample;
+    c2.trimLeft = c->trimLeft + splitSample;
+    node->clips.push_back(c2);
+
+    // trim left
+    // c->trimLeft += splitSample;
+    // c->startPositionSample += splitSample;
+
+    updateClipComponents();
+    repaint();
+}
+
 bool track::TimelineComponent::isInterestedInFileDrag(
     const juce::StringArray &files) {
     return true;

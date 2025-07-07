@@ -42,6 +42,7 @@ class TimelineComponent : public juce::Component,
 
     bool clipComponentsUpdated = false;
     void deleteClip(clip *c, int trackIndex);
+    void splitClip(clip *c, int splitSample, int nodeDisplayIndex);
 
     /*
     //forum.juce.com/t/creating-arrays-vectors-of-components-copy-move-semantics/47054/5
