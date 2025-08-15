@@ -155,7 +155,6 @@ class TrackComponent : public juce::Component {
             BinaryData::Inter_18ptSemiBold_ttfSize);
 
         return Font(typeface);
- 
     }
 
     juce::Label trackNameLabel;
