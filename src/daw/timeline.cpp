@@ -253,6 +253,18 @@ void track::TimelineComponent::resizeClipComponent(track::ClipComponent *clip) {
         offlineClipBounds.setWidth(110);
         clip->setBounds(offlineClipBounds);
     }
+
+    juce::Rectangle<int> clipLabelBounds = juce::Rectangle<int>(
+        clip->getLocalBounds().getX(), clip->getLocalBounds().getY(), 300, 20);
+
+    clip->clipNameLabel.setBounds(clipLabelBounds);
+
+    if (UI_TRACK_HEIGHT <= UI_TRACK_HEIGHT_COLLAPSE_BREAKPOINT) {
+        // clipLabelBounds.setY(clipLabelBounds.getHeight() / 2);
+        clipLabelBounds.setY(0);
+        clipLabelBounds.setHeight(UI_TRACK_HEIGHT);
+        clip->clipNameLabel.setBounds(clipLabelBounds);
+    }
 }
 
 void track::TimelineComponent::resized() {

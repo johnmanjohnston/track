@@ -32,8 +32,9 @@ track::ClipComponent::ClipComponent(clip *c)
     clipNameLabel.setEditable(true);
     clipNameLabel.setText(c->name,
                           juce::NotificationType::dontSendNotification);
-    clipNameLabel.setBounds(getLocalBounds().getX(), getLocalBounds().getY(),
-                            300, 20);
+    clipNameLabel.setInterceptsMouseClicks(false, false);
+    // clipNameLabel.setBounds(getLocalBounds().getX(), getLocalBounds().getY(),
+    // 300, 20);
     addAndMakeVisible(clipNameLabel);
 
     clipNameLabel.onTextChange = [this] {
@@ -76,18 +77,21 @@ void track::ClipComponent::paint(juce::Graphics &g) {
         else
             g.setColour(juce::Colour(0xFF'696969));
 
-        int thumbnailTopMargin = 14;
-        juce::Rectangle<int> thumbnailBounds = getLocalBounds().reduced(2);
-        thumbnailBounds.setHeight(thumbnailBounds.getHeight() -
-                                  thumbnailTopMargin);
-        thumbnailBounds.setY(thumbnailBounds.getY() + thumbnailTopMargin);
+        if (UI_TRACK_HEIGHT > UI_TRACK_HEIGHT_COLLAPSE_BREAKPOINT) {
+            int thumbnailTopMargin = 14;
+            juce::Rectangle<int> thumbnailBounds = getLocalBounds().reduced(2);
+            thumbnailBounds.setHeight(thumbnailBounds.getHeight() -
+                                      thumbnailTopMargin);
+            thumbnailBounds.setY(thumbnailBounds.getY() + thumbnailTopMargin);
 
-        thumbnail.drawChannels(g, thumbnailBounds,
-                               correspondingClip->trimLeft / track::SAMPLE_RATE,
-                               (correspondingClip->buffer.getNumSamples() -
-                                correspondingClip->trimRight) /
-                                   track::SAMPLE_RATE,
-                               .7f);
+            thumbnail.drawChannels(g, thumbnailBounds,
+                                   correspondingClip->trimLeft /
+                                       track::SAMPLE_RATE,
+                                   (correspondingClip->buffer.getNumSamples() -
+                                    correspondingClip->trimRight) /
+                                       track::SAMPLE_RATE,
+                                   .7f);
+        }
     }
 
     if (isMouseOver(false) && !isBeingDragged) {
@@ -171,7 +175,9 @@ void track::ClipComponent::mouseDown(const juce::MouseEvent &event) {
 #define MENU_COPY_CLIP 4
 #define MENU_SHOW_IN_EXPLORER 5
 #define MENU_SPLIT_CLIP 6
+#define MENU_RENAME_CLIP 7
 
+        contextMenu.addItem(MENU_RENAME_CLIP, "Rename clip");
         contextMenu.addItem(MENU_COPY_CLIP, "Copy clip");
         contextMenu.addItem(MENU_CUT_CLIP, "Cut");
         contextMenu.addSeparator();
@@ -187,7 +193,11 @@ void track::ClipComponent::mouseDown(const juce::MouseEvent &event) {
         juce::PopupMenu::Options options;
 
         contextMenu.showMenuAsync(options, [this, event](int result) {
-            if (result == MENU_REVERSE_CLIP) {
+            if (result == MENU_RENAME_CLIP) {
+                clipNameLabel.showEditor();
+            }
+
+            else if (result == MENU_REVERSE_CLIP) {
                 this->correspondingClip->reverse();
                 thumbnailCache.clear();
                 thumbnail.setSource(&correspondingClip->buffer, SAMPLE_RATE, 2);
@@ -732,10 +742,24 @@ void track::TrackComponent::resized() {
     // return;
 
     int xOffset = (route.size() - 1) * UI_TRACK_DEPTH_INCREMENTS;
-    trackNameLabel.setBounds(UI_TRACK_INDEX_WIDTH + getLocalBounds().getX() +
-                                 5 + xOffset,
-                             (UI_TRACK_HEIGHT / 4) - 5, 100, 20);
-    int btnSize = 24;
+    juce::Rectangle<int> trackNameLabelBounds = juce::Rectangle<int>(
+        UI_TRACK_INDEX_WIDTH + getLocalBounds().getX() + 5 + xOffset,
+        (UI_TRACK_HEIGHT / 4) - 4, 100, 20);
+
+    if (UI_TRACK_HEIGHT <= UI_TRACK_HEIGHT_COLLAPSE_BREAKPOINT + 10) {
+        trackNameLabel.setFont(
+            getAudioNodeLabelFont().withHeight(16.f).withExtraKerningFactor(
+                -0.02f));
+    } else {
+        trackNameLabel.setFont(
+            getAudioNodeLabelFont().withHeight(17.f).withExtraKerningFactor(
+                -0.02f));
+    }
+
+    trackNameLabel.setBounds(trackNameLabelBounds);
+
+    int btnSize =
+        UI_TRACK_HEIGHT > UI_TRACK_HEIGHT_COLLAPSE_BREAKPOINT ? 24 : 21;
     int btnHeight = btnSize;
     int btnWidth = btnSize;
 
@@ -750,7 +774,9 @@ void track::TrackComponent::resized() {
     soloBtn.setBounds(btnBounds);
 
     // set pan slider bounds
-    float panSliderSizeMultiplier = 1.8f;
+    float panSliderSizeMultiplier =
+        UI_TRACK_HEIGHT > UI_TRACK_HEIGHT_COLLAPSE_BREAKPOINT ? 1.8f : 1.9f;
+
     juce::Rectangle<int> panSliderBounds = juce::Rectangle<int>(
         btnBounds.getX() + 20, btnBounds.getY() - 8,
         btnSize * panSliderSizeMultiplier, btnSize * panSliderSizeMultiplier);
@@ -761,12 +787,18 @@ void track::TrackComponent::resized() {
         panSliderBounds.getX() + 38, btnBounds.getY(), btnSize * 1.2f, btnSize);
     fxBtn.setBounds(fxBounds);
 
-    int sliderHeight = 20;
-    int sliderWidth = 120;
-    gainSlider.setBounds(xOffset + UI_TRACK_INDEX_WIDTH + 4,
-                         (UI_TRACK_HEIGHT / 2) - (sliderHeight / 2) +
-                             (int)(UI_TRACK_HEIGHT * .2f),
-                         sliderWidth, sliderHeight);
+    if (UI_TRACK_HEIGHT >= UI_TRACK_HEIGHT_COLLAPSE_BREAKPOINT + 10) {
+        gainSlider.setVisible(true);
+
+        int sliderHeight = 20;
+        int sliderWidth = 120;
+
+        gainSlider.setBounds(xOffset + UI_TRACK_INDEX_WIDTH + 4,
+                             (UI_TRACK_HEIGHT / 2) - (sliderHeight / 2) +
+                                 (int)(UI_TRACK_HEIGHT * .2f) + 2,
+                             sliderWidth, sliderHeight);
+    } else
+        gainSlider.setVisible(false);
 }
 
 // ASJAJSAJSJAS
