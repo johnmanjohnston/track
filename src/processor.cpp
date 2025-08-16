@@ -345,6 +345,9 @@ AudioPluginAudioProcessor::serializeNode(track::audioNode *node) {
             clipElement->setAttribute("start", c->startPositionSample);
             clipElement->setAttribute("name", c->name);
 
+            clipElement->setAttribute("trimleft", c->trimLeft);
+            clipElement->setAttribute("trimright", c->trimRight);
+
             nodeElement->addChildElement(clipElement);
         }
     } else {
@@ -399,6 +402,9 @@ void AudioPluginAudioProcessor::deserializeNode(juce::XmlElement *nodeElement,
             int start = clipElement->getIntAttribute("start");
             bool active = clipElement->getIntAttribute("active");
 
+            int trimLeft = clipElement->getIntAttribute("trimleft");
+            int trimRight = clipElement->getIntAttribute("trimright");
+
             // create clip instance
             node->clips.emplace_back();
             track::clip *c = &node->clips.back();
@@ -406,6 +412,8 @@ void AudioPluginAudioProcessor::deserializeNode(juce::XmlElement *nodeElement,
             c->path = path;
             c->name = clipName;
             c->startPositionSample = start;
+            c->trimLeft = trimLeft;
+            c->trimRight = trimRight;
             c->updateBuffer();
 
             clipElement = clipElement->getNextElementWithTagName("clip");
