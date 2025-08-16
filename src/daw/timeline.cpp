@@ -329,9 +329,6 @@ void track::TimelineComponent::deleteClip(clip *c, int trackIndex) {
     updateClipComponents();
 }
 
-// FIXME: splitting once works okay. trying to split an already splitted clip
-// results in funky behaviour
-// update: splitting splitted clips works okay for c2. c1 is still buggy.
 void track::TimelineComponent::splitClip(clip *c, int splitSample,
                                          int nodeDisplayIndex) {
     audioNode *node =
@@ -353,9 +350,10 @@ void track::TimelineComponent::splitClip(clip *c, int splitSample,
     clip *c1 = &node->clips[(size_t)clipIndex];
     clip c2;
     c2.trimLeft = c1->trimLeft;
+    c2.trimRight = c1->trimRight;
 
     int actualSplit = splitSample;
-    c1->trimRight += c->buffer.getNumSamples() - actualSplit - c->trimLeft;
+    c1->trimRight = c->buffer.getNumSamples() - actualSplit - c->trimLeft;
 
     // handle split 2
     c2.name = c->name;
@@ -363,6 +361,7 @@ void track::TimelineComponent::splitClip(clip *c, int splitSample,
     c2.buffer = c->buffer;
     c2.startPositionSample = c->startPositionSample + actualSplit;
     c2.trimLeft += actualSplit;
+
     node->clips.push_back(c2);
 
     DBG("c1: left=" << c1->trimLeft << "; right=" << c1->trimRight);
