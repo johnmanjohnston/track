@@ -3,7 +3,6 @@
 #include "daw/timeline.h"
 #include "daw/track.h"
 #include "daw/transport_status.h"
-#include "juce_data_structures/juce_data_structures.h"
 #include "lookandfeel.h"
 #include "processor.h"
 
@@ -33,6 +32,7 @@ class AudioPluginAudioProcessorEditor : public juce::AudioProcessorEditor,
     void scan();
 
     juce::TextButton scanBtn;
+    juce::TextButton configBtn;
 
     // track::PluginChainComponent pluginChainComponent;
     std::vector<std::unique_ptr<track::PluginChainComponent>>

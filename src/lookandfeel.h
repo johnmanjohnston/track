@@ -50,6 +50,10 @@ class CustomLookAndFeel : public juce::LookAndFeel_V4 {
                               bool shouldDrawButtonAsHighlighted,
                               bool shouldDrawButtonAsDown) override;
 
+    void drawButtonText(Graphics &g, TextButton &button,
+                        bool /*shouldDrawButtonAsHighlighted*/,
+                        bool /*shouldDrawButtonAsDown*/) override;
+
     void drawPopupMenuBackground(Graphics &g, int width, int height) override;
 
     void drawLabel(Graphics &g, Label &label) override;

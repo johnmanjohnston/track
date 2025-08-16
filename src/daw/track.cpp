@@ -1208,8 +1208,8 @@ void track::Tracklist::setTrackComponentBounds() {
         tc->repaint();
     }
 
-    int btnWidth = 71;
-    int btnMargin = 3;
+    int btnWidth = 70;
+    int btnMargin = 4;
     int xOffset = 0;
     newTrackBtn.setBounds(xOffset, 0, btnWidth, UI_TRACK_VERTICAL_OFFSET);
     newGroupBtn.setBounds(xOffset + btnWidth + btnMargin, 0, btnWidth,

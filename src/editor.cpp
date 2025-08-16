@@ -4,9 +4,8 @@
 #include "daw/plugin_chain.h"
 #include "daw/timeline.h"
 #include "daw/track.h"
-#include "juce_audio_processors/juce_audio_processors.h"
 #include "juce_core/juce_core.h"
-#include "juce_graphics/juce_graphics.h"
+#include "juce_gui_basics/juce_gui_basics.h"
 #include "lookandfeel.h"
 #include "processor.h"
 
@@ -72,6 +71,32 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
     scanBtn.setButtonText("scan");
     scanBtn.onClick = [this] { scan(); };
 
+    configBtn.setButtonText("CONFIG");
+    configBtn.onClick = [this] {
+        juce::PopupMenu contextMenu;
+        contextMenu.setLookAndFeel(&getLookAndFeel());
+
+#define MENU_PLUGIN_SCAN 1
+#define MENU_ABOUT 2
+
+        contextMenu.addItem(MENU_PLUGIN_SCAN, "Scan plugins");
+        contextMenu.addSeparator();
+        contextMenu.addItem(MENU_ABOUT, "About");
+
+        juce::PopupMenu::Options popupmenuOptions;
+        contextMenu.showMenuAsync(popupmenuOptions, [this](int result) {
+            if (result == MENU_PLUGIN_SCAN) {
+                scan();
+            }
+
+            if (result == MENU_ABOUT) {
+                juce::URL url("https://github.com/johnmanjohnston/track");
+                url.launchInDefaultBrowser();
+            }
+        });
+    };
+
+    addAndMakeVisible(configBtn);
     addAndMakeVisible(scanBtn);
 }
 
@@ -157,6 +182,10 @@ void AudioPluginAudioProcessorEditor::resized() {
 
     int scanBtnWidth = 50;
     scanBtn.setBounds(getWidth() - scanBtnWidth - 300, 1, 50, 20);
+
+    configBtn.setColour(juce::TextButton::ColourIds::textColourOnId,
+                        juce::Colours::orange);
+    configBtn.setBounds(getWidth() - 70, 22, 60, 20);
 }
 
 void AudioPluginAudioProcessorEditor::openFxChain(std::vector<int> route) {

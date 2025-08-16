@@ -102,6 +102,11 @@ void track::ui::CustomLookAndFeel::drawButtonBackground(
 
     // fill
     auto c = findColour(0x1004011);
+
+    if (b.getButtonText().toLowerCase() == "config") {
+        c = juce::Colour(0xFF'B5B5B5);
+    }
+
     if (shouldDrawButtonAsHighlighted) {
         g.setColour(c.brighter(0.1f));
     } else {
@@ -115,12 +120,47 @@ void track::ui::CustomLookAndFeel::drawButtonBackground(
     // class/making multiple lookandfeels outline
     if (b.getButtonText().toLowerCase() == "editor" ||
         b.getButtonText().toLowerCase() == "remove" ||
-        b.getButtonText().toLowerCase() == "bypass")
+        b.getButtonText().toLowerCase() == "bypass" ||
+
+        b.getButtonText().toLowerCase() == "config")
         return;
 
     // draw border
     g.setColour(c.darker(0.4f));
     g.drawRect(b.getLocalBounds(), 2);
+}
+
+// overriding this whole function just to change color of "config" button.
+void track::ui::CustomLookAndFeel::drawButtonText(
+    Graphics &g, TextButton &button, bool /*shouldDrawButtonAsHighlighted*/,
+    bool /*shouldDrawButtonAsDown*/) {
+
+    Font font(getTextButtonFont(button, button.getHeight()));
+    g.setFont(font);
+    g.setColour(button
+                    .findColour(button.getToggleState()
+                                    ? TextButton::textColourOnId
+                                    : TextButton::textColourOffId)
+                    .withMultipliedAlpha(button.isEnabled() ? 1.0f : 0.5f));
+
+    if (button.getButtonText().toLowerCase() == "config") {
+        g.setColour(juce::Colours::black.withAlpha(0.5f));
+    }
+
+    const int yIndent = jmin(4, button.proportionOfHeight(0.3f));
+    const int cornerSize = jmin(button.getHeight(), button.getWidth()) / 2;
+
+    const int fontHeight = roundToInt(font.getHeight() * 0.6f);
+    const int leftIndent =
+        jmin(fontHeight, 2 + cornerSize / (button.isConnectedOnLeft() ? 4 : 2));
+    const int rightIndent = jmin(
+        fontHeight, 2 + cornerSize / (button.isConnectedOnRight() ? 4 : 2));
+    const int textWidth = button.getWidth() - leftIndent - rightIndent;
+
+    if (textWidth > 0)
+        g.drawFittedText(button.getButtonText(), leftIndent, yIndent, textWidth,
+                         button.getHeight() - yIndent * 2,
+                         Justification::centred, 2);
 }
 
 void track::ui::CustomLookAndFeel::drawLinearSlider(
@@ -282,14 +322,16 @@ void track::ui::CustomLookAndFeel::drawLabel(Graphics &g, Label &label) {
 }
 
 Font track::ui::CustomLookAndFeel::getPopupMenuFont() {
-    return getInterRegular().withHeight(20.f).withExtraKerningFactor(-.03f);
+    return getInterRegular().withHeight(18.f).withExtraKerningFactor(-.03f);
 }
 
 Font track::ui::CustomLookAndFeel::getTextButtonFont(TextButton &button,
                                                      int buttonHeight) {
     if (button.getButtonText().toLowerCase() == "editor" ||
         button.getButtonText().toLowerCase() == "remove" ||
-        button.getButtonText().toLowerCase() == "bypass") {
+        button.getButtonText().toLowerCase() == "bypass" ||
+
+        button.getButtonText().toLowerCase() == "config") {
         return getInterSemiBold()
             .withHeight((float)buttonHeight / 1.6f)
             .italicised()
