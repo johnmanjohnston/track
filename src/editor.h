@@ -31,7 +31,6 @@ class AudioPluginAudioProcessorEditor : public juce::AudioProcessorEditor,
         std::make_unique<juce::PropertiesFile>(options);
     void scan();
 
-    juce::TextButton scanBtn;
     juce::TextButton configBtn;
 
     // track::PluginChainComponent pluginChainComponent;

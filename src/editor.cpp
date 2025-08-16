@@ -4,8 +4,6 @@
 #include "daw/plugin_chain.h"
 #include "daw/timeline.h"
 #include "daw/track.h"
-#include "juce_core/juce_core.h"
-#include "juce_gui_basics/juce_gui_basics.h"
 #include "lookandfeel.h"
 #include "processor.h"
 
@@ -68,9 +66,6 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
     masterSlider.setTextBoxStyle(juce::Slider::TextEntryBoxPosition::NoTextBox,
                                  true, 0, 0);
 
-    scanBtn.setButtonText("scan");
-    scanBtn.onClick = [this] { scan(); };
-
     configBtn.setButtonText("CONFIG");
     configBtn.onClick = [this] {
         juce::PopupMenu contextMenu;
@@ -97,7 +92,6 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
     };
 
     addAndMakeVisible(configBtn);
-    addAndMakeVisible(scanBtn);
 }
 
 AudioPluginAudioProcessorEditor::~AudioPluginAudioProcessorEditor() {
@@ -163,12 +157,12 @@ void AudioPluginAudioProcessorEditor::paint(juce::Graphics &g) {
     audioInfoText += juce::String(track::SAMPLES_PER_BLOCK);
     audioInfoText += "spls";
     audioInfoText += "]";
-    g.drawText(audioInfoText, getWidth() - 250 - 2, 0, 250, 20,
+    g.drawText(audioInfoText, getWidth() - 250 - 3, 0, 250, 20,
                juce::Justification::right);
 }
 
 void AudioPluginAudioProcessorEditor::resized() {
-    masterSlider.setBounds((getWidth() / 3) * 2, -8, 250, 70);
+    masterSlider.setBounds((getWidth() / 3) * 2, -8, 200, 70);
 
     int timeInfoBgWidth = 280;
     int timeInfoBgHeight = 40;
@@ -180,12 +174,9 @@ void AudioPluginAudioProcessorEditor::resized() {
 
     transportStatus.setBounds(timeInfoRectangle);
 
-    int scanBtnWidth = 50;
-    scanBtn.setBounds(getWidth() - scanBtnWidth - 300, 1, 50, 20);
-
     configBtn.setColour(juce::TextButton::ColourIds::textColourOnId,
                         juce::Colours::orange);
-    configBtn.setBounds(getWidth() - 70, 22, 60, 20);
+    configBtn.setBounds(getWidth() - 66, 25, 62, 20);
 }
 
 void AudioPluginAudioProcessorEditor::openFxChain(std::vector<int> route) {
