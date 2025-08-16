@@ -41,6 +41,7 @@ class AudioPluginAudioProcessor : public juce::AudioProcessor {
     int maxSamplesPerBlock = -1;
 
     std::vector<track::audioNode> tracks;
+    bool soloMode = false;
 
     juce::AudioProcessorValueTreeState apvts;
 

@@ -409,6 +409,9 @@ track::TrackComponent::TrackComponent(int trackIndex) : juce::Component() {
     addAndMakeVisible(muteBtn);
     muteBtn.setButtonText("M");
 
+    addAndMakeVisible(soloBtn);
+    soloBtn.setButtonText("S");
+
     // gainSlider.hideTextBox(true);
     // gainSlider.setValue(getCorrespondingTrack()->gain);
     gainSlider.setTextBoxStyle(juce::Slider::TextEntryBoxPosition::NoTextBox,
@@ -425,6 +428,34 @@ track::TrackComponent::TrackComponent(int trackIndex) : juce::Component() {
     muteBtn.onClick = [this] {
         getCorrespondingTrack()->m = !(getCorrespondingTrack()->m);
         repaint();
+    };
+
+    soloBtn.onClick = [this] {
+        getCorrespondingTrack()->s = !(getCorrespondingTrack()->s);
+        repaint();
+
+        AudioPluginAudioProcessor *p = (AudioPluginAudioProcessor *)processor;
+
+        if (getCorrespondingTrack()->s) {
+            p->soloMode = true;
+            DBG("! SOLO MODE = TRUE");
+        } else {
+            Tracklist *tracklist =
+                (Tracklist *)findParentComponentOfClass<Tracklist>();
+
+            bool foundSolo = false;
+            for (auto &nodeComponents : tracklist->trackComponents) {
+                if (nodeComponents->getCorrespondingTrack()->s) {
+                    foundSolo = true;
+                    break;
+                }
+            }
+
+            if (!foundSolo) {
+                p->soloMode = false;
+                DBG("! SOLO MODE = FALSE");
+            }
+        }
     };
 
     panSlider.setTextBoxStyle(juce::Slider::TextEntryBoxPosition::NoTextBox,
@@ -673,15 +704,24 @@ void track::TrackComponent::paint(juce::Graphics &g) {
     g.drawText(juce::String(displayIndex + 1), 0, 0, UI_TRACK_INDEX_WIDTH,
                UI_TRACK_HEIGHT, juce::Justification::centred);
 
-    // draw mute marker
-    if (getCorrespondingTrack()->m) {
+    // TODO: this isn't scalable. if you move buttons in resized() they should
+    // be able to automatically reflect over here, but that isn't the case draw
+    // mute marker
+    if (getCorrespondingTrack()->m || getCorrespondingTrack()->s) {
         int btnSize = 24;
         juce::Rectangle<int> btnBounds = juce::Rectangle<int>(
-            UI_TRACK_WIDTH - 100, (UI_TRACK_HEIGHT / 2) - (btnSize / 2),
+            UI_TRACK_WIDTH - 134, (UI_TRACK_HEIGHT / 2) - (btnSize / 2),
             btnSize, btnSize);
 
+        if (getCorrespondingTrack()->m)
+            g.setColour(juce::Colour(0xFF'FACD51)); // yellow
+
+        if (getCorrespondingTrack()->s) {
+            btnBounds.setX(btnBounds.getX() + btnSize + 5);
+            g.setColour(juce::Colour(0xFF'3497C9)); // blue
+        }
+
         btnBounds.expand(1, 1);
-        g.setColour(juce::Colour(0xFF'FACD51));
         g.drawRect(btnBounds);
     }
 }
@@ -700,10 +740,14 @@ void track::TrackComponent::resized() {
     int btnWidth = btnSize;
 
     juce::Rectangle<int> btnBounds = juce::Rectangle<int>(
-        UI_TRACK_WIDTH - 100, (UI_TRACK_HEIGHT / 2) - (btnHeight / 2), btnWidth,
+        UI_TRACK_WIDTH - 134, (UI_TRACK_HEIGHT / 2) - (btnHeight / 2), btnWidth,
         btnHeight);
 
     muteBtn.setBounds(btnBounds);
+
+    btnBounds.setX(btnBounds.getX() + btnSize + 5);
+
+    soloBtn.setBounds(btnBounds);
 
     // set pan slider bounds
     float panSliderSizeMultiplier = 1.8f;
@@ -753,14 +797,21 @@ track::Tracklist::Tracklist() : juce::Component() {
         for (auto &tc : trackComponents) {
             tc->getCorrespondingTrack()->m = false;
         }
+
+        repaint();
     };
 
     addAndMakeVisible(unsoloAllBtn);
     unsoloAllBtn.setButtonText("UNSOLO ALL");
-    unmuteAllBtn.onClick = [this] {
+    unsoloAllBtn.onClick = [this] {
         for (auto &tc : trackComponents) {
             tc->getCorrespondingTrack()->s = false;
         }
+
+        AudioPluginAudioProcessor *p = (AudioPluginAudioProcessor *)processor;
+        p->soloMode = false;
+
+        repaint();
     };
 
     newTrackBtn.onClick = [this] { addNewNode(); };
@@ -1327,7 +1378,9 @@ void track::audioNode::preparePlugins() {
 }
 
 void track::audioNode::process(int numSamples, int currentSample) {
-    if (m) {
+    AudioPluginAudioProcessor *p = (AudioPluginAudioProcessor *)processor;
+
+    if (this->m || (p->soloMode && !this->s)) {
         buffer.clear();
         return;
     }

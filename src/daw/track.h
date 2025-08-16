@@ -136,6 +136,7 @@ class TrackComponent : public juce::Component {
     int displayIndex = -1;
 
     juce::TextButton muteBtn;
+    juce::TextButton soloBtn;
     juce::TextButton fxBtn; // like in REAPER
     juce::Slider gainSlider;
     juce::Slider panSlider;
