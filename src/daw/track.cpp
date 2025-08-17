@@ -725,7 +725,7 @@ void track::TrackComponent::paint(juce::Graphics &g) {
     if (getCorrespondingTrack()->m || getCorrespondingTrack()->s) {
         int btnSize = 24;
         juce::Rectangle<int> btnBounds = juce::Rectangle<int>(
-            UI_TRACK_WIDTH - 134, (UI_TRACK_HEIGHT / 2) - (btnSize / 2),
+            UI_TRACK_WIDTH - 130, (UI_TRACK_HEIGHT / 2) - (btnSize / 2),
             btnSize, btnSize);
 
         if (getCorrespondingTrack()->m)
@@ -733,7 +733,7 @@ void track::TrackComponent::paint(juce::Graphics &g) {
 
         if (getCorrespondingTrack()->s) {
             btnBounds.setX(btnBounds.getX() + btnSize + 5);
-            g.setColour(juce::Colour(0xFF'3497C9)); // blue
+            g.setColour(juce::Colour(0xFF'41C0FF)); // blue
         }
 
         btnBounds.expand(1, 1);
@@ -769,7 +769,7 @@ void track::TrackComponent::resized() {
     int btnWidth = btnSize;
 
     juce::Rectangle<int> btnBounds = juce::Rectangle<int>(
-        UI_TRACK_WIDTH - 134, (UI_TRACK_HEIGHT / 2) - (btnHeight / 2), btnWidth,
+        UI_TRACK_WIDTH - 130, (UI_TRACK_HEIGHT / 2) - (btnHeight / 2), btnWidth,
         btnHeight);
 
     muteBtn.setBounds(btnBounds);
@@ -796,7 +796,7 @@ void track::TrackComponent::resized() {
         gainSlider.setVisible(true);
 
         int sliderHeight = 20;
-        int sliderWidth = 120;
+        int sliderWidth = 110;
 
         gainSlider.setBounds(xOffset + UI_TRACK_INDEX_WIDTH + 4,
                              (UI_TRACK_HEIGHT / 2) - (sliderHeight / 2) +
