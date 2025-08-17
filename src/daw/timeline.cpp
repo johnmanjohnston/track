@@ -2,11 +2,13 @@
 #include "clipboard.h"
 #include "defs.h"
 #include "track.h"
-#include <memory>
 
 // TODO: organize this file
 
-track::TimelineComponent::TimelineComponent() : juce::Component(){};
+track::TimelineComponent::TimelineComponent() : juce::Component() {
+    setMouseClickGrabsKeyboardFocus(true);
+    setWantsKeyboardFocus(true);
+};
 track::TimelineComponent::~TimelineComponent(){};
 
 track::TimelineViewport::TimelineViewport() : juce::Viewport() {}
@@ -98,6 +100,8 @@ void track::TimelineViewport::mouseWheelMove(
 }
 
 void track::TimelineComponent::mouseDown(const juce::MouseEvent &event) {
+    grabKeyboardFocus();
+
     if (event.mods.isRightButtonDown()) {
         DBG("TimelineComponent::mouseDown() for right mouse button down");
         juce::PopupMenu contextMenu;

@@ -51,6 +51,12 @@ class ClipComponent : public juce::Component, public juce::ChangeListener {
     }
     void mouseMove(const juce::MouseEvent &event) override;
 
+    bool keyStateChanged(bool isKeyDown) override;
+    void focusLost(juce::Component::FocusChangeType cause) override {
+        DBG("focus lost");
+        repaint();
+    };
+
     bool isBeingDragged = false;
     int startDragX = -1;
     int startDragStartPositionSample = -1;

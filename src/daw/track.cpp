@@ -3,14 +3,8 @@
 #include "../processor.h"
 #include "clipboard.h"
 #include "defs.h"
-#include "juce_audio_basics/juce_audio_basics.h"
-#include "juce_audio_processors/juce_audio_processors.h"
-#include "juce_core/juce_core.h"
-#include "juce_events/juce_events.h"
-#include "juce_graphics/juce_graphics.h"
 #include "juce_gui_basics/juce_gui_basics.h"
 #include "timeline.h"
-#include <cstddef>
 
 track::ClipComponent::ClipComponent(clip *c)
     : juce::Component(), thumbnailCache(5),
@@ -43,6 +37,8 @@ track::ClipComponent::ClipComponent(clip *c)
 
     setBufferedToImage(true);
     setOpaque(false);
+
+    setWantsKeyboardFocus(true);
 }
 track::ClipComponent::~ClipComponent() { thumbnail.removeAllChangeListeners(); }
 
@@ -67,15 +63,21 @@ void track::ClipComponent::paint(juce::Graphics &g) {
             g.fillRoundedRectangle(getLocalBounds().toFloat(), cornerSize);
         } else {
             if (this->correspondingClip->active) {
-                g.setColour(juce::Colour(0xFF33587F));
+                if (this->hasKeyboardFocus(true))
+                    g.setColour(juce::Colour(0xFF'33587F)
+                                    .brighter(0.3f)
+                                    .withMultipliedSaturation(1.2f));
+                else
+                    g.setColour(juce::Colour(0xFF'33587F));
+
                 g.fillRoundedRectangle(getLocalBounds().toFloat(), cornerSize);
             }
         }
 
-        if (this->correspondingClip->active)
+        if (this->correspondingClip->active) {
             g.setColour(juce::Colour(0xFFAECBED));
-        else
-            g.setColour(juce::Colour(0xFF'696969));
+        } else
+            g.setColour(juce::Colour(0xFF'696969)); // nice
 
         if (UI_TRACK_HEIGHT > UI_TRACK_HEIGHT_COLLAPSE_BREAKPOINT) {
             int thumbnailTopMargin = 14;
@@ -364,6 +366,29 @@ void track::ClipComponent::mouseMove(const juce::MouseEvent &event) {
         drawTrimHandles = 0;
         repaint();
     }
+}
+
+bool track::ClipComponent::keyStateChanged(bool isKeyDown) {
+    /*
+    juce::KeyPress curCombo =
+        juce::KeyPress::createFromDescription("backspace");
+    if (curCombo.isCurrentlyDown()) {
+        DBG("curCombo is down");
+        DBG(curCombo.getKeyCode());
+    }
+    */
+
+    // 88 = ctrl+x; 268435711 = delete; 8 = backspace
+    // don't allow deletion of clip while its name is being edited
+    if ((juce::KeyPress::isKeyCurrentlyDown(88) ||
+         juce::KeyPress::isKeyCurrentlyDown(8) ||
+         juce::KeyPress::isKeyCurrentlyDown(268435711)) &&
+        !clipNameLabel.isBeingEdited()) {
+        TimelineComponent *tc = (TimelineComponent *)getParentComponent();
+        tc->deleteClip(correspondingClip, nodeDisplayIndex);
+    }
+
+    return false;
 }
 
 track::audioNode *
