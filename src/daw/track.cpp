@@ -194,7 +194,12 @@ void track::ClipComponent::mouseDown(const juce::MouseEvent &event) {
 
         contextMenu.showMenuAsync(options, [this, event](int result) {
             if (result == MENU_RENAME_CLIP) {
-                clipNameLabel.showEditor();
+                juce::Timer::callAfterDelay(50, [this] {
+                    // needs to be done after a slight delay because JUCE focus
+                    // changes due to the popup menu or smth idk man im tired i
+                    // want to sleep
+                    clipNameLabel.showEditor();
+                });
             }
 
             else if (result == MENU_REVERSE_CLIP) {
