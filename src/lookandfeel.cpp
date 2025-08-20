@@ -351,8 +351,15 @@ Font track::ui::CustomLookAndFeel::getTextButtonFont(TextButton &button,
 
     // is length is <= 2 then it's one of those "icon" buttons like mute button
     // or FX chain button
-    if (button.getButtonText().length() <= 2)
-        return getInterSemiBold().withHeight((float)buttonHeight / 1.6f);
+    if (button.getButtonText().length() <= 2) {
+#if JUCE_WINDOWS
+        auto f = getInterRegular().withHeight((float)buttonHeight / 1.4f);
+#else
+        auto f = getInterSemiBold().withHeight((float)buttonHeight / 1.6f);
+#endif
+        
+        return f;
+    }
 
     return getInterSemiBold().withHeight((float)buttonHeight / 2.f);
 }

@@ -69,10 +69,15 @@ void track::PluginNodeComponent::paint(juce::Graphics &g) {
         g.setColour(juce::Colour(0xFF'A7A7A7)
                         .withAlpha(getPluginBypassedStatus() ? .3f : 1.f));
 
-        auto pluginDataFont = (track::ui::CustomLookAndFeel::getInterSemiBold()
-                                   .italicised()
-                                   .boldened()
-                                   .withExtraKerningFactor(-0.03f));
+#if JUCE_WINDOWS
+        auto pluginDataFont =
+            track::ui::CustomLookAndFeel::getInterSemiBold().withExtraKerningFactor(-0.02f);
+#else
+        auto pluginDataFont =
+            track::ui::CustomLookAndFeel::getInterSemiBold();
+        pluginDataFont = pluginDataFont.italicised().boldened().withExtraKerningFactor(-0.03f);
+#endif
+
 
         // draw name
         g.setFont(pluginDataFont.withHeight(22.f));

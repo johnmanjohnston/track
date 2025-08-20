@@ -147,5 +147,13 @@ class PluginEditorWindow : public juce::Component, juce::Timer {
 
         return typeface;
     }
+
+    static const juce::Font getInterBold() {
+        static auto typeface = Typeface::createSystemTypefaceFor(
+            BinaryData::Inter_18ptRegular_ttf,
+            BinaryData::Inter_18ptRegular_ttfSize);
+
+        return typeface;
+    }
 };
 } // namespace track
