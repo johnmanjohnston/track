@@ -160,6 +160,8 @@ void track::TimelineComponent::mouseDown(const juce::MouseEvent &event) {
                 newClip->name = orginalClip->name;
                 newClip->startPositionSample =
                     (event.getMouseDownX() * SAMPLE_RATE) / UI_ZOOM_MULTIPLIER;
+                newClip->trimLeft = orginalClip->trimLeft;
+                newClip->trimRight = orginalClip->trimRight;
 
                 int y = event.getMouseDownY();
                 int nodeDisplayIndex =

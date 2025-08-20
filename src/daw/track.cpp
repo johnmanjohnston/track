@@ -92,7 +92,7 @@ void track::ClipComponent::paint(juce::Graphics &g) {
                                    (correspondingClip->buffer.getNumSamples() -
                                     correspondingClip->trimRight) /
                                        track::SAMPLE_RATE,
-                                   .7f);
+                                   1.f);
 
             if (thumbnail.getNumChannels() == 1) {
                 // mono
@@ -253,6 +253,8 @@ void track::ClipComponent::mouseDown(const juce::MouseEvent &event) {
                 newClip->name = correspondingClip->name;
                 newClip->path = correspondingClip->path;
                 newClip->active = correspondingClip->active;
+                newClip->trimLeft = correspondingClip->trimLeft;
+                newClip->trimRight = correspondingClip->trimRight;
 
                 clipboard::setData(newClip, TYPECODE_CLIP);
             }
