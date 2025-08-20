@@ -1,6 +1,4 @@
 #include "transport_status.h"
-#include "../lookandfeel.cpp"
-#include "juce_graphics/juce_graphics.h"
 
 track::TransportStatusComponent::TransportStatusComponent()
     : juce::Component() {}
@@ -84,7 +82,7 @@ void track::TransportStatusComponent::paint(juce::Graphics &g) {
     timeSignatureInfoToDisplay.append(juce::String(timeSignature.numerator), 3);
 
     g.setColour(juce::Colour(0xFF'CDD8E4).withAlpha(0.7f));
-    g.setFont(track::ui::CustomLookAndFeel::getRobotoMonoThin()
+    g.setFont(getRobotoMonoThin()
                   .withHeight(26.f)
                   .boldened()
                   .withExtraKerningFactor(-.06f));

@@ -336,11 +336,17 @@ Font track::ui::CustomLookAndFeel::getTextButtonFont(TextButton &button,
         button.getButtonText().toLowerCase() == "bypass" ||
 
         button.getButtonText().toLowerCase() == "config") {
-        return getInterSemiBold()
-            .withHeight((float)buttonHeight / 1.6f)
-            .italicised()
-            .boldened()
-            .withExtraKerningFactor(-.03f);
+        
+        auto retval = getInterSemiBold().withHeight((float)buttonHeight / 1.6f);
+
+        #if JUCE_WINDOWS
+            retval = retval.withExtraKerningFactor(-0.02f);
+            retval = retval.withHeight(retval.getHeight() * 1.23f);
+        #else
+            retval = retval.withExtraKerningFactor(-0.03f).italicised().boldened();
+        #endif
+
+        return retval;
     }
 
     // is length is <= 2 then it's one of those "icon" buttons like mute button
