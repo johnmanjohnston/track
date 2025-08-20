@@ -93,6 +93,24 @@ void track::ClipComponent::paint(juce::Graphics &g) {
                                     correspondingClip->trimRight) /
                                        track::SAMPLE_RATE,
                                    .7f);
+
+            if (thumbnail.getNumChannels() == 1) {
+                // mono
+                g.drawHorizontalLine(thumbnailTopMargin +
+                                         (thumbnailBounds.getHeight() / 2) + 1,
+                                     0, getWidth());
+            } 
+            else {
+                // stereo
+                g.drawHorizontalLine(thumbnailTopMargin +
+                                         (thumbnailBounds.getHeight() / 4) + 2,
+                                     0, getWidth());
+
+
+                g.drawHorizontalLine(thumbnailTopMargin +
+                                         ((thumbnailBounds.getHeight() / 4) * 3) + 3,
+                                     0, getWidth());
+            }
         }
     }
 
