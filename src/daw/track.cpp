@@ -3,7 +3,6 @@
 #include "../processor.h"
 #include "clipboard.h"
 #include "defs.h"
-#include "juce_gui_basics/juce_gui_basics.h"
 #include "timeline.h"
 
 track::ClipComponent::ClipComponent(clip *c)

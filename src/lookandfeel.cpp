@@ -1,6 +1,5 @@
 #include "lookandfeel.h"
 #include "BinaryData.h"
-#include "juce_gui_basics/juce_gui_basics.h"
 
 const juce::Font track::ui::CustomLookAndFeel::getRobotoMonoThin() {
     static auto typeface = Typeface::createSystemTypefaceFor(
@@ -336,15 +335,15 @@ Font track::ui::CustomLookAndFeel::getTextButtonFont(TextButton &button,
         button.getButtonText().toLowerCase() == "bypass" ||
 
         button.getButtonText().toLowerCase() == "config") {
-        
+
         auto retval = getInterSemiBold().withHeight((float)buttonHeight / 1.6f);
 
-        #if JUCE_WINDOWS
-            retval = retval.withExtraKerningFactor(-0.02f);
-            retval = retval.withHeight(retval.getHeight() * 1.23f);
-        #else
-            retval = retval.withExtraKerningFactor(-0.03f).italicised().boldened();
-        #endif
+#if JUCE_WINDOWS
+        retval = retval.withExtraKerningFactor(-0.02f);
+        retval = retval.withHeight(retval.getHeight() * 1.23f);
+#else
+        retval = retval.withExtraKerningFactor(-0.03f).italicised().boldened();
+#endif
 
         return retval;
     }
@@ -357,7 +356,7 @@ Font track::ui::CustomLookAndFeel::getTextButtonFont(TextButton &button,
 #else
         auto f = getInterSemiBold().withHeight((float)buttonHeight / 1.6f);
 #endif
-        
+
         return f;
     }
 

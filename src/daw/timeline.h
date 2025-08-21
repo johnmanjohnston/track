@@ -1,6 +1,5 @@
 #pragma once
 #include "../processor.h"
-#include "juce_gui_basics/juce_gui_basics.h"
 #include "track.h"
 #include <JuceHeader.h>
 
