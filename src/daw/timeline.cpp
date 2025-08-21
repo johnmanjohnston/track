@@ -213,23 +213,27 @@ void track::TimelineComponent::paint(juce::Graphics &g) {
     bounds.setY(bounds.getY() - (bounds.getHeight() / 2.f) + 10 + scrollValue);
 
     for (int i = 0; i < bars; i += incrementAmount) {
-        float x = i * pxPerBar;
+        for (int k = 0; k < incrementAmount && i + k < bars; ++k) {
+            float x = (i + k) * pxPerBar;
 
-        // draw numbers
-        bounds.setX((int)x + 4);
-        g.setColour(juce::Colour(0xFF'929292).withAlpha(.8f));
-        g.drawText(juce::String(i + 1), bounds, juce::Justification::left,
-                   false);
+            if (k == 0) {
+                // draw numbers
+                bounds.setX((int)x + 4);
+                g.setColour(juce::Colour(0xFF'929292).withAlpha(.8f));
+                g.drawText(juce::String(i + 1), bounds,
+                           juce::Justification::left, false);
+            }
 
-        // draw vertical lines for bar numbers
-        g.setColour(juce::Colour(0xFF'444444).withAlpha(.5f));
-        g.fillRect((int)x, 0, 1, 1280);
+            // draw vertical lines for bar numbers
+            g.setColour(juce::Colour(0xFF'444444).withAlpha(.5f));
+            g.fillRect((int)x, 0, 1, 1280);
 
-        // draw lines for grid snapping
-        g.setColour(juce::Colour(0xFF'444444).withAlpha(.3f));
-        for (int j = 0; j < SNAP_DIVISION; ++j) {
-            int divX = x + ((pxPerBar / SNAP_DIVISION) * j);
-            g.fillRect(divX, 0, 1, 1280);
+            // draw lines for grid snapping
+            g.setColour(juce::Colour(0xFF'444444).withAlpha(.3f));
+            for (int j = 0; j < SNAP_DIVISION; ++j) {
+                int divX = x + ((pxPerBar / SNAP_DIVISION) * j);
+                g.fillRect(divX, 0, 1, 1280);
+            }
         }
     }
 
