@@ -1463,9 +1463,11 @@ void track::audioNode::addPlugin(juce::String path) {
         apfm.createPluginInstance(*pluginDescriptions[0], track::SAMPLE_RATE,
                                   track::SAMPLES_PER_BLOCK, errorMsg);
 
+    /*
     DBG("LOGGING OUTPUTS:");
     DBG("   " << plugin->getMainBusNumInputChannels() << " inputs");
     DBG("   " << plugin->getMainBusNumOutputChannels() << " outputs");
+    */
 
     // DBG("setting plugin play config details");
     plugin->setPlayConfigDetails(2, 2, track::SAMPLE_RATE,
@@ -1488,11 +1490,13 @@ void track::audioNode::addPlugin(juce::String path) {
     }
     plugin->prepareToPlay(track::SAMPLE_RATE, track::SAMPLES_PER_BLOCK);
 
-    p->updateLatency();
+    p->updateLatencyAfterDelay();
 
+    /*
     DBG("LOGGING OUTPUTS:");
     DBG("   " << plugin->getMainBusNumInputChannels() << " inputs");
     DBG("   " << plugin->getMainBusNumOutputChannels() << " outputs");
+    */
 
     DBG("plugin added");
 }
@@ -1502,7 +1506,7 @@ void track::audioNode::removePlugin(int index) {
     this->bypassedPlugins.erase(this->bypassedPlugins.begin() + index);
 
     AudioPluginAudioProcessor *p = (AudioPluginAudioProcessor *)processor;
-    p->updateLatency();
+    p->updateLatencyAfterDelay();
 }
 
 int track::audioNode::getLatencySamples() {

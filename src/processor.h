@@ -46,6 +46,7 @@ class AudioPluginAudioProcessor : public juce::AudioProcessor {
     juce::AudioProcessorValueTreeState apvts;
 
     void updateLatency();
+    void updateLatencyAfterDelay();
 
   private:
     juce::Random random;

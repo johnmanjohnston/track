@@ -308,7 +308,7 @@ juce::AudioProcessorEditor *AudioPluginAudioProcessor::createEditor() {
 
 juce::XmlElement *
 AudioPluginAudioProcessor::serializeNode(track::audioNode *node) {
-    DBG("serializing node " << node->trackName);
+    // DBG("serializing node " << node->trackName);
     juce::XmlElement *nodeElement = new juce::XmlElement("node");
     nodeElement->setAttribute("istrack", node->isTrack);
     nodeElement->setAttribute("name", node->trackName);
@@ -358,7 +358,7 @@ AudioPluginAudioProcessor::serializeNode(track::audioNode *node) {
 
 void AudioPluginAudioProcessor::deserializeNode(juce::XmlElement *nodeElement,
                                                 track::audioNode *node) {
-    DBG("deserializing - " << nodeElement->getStringAttribute("name"));
+    // DBG("deserializing - " << nodeElement->getStringAttribute("name"));
     node->isTrack = nodeElement->getBoolAttribute("istrack", true);
     node->trackName = nodeElement->getStringAttribute("name");
     node->processor = this;
@@ -434,7 +434,7 @@ void AudioPluginAudioProcessor::getStateInformation(
     xml->deleteAllChildElementsWithTagName("node");
     xml->deleteAllChildElementsWithTagName("projectsettings");
 
-    DBG("getStateInformation() called");
+    // DBG("getStateInformation() called");
 
     juce::XmlElement *projectSettings = new juce::XmlElement("projectsettings");
     projectSettings->setAttribute("samplerate", getSampleRate());
@@ -471,7 +471,7 @@ void AudioPluginAudioProcessor::setStateInformation(const void *data,
 
         while (nodeElement != nullptr) {
             track::audioNode *node = &tracks.emplace_back();
-            DBG("root deserialization call for " << node->trackName);
+            // DBG("root deserialization call for " << node->trackName);
             deserializeNode(nodeElement, node);
             nodeElement = nodeElement->getNextElementWithTagName("node");
         }
@@ -484,14 +484,20 @@ void AudioPluginAudioProcessor::updateLatency() {
     DBG("updateLatency() called");
     int totalLatency = 0;
     for (track::audioNode &node : this->tracks) {
+        /*
         DBG("calculating latency for node "
             << node.trackName << " which returned sample count of "
             << node.getTotalLatencySamples());
+            */
         totalLatency += node.getTotalLatencySamples();
     }
 
     DBG("updateLatency() called. new latency is " << totalLatency);
     setLatencySamples(totalLatency);
+}
+
+void AudioPluginAudioProcessor::updateLatencyAfterDelay() {
+    juce::Timer::callAfterDelay(1000, [this] { updateLatency(); });
 }
 
 void AudioPluginAudioProcessor::reset() {

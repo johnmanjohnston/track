@@ -73,8 +73,10 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
 
 #define MENU_PLUGIN_SCAN 1
 #define MENU_ABOUT 2
+#define MENU_UPDATE_LATENCY 3
 
         contextMenu.addItem(MENU_PLUGIN_SCAN, "Scan plugins");
+        contextMenu.addItem(MENU_UPDATE_LATENCY, "Update latency");
         contextMenu.addSeparator();
         contextMenu.addItem(MENU_ABOUT, "About");
 
@@ -84,9 +86,13 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
                 scan();
             }
 
-            if (result == MENU_ABOUT) {
+            else if (result == MENU_ABOUT) {
                 juce::URL url("https://github.com/johnmanjohnston/track");
                 url.launchInDefaultBrowser();
+            }
+
+            else if (result == MENU_UPDATE_LATENCY) {
+                processorRef.updateLatency();
             }
         });
     };
