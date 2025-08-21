@@ -35,6 +35,8 @@ track::ClipComponent::ClipComponent(clip *c)
         correspondingClip->name = clipNameLabel.getText(true);
     };
 
+    clipNameLabel.onEditorHide = [this] { repaint(); };
+
     setBufferedToImage(true);
     setOpaque(false);
 
@@ -389,22 +391,38 @@ void track::ClipComponent::mouseMove(const juce::MouseEvent &event) {
 
 bool track::ClipComponent::keyStateChanged(bool isKeyDown) {
     /*
-    juce::KeyPress curCombo =
-        juce::KeyPress::createFromDescription("backspace");
+    juce::KeyPress curCombo = juce::KeyPress::createFromDescription("ctr+r");
     if (curCombo.isCurrentlyDown()) {
         DBG("curCombo is down");
         DBG(curCombo.getKeyCode());
     }
     */
 
-    // 88 = ctrl+x; 268435711 = delete; 8 = backspace
-    // don't allow deletion of clip while its name is being edited
-    if ((juce::KeyPress::isKeyCurrentlyDown(88) ||
-         juce::KeyPress::isKeyCurrentlyDown(8) ||
-         juce::KeyPress::isKeyCurrentlyDown(268435711)) &&
-        !clipNameLabel.isBeingEdited()) {
-        TimelineComponent *tc = (TimelineComponent *)getParentComponent();
-        tc->deleteClip(correspondingClip, nodeDisplayIndex);
+    if (isKeyDown) {
+        // r
+        if (juce::KeyPress::isKeyCurrentlyDown(82)) {
+            juce::Timer::callAfterDelay(10,
+                                        [this] { clipNameLabel.showEditor(); });
+        }
+
+        // 0
+        else if (juce::KeyPress::isKeyCurrentlyDown(48)) {
+            this->correspondingClip->active = !this->correspondingClip->active;
+            repaint();
+
+            TimelineComponent *tc = (TimelineComponent *)getParentComponent();
+            tc->grabKeyboardFocus();
+        }
+
+        // x, backspace, delete
+        // don't allow deletion of clip while its name is being edited
+        else if ((juce::KeyPress::isKeyCurrentlyDown(88) ||
+                  juce::KeyPress::isKeyCurrentlyDown(8) ||
+                  juce::KeyPress::isKeyCurrentlyDown(268435711)) &&
+                 !clipNameLabel.isBeingEdited()) {
+            TimelineComponent *tc = (TimelineComponent *)getParentComponent();
+            tc->deleteClip(correspondingClip, nodeDisplayIndex);
+        }
     }
 
     return false;
