@@ -210,6 +210,17 @@ void AudioPluginAudioProcessorEditor::openPluginEditorWindow(
     repaint();
 }
 
+void AudioPluginAudioProcessorEditor::closePluginEditorWindow(
+    std::vector<int> route, int pluginIndex) {
+    for (size_t i = 0; i < this->pluginEditorWindows.size(); ++i) {
+        if (pluginEditorWindows[i]->route == route &&
+            pluginEditorWindows[i]->pluginIndex == pluginIndex) {
+            pluginEditorWindows.erase(pluginEditorWindows.begin() + (int)i);
+            break;
+        }
+    }
+}
+
 void AudioPluginAudioProcessorEditor::scan() {
     if (apfm.getNumFormats() < 1)
         apfm.addDefaultFormats();

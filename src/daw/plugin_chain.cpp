@@ -1,7 +1,5 @@
 #include "plugin_chain.h"
 #include "defs.h"
-#include "juce_graphics/juce_graphics.h"
-#include "juce_gui_basics/juce_gui_basics.h"
 #include "track.h"
 
 track::PluginNodeComponent::PluginNodeComponent() : juce::Component() {
@@ -30,10 +28,13 @@ track::PluginNodeComponent::PluginNodeComponent() : juce::Component() {
             findParentComponentOfClass<PluginChainComponent>();
         jassert(pcc != nullptr);
 
+        // close editor before removing plugin otherwise segfault
+        AudioPluginAudioProcessorEditor *editor =
+            this->findParentComponentOfClass<AudioPluginAudioProcessorEditor>();
+        editor->closePluginEditorWindow(pcc->route, pluginIndex);
+
         pcc->removePlugin(this->pluginIndex);
         pcc->resized();
-
-        // FIXME: removing plugin while its editor is opened causes segfault
     };
 
     bypassBtn.onClick = [this] {
@@ -70,14 +71,14 @@ void track::PluginNodeComponent::paint(juce::Graphics &g) {
                         .withAlpha(getPluginBypassedStatus() ? .3f : 1.f));
 
 #if JUCE_WINDOWS
-        auto pluginDataFont =
-            track::ui::CustomLookAndFeel::getInterSemiBold().withExtraKerningFactor(-0.02f);
+        auto pluginDataFont = track::ui::CustomLookAndFeel::getInterSemiBold()
+                                  .withExtraKerningFactor(-0.02f);
 #else
-        auto pluginDataFont =
-            track::ui::CustomLookAndFeel::getInterSemiBold();
-        pluginDataFont = pluginDataFont.italicised().boldened().withExtraKerningFactor(-0.03f);
+        auto pluginDataFont = track::ui::CustomLookAndFeel::getInterSemiBold();
+        pluginDataFont =
+            pluginDataFont.italicised().boldened().withExtraKerningFactor(
+                -0.03f);
 #endif
-
 
         // draw name
         g.setFont(pluginDataFont.withHeight(22.f));
