@@ -99,17 +99,16 @@ void track::ClipComponent::paint(juce::Graphics &g) {
                 g.drawHorizontalLine(thumbnailTopMargin +
                                          (thumbnailBounds.getHeight() / 2) + 1,
                                      0, getWidth());
-            } 
-            else {
+            } else {
                 // stereo
                 g.drawHorizontalLine(thumbnailTopMargin +
                                          (thumbnailBounds.getHeight() / 4) + 2,
                                      0, getWidth());
 
-
-                g.drawHorizontalLine(thumbnailTopMargin +
-                                         ((thumbnailBounds.getHeight() / 4) * 3) + 3,
-                                     0, getWidth());
+                g.drawHorizontalLine(
+                    thumbnailTopMargin +
+                        ((thumbnailBounds.getHeight() / 4) * 3) + 3,
+                    0, getWidth());
             }
         }
     }
@@ -556,6 +555,56 @@ void track::TrackComponent::mouseDown(const juce::MouseEvent &event) {
 
                 // tracklist->deleteTrack(this->siblingIndex);
                 tracklist->deleteTrack(this->route);
+            });
+
+        contextMenu.addItem(
+            "Ungroup",
+            !getCorrespondingTrack()->isTrack || this->route.size() >= 2, false,
+            [this] {
+                DBG("ungroup track");
+
+                AudioPluginAudioProcessor *p =
+                    (AudioPluginAudioProcessor *)processor;
+
+                audioNode *head = nullptr;
+                Tracklist *tracklist = findParentComponentOfClass<Tracklist>();
+
+                if (getCorrespondingTrack()->isTrack) {
+                    head = &p->tracks[(size_t)this->route[0]];
+                    for (size_t i = 1; i < route.size() - 2; ++i) {
+                        head = &head->childNodes[(size_t)route[i]];
+                    }
+
+                    audioNode *newNode = nullptr;
+
+                    if (this->route.size() >= 3)
+                        newNode = &head->childNodes.emplace_back();
+                    else
+                        newNode = &p->tracks.emplace_back();
+
+                    DBG("attempting to ungroup track. route.size() = "
+                        << this->route.size());
+                    tracklist->copyNode(newNode, getCorrespondingTrack());
+
+                } else {
+                    head = &p->tracks[(size_t)this->route[0]];
+                    for (size_t i = 1; i < route.size() - 1; ++i) {
+                        head = &head->childNodes[(size_t)route[i]];
+                    }
+
+                    if (this->route.size() >= 2) {
+                        tracklist->deepCopyGroupInsideGroup(
+                            getCorrespondingTrack(), head);
+
+                    } else {
+                        tracklist->deepCopyGroupInsideGroup(
+                            getCorrespondingTrack(), nullptr);
+                    }
+                }
+
+                tracklist->deleteTrack(this->route);
+
+                DBG("ungrouping to parent named " << head->trackName);
             });
 
         if (getCorrespondingTrack()->isTrack == false) {
@@ -1040,7 +1089,15 @@ void track::Tracklist::deleteTrack(std::vector<int> route) {
 void track::Tracklist::deepCopyGroupInsideGroup(audioNode *childNode,
                                                 audioNode *parentNode) {
     for (auto &child : childNode->childNodes) {
-        audioNode *newNode = &parentNode->childNodes.emplace_back();
+        audioNode *newNode = nullptr;
+
+        if (parentNode == nullptr) {
+            DBG("parentNode = nullptr");
+            AudioPluginAudioProcessor *p =
+                (AudioPluginAudioProcessor *)processor;
+            newNode = &p->tracks.emplace_back();
+        } else
+            newNode = &parentNode->childNodes.emplace_back();
         /*
         newNode->trackName = child.trackName;
         newNode->isTrack = child.isTrack;
@@ -1507,7 +1564,8 @@ void track::audioNode::process(int numSamples, int currentSample) {
                     c.trimLeft + ((clipStart < currentSample)
                                       ? currentSample - clipStart
                                       : 0);
-                ++clipBufferStart; // avoid doing this the "proper" way; besides 1 sample doesn't matter
+                ++clipBufferStart; // avoid doing this the "proper" way; besides
+                                   // 1 sample doesn't matter
                 // how many samples can we safely copy?
                 int samplesToCopy = juce::jmin(
                     outputBufferLength - outputOffset,
