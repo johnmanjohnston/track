@@ -32,6 +32,9 @@ class AudioPluginAudioProcessorEditor : public juce::AudioProcessorEditor,
     void scan();
 
     juce::TextButton configBtn;
+    int lastKnownLatency = -1;
+    void updateLastKnownLatency();
+    void updateLastKnownLatencyAfterDelay(int delay = 1000);
 
     // track::PluginChainComponent pluginChainComponent;
     std::vector<std::unique_ptr<track::PluginChainComponent>>

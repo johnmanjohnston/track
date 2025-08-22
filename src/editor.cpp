@@ -6,6 +6,7 @@
 #include "daw/track.h"
 #include "lookandfeel.h"
 #include "processor.h"
+#include <cmath>
 
 AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
     AudioPluginAudioProcessor &p)
@@ -93,11 +94,15 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
 
             else if (result == MENU_UPDATE_LATENCY) {
                 processorRef.updateLatency();
+                this->updateLastKnownLatency();
+                repaint();
             }
         });
     };
 
     addAndMakeVisible(configBtn);
+
+    this->updateLastKnownLatencyAfterDelay();
 }
 
 AudioPluginAudioProcessorEditor::~AudioPluginAudioProcessorEditor() {
@@ -136,7 +141,7 @@ void AudioPluginAudioProcessorEditor::paint(juce::Graphics &g) {
 
     g.setFont(epicFont.withHeight(14.f));
 
-    // [x86_64-linux VST3 44.1kHz]
+    // [x86_64-linux VST3 44.1kHz 512spls 1ms]
 
     juce::String audioInfoText = "[";
 
@@ -161,7 +166,17 @@ void AudioPluginAudioProcessorEditor::paint(juce::Graphics &g) {
     audioInfoText += juce::String(track::SAMPLE_RATE / 1000);
     audioInfoText += "kHz ";
     audioInfoText += juce::String(track::SAMPLES_PER_BLOCK);
-    audioInfoText += "spls";
+
+    audioInfoText += "spls ";
+    if (lastKnownLatency == -1)
+        audioInfoText += "-";
+    else {
+        int latencyMs =
+            std::round((lastKnownLatency / track::SAMPLE_RATE) * 1000.f);
+        audioInfoText += latencyMs;
+        audioInfoText += "ms";
+    }
+
     audioInfoText += "]";
     g.drawText(audioInfoText, getWidth() - 250 - 3, 0, 250, 20,
                juce::Justification::right);
@@ -183,6 +198,21 @@ void AudioPluginAudioProcessorEditor::resized() {
     configBtn.setColour(juce::TextButton::ColourIds::textColourOnId,
                         juce::Colours::orange);
     configBtn.setBounds(getWidth() - 66, 25, 62, 20);
+}
+
+void AudioPluginAudioProcessorEditor::updateLastKnownLatency() {
+    this->lastKnownLatency = processorRef.getLatencySamples();
+    DBG("processor's getLatencySamples() returned " << this->lastKnownLatency);
+    DBG("ms should be " << ((this->lastKnownLatency / track::SAMPLE_RATE) *
+                            1000));
+}
+
+void AudioPluginAudioProcessorEditor::updateLastKnownLatencyAfterDelay(
+    int delay) {
+    juce::Timer::callAfterDelay(delay, [this] {
+        this->updateLastKnownLatency();
+        repaint();
+    });
 }
 
 void AudioPluginAudioProcessorEditor::openFxChain(std::vector<int> route) {
