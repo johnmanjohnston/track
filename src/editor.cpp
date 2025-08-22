@@ -132,14 +132,20 @@ void AudioPluginAudioProcessorEditor::paint(juce::Graphics &g) {
 
     // draw "track" logo
     g.setColour(juce::Colour(0xFF727272));
-    auto epicFont = lnf.getInterRegular().withExtraKerningFactor(-.05f);
+    auto epicFont = lnf.getInterRegular();
+
+    epicFont = epicFont.withExtraKerningFactor(-.05f);
 
     g.setFont(epicFont.withHeight(26.f).italicised().boldened());
 
     g.drawFittedText("track", juce::Rectangle<int>(34, 1, 100, 50),
                      juce::Justification::left, 1);
 
+    #if JUCE_LINUX
     g.setFont(epicFont.withHeight(14.f));
+    #else
+    g.setFont(epicFont.withHeight(15.f).withExtraKerningFactor(-0.01));
+    #endif
 
     // [x86_64-linux VST3 44.1kHz 512spls 1ms]
 
@@ -149,14 +155,18 @@ void AudioPluginAudioProcessorEditor::paint(juce::Graphics &g) {
     audioInfoText += "x86_64-";
 #endif
 
+#if _WIN32
+    audioInfoText += "x86_64-";
+#endif
+
 #if JUCE_LINUX
     audioInfoText += "linux ";
 #elif JUCE_WINDOWS
-    audioInfoText += "win";
+    audioInfoText += "windows ";
 #elif JUCE_MAC
-    audioInfoText += "mac";
+    audioInfoText += "mac ";
 #elif JUCE_BSD
-    audioInfoText += "bsd";
+    audioInfoText += "bsd ";
 #endif
 
     audioInfoText +=

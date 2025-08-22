@@ -325,7 +325,11 @@ void track::ui::CustomLookAndFeel::drawLabel(Graphics &g, Label &label) {
 }
 
 Font track::ui::CustomLookAndFeel::getPopupMenuFont() {
+    #if JUCE_WINDOWS
+    return getInterRegular().withHeight(19.f).withExtraKerningFactor(-.01f);
+    #else
     return getInterRegular().withHeight(18.f).withExtraKerningFactor(-.03f);
+    #endif
 }
 
 Font track::ui::CustomLookAndFeel::getTextButtonFont(TextButton &button,
