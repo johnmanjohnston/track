@@ -35,8 +35,6 @@ track::PluginNodeComponent::PluginNodeComponent() : juce::Component() {
 
         pcc->removePlugin(this->pluginIndex);
         pcc->resized();
-
-        editor->updateLastKnownLatencyAfterDelay();
     };
 
     bypassBtn.onClick = [this] {
@@ -163,7 +161,6 @@ void track::PluginNodesWrapper::mouseDown(const juce::MouseEvent &event) {
                     DBG("pluginIndex = " << pluginIndex);
 
                     editor->openPluginEditorWindow(pcc->route, pluginIndex);
-                    editor->updateLastKnownLatencyAfterDelay();
 
                     // create node component
                     this->pluginNodeComponents.emplace_back(

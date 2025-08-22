@@ -141,11 +141,11 @@ void AudioPluginAudioProcessorEditor::paint(juce::Graphics &g) {
     g.drawFittedText("track", juce::Rectangle<int>(34, 1, 100, 50),
                      juce::Justification::left, 1);
 
-    #if JUCE_LINUX
+#if JUCE_LINUX
     g.setFont(epicFont.withHeight(14.f));
-    #else
+#else
     g.setFont(epicFont.withHeight(15.f).withExtraKerningFactor(-0.01));
-    #endif
+#endif
 
     // [x86_64-linux VST3 44.1kHz 512spls 1ms]
 
@@ -212,9 +212,6 @@ void AudioPluginAudioProcessorEditor::resized() {
 
 void AudioPluginAudioProcessorEditor::updateLastKnownLatency() {
     this->lastKnownLatency = processorRef.getLatencySamples();
-    DBG("processor's getLatencySamples() returned " << this->lastKnownLatency);
-    DBG("ms should be " << ((this->lastKnownLatency / track::SAMPLE_RATE) *
-                            1000));
 }
 
 void AudioPluginAudioProcessorEditor::updateLastKnownLatencyAfterDelay(
@@ -222,6 +219,8 @@ void AudioPluginAudioProcessorEditor::updateLastKnownLatencyAfterDelay(
     juce::Timer::callAfterDelay(delay, [this] {
         this->updateLastKnownLatency();
         repaint();
+
+        this->updateLastKnownLatencyAfterDelay();
     });
 }
 
