@@ -106,15 +106,6 @@ class audioNode {
     int getTotalLatencySamples();
 };
 
-class group {
-  public:
-    bool s = false;
-    bool m = false;
-
-    // void process(juce::AudioBuffer<float> buffer, int currentSample);
-    // juce::AudioBuffer<float> internalBuffer;
-};
-
 class TrackComponent : public juce::Component {
   public:
     // TrackComponent(track *t);

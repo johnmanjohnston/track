@@ -100,6 +100,7 @@ class PluginChainComponent : public juce::Component {
 
     track::InsertIndicator insertIndicator;
     void updateInsertIndicator(int index);
+    void reorderPlugin(int srcIndex, int destIndex);
 
     // TODO: this shouldn't belong in this class
     static const juce::Font getInterBoldItalic() {

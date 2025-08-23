@@ -1,5 +1,6 @@
 #include "plugin_chain.h"
 #include "defs.h"
+#include "juce_audio_processors/juce_audio_processors.h"
 #include "track.h"
 
 track::PluginNodeComponent::PluginNodeComponent() : juce::Component() {
@@ -71,6 +72,8 @@ void track::PluginNodeComponent::mouseUp(const juce::MouseEvent &event) {
         DBG("FINAL NODE INDEX = " << displayNodes);
 
         pcc->updateInsertIndicator(-1);
+
+        pcc->reorderPlugin(this->pluginIndex, displayNodes);
     }
 }
 
@@ -85,7 +88,7 @@ void track::PluginNodeComponent::mouseDrag(const juce::MouseEvent &event) {
                        (UI_PLUGIN_NODE_MARGIN / 2.f);
         int displayNodes =
             (int)(mouseX / (float)(UI_PLUGIN_NODE_WIDTH + 4)) - 1;
-        DBG("displayNodes = " << displayNodes);
+        // DBG("displayNodes = " << displayNodes);
 
         pcc->updateInsertIndicator(displayNodes);
     }
@@ -413,6 +416,23 @@ void track::PluginChainComponent::updateInsertIndicator(int index) {
     }
 
     this->insertIndicator.setVisible(false);
+}
+
+void track::PluginChainComponent::reorderPlugin(int srcIndex, int destIndex) {
+    DBG("reorderPlugin() called with src,dest" << srcIndex << "," << destIndex);
+
+    std::unique_ptr<juce::AudioPluginInstance> plugin =
+        std::move(getCorrespondingTrack()->plugins[(size_t)srcIndex]);
+
+    getCorrespondingTrack()->plugins.erase(
+        getCorrespondingTrack()->plugins.begin() + srcIndex);
+
+    getCorrespondingTrack()->plugins.insert(
+        getCorrespondingTrack()->plugins.begin() + destIndex,
+        std::move(plugin));
+
+    nodesWrapper.pluginNodeComponents.clear();
+    nodesWrapper.createPluginNodeComponents();
 }
 
 // plugin editor window
