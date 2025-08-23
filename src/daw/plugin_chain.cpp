@@ -1,5 +1,6 @@
 #include "plugin_chain.h"
 #include "defs.h"
+#include "juce_graphics/juce_graphics.h"
 #include "track.h"
 
 track::PluginNodeComponent::PluginNodeComponent() : juce::Component() {
@@ -84,6 +85,12 @@ void track::PluginNodeComponent::paint(juce::Graphics &g) {
         g.setFont(pluginDataFont.withHeight(22.f));
         g.drawText(getPlugin()->get()->getName(), 10, 8, getWidth(), 20,
                    juce::Justification::left);
+
+        // draw manufacturer name
+        g.setColour(juce::Colour(0xFF'595959));
+        g.setFont(pluginDataFont.withHeight(16.f));
+        g.drawText(getPlugin()->get()->getPluginDescription().manufacturerName,
+                   10, 30, getWidth(), 20, juce::Justification::left);
     }
 }
 
