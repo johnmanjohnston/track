@@ -1395,7 +1395,7 @@ void track::Tracklist::updateInsertIndicator(int index) {
         this->insertIndicator.setVisible(true);
         this->insertIndicator.toFront(false);
         this->insertIndicator.setBounds(
-            0, (UI_TRACK_HEIGHT * index) + (UI_TRACK_HEIGHT / 2) - 4,
+            0, (UI_TRACK_HEIGHT * index) + UI_TRACK_VERTICAL_OFFSET,
             UI_TRACK_WIDTH, 1);
         repaint();
         return;

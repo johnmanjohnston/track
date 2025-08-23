@@ -170,7 +170,7 @@ class InsertIndicator : public juce::Component {
   public:
     InsertIndicator() {}
     ~InsertIndicator() {}
-    void paint(juce::Graphics &g) { g.fillAll(juce::Colours::magenta); }
+    void paint(juce::Graphics &g) { g.fillAll(juce::Colours::silver); }
 };
 
 class Tracklist : public juce::Component {
