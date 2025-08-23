@@ -300,9 +300,23 @@ void track::ClipComponent::mouseDrag(const juce::MouseEvent &event) {
             int rawSamplePosTrimLeft =
                 startTrimLeftPositionSample +
                 ((distanceMoved * SAMPLE_RATE) / UI_ZOOM_MULTIPLIER);
-            correspondingClip->trimLeft = rawSamplePosTrimLeft;
 
-            DBG("raw left = " << rawSamplePosTrimLeft);
+            if (event.mods.isAltDown()) {
+                correspondingClip->trimLeft = rawSamplePosTrimLeft;
+            } else {
+                double secondsPerBeat = 60.f / BPM;
+                int samplesPerBar = (secondsPerBeat * SAMPLE_RATE) * 4;
+                int samplesPerSnap = samplesPerBar / SNAP_DIVISION;
+
+                int snappedTrimLeft =
+                    ((rawSamplePosTrimLeft + samplesPerSnap / 2) /
+                     samplesPerSnap) *
+                    samplesPerSnap;
+
+                correspondingClip->trimLeft = snappedTrimLeft;
+            }
+
+            // DBG("raw left = " << rawSamplePosTrimLeft);
         }
 
         // trim right
@@ -314,9 +328,22 @@ void track::ClipComponent::mouseDrag(const juce::MouseEvent &event) {
             int rawSamplePosTrimRight =
                 startTrimRightPositionSample +
                 ((-distanceMoved * SAMPLE_RATE) / UI_ZOOM_MULTIPLIER);
-            correspondingClip->trimRight = rawSamplePosTrimRight;
 
-            DBG("raw right = " << rawSamplePosTrimRight);
+            if (event.mods.isAltDown()) {
+                correspondingClip->trimRight = rawSamplePosTrimRight;
+            } else {
+                double secondsPerBeat = 60.f / BPM;
+                int samplesPerBar = (secondsPerBeat * SAMPLE_RATE) * 4;
+                int samplesPerSnap = samplesPerBar / SNAP_DIVISION;
+
+                int snappedTrimRight =
+                    ((rawSamplePosTrimRight + samplesPerSnap / 2) /
+                     samplesPerSnap) *
+                    samplesPerSnap;
+                correspondingClip->trimRight = snappedTrimRight;
+            }
+
+            // DBG("raw right = " << rawSamplePosTrimRight);
 
             // trimming left involves changing trim left AND moving start sample
             // which already happens anyway below, but trimming from right
