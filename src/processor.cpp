@@ -18,6 +18,8 @@ AudioPluginAudioProcessor::AudioPluginAudioProcessor()
     // addParameter(masterGain = new juce::AudioParameterFloat("master",
     // "Master",
     // 0.f, 6.f, 1.f));
+
+    DBG("track v" << VERSION_STRING << " " << BUILD_TYPE_STRING);
 }
 
 AudioPluginAudioProcessor::~AudioPluginAudioProcessor() {}

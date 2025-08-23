@@ -4,6 +4,7 @@
 #include "daw/plugin_chain.h"
 #include "daw/timeline.h"
 #include "daw/track.h"
+#include "juce_graphics/juce_graphics.h"
 #include "lookandfeel.h"
 #include "processor.h"
 #include <cmath>
@@ -151,6 +152,11 @@ void AudioPluginAudioProcessorEditor::paint(juce::Graphics &g) {
 
     juce::String audioInfoText = "[";
 
+    juce::String versionInfo = "v";
+    versionInfo += VERSION_STRING;
+    versionInfo += " ";
+    audioInfoText += versionInfo;
+
 #ifdef __x86_64__
     audioInfoText += "x86_64-";
 #endif
@@ -188,8 +194,8 @@ void AudioPluginAudioProcessorEditor::paint(juce::Graphics &g) {
     }
 
     audioInfoText += "]";
-    g.drawText(audioInfoText, getWidth() - 250 - 3, 0, 250, 20,
-               juce::Justification::right);
+    g.drawText(audioInfoText, getWidth() - 270 - 3, 0, 270, 20,
+               juce::Justification::right, false);
 }
 
 void AudioPluginAudioProcessorEditor::resized() {

@@ -57,7 +57,11 @@ target_compile_definitions(track PRIVATE
     # This is a temporary workaround to allow builds to complete on Xcode 15.
     # Add -Wl,-ld_classic to the OTHER_LDFLAGS build setting if you need to
     # deploy to older versions of macOS/iOS.
-    JUCE_SILENCE_XCODE_15_LINKER_WARNING=1)
+    JUCE_SILENCE_XCODE_15_LINKER_WARNING=1
+
+    PUBLIC
+    VERSION_STRING="${CMAKE_PROJECT_VERSION}"
+    BUILD_TYPE_STRING="${CMAKE_BUILD_TYPE}")
 
 target_link_libraries(track PRIVATE
     trackBinaryData
