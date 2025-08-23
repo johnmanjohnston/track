@@ -282,6 +282,13 @@ void track::ClipComponent::mouseDown(const juce::MouseEvent &event) {
         startTrimLeftPositionSample = correspondingClip->trimLeft;
         startTrimRightPositionSample = correspondingClip->trimRight;
         mouseClickX = event.x;
+
+        if (mouseClickX <= track::TRIM_REGION_WIDTH)
+            trimMode = -1;
+        else if (event.x >= (getWidth() - track::TRIM_REGION_WIDTH))
+            trimMode = 1;
+        else
+            trimMode = 0;
     }
 }
 
@@ -296,7 +303,7 @@ void track::ClipComponent::mouseDrag(const juce::MouseEvent &event) {
     // if ctrl held, trim
     if (event.mods.isCtrlDown()) {
         // trim left
-        if (mouseClickX <= track::TRIM_REGION_WIDTH) {
+        if (trimMode == -1) {
             int rawSamplePosTrimLeft =
                 startTrimLeftPositionSample +
                 ((distanceMoved * SAMPLE_RATE) / UI_ZOOM_MULTIPLIER);
@@ -316,11 +323,14 @@ void track::ClipComponent::mouseDrag(const juce::MouseEvent &event) {
                 correspondingClip->trimLeft = snappedTrimLeft;
             }
 
-            // DBG("raw left = " << rawSamplePosTrimLeft);
+            DBG("raw left = " << rawSamplePosTrimLeft);
+
+            correspondingClip->trimLeft =
+                juce::jmax(0, correspondingClip->trimLeft);
         }
 
         // trim right
-        else if (event.x >= (getWidth() - track::TRIM_REGION_WIDTH)) {
+        else if (trimMode == 1) {
             DBG("mouseClickX = " << mouseClickX);
             DBG("getWidth() - track::TRIM_REGION_WIDTH = "
                 << getWidth() - track::TRIM_REGION_WIDTH);
@@ -343,12 +353,15 @@ void track::ClipComponent::mouseDrag(const juce::MouseEvent &event) {
                 correspondingClip->trimRight = snappedTrimRight;
             }
 
-            // DBG("raw right = " << rawSamplePosTrimRight);
+            DBG("raw right = " << rawSamplePosTrimRight);
 
-            // trimming left involves changing trim left AND moving start sample
-            // which already happens anyway below, but trimming from right
-            // involves only changing trim right; so we resize and repaint to
-            // finish trimming right
+            correspondingClip->trimRight =
+                juce::jmax(0, correspondingClip->trimRight);
+
+            // trimming left involves changing trim left AND moving start
+            // sample which already happens anyway below, but trimming from
+            // right involves only changing trim right; so we resize and
+            // repaint to finish trimming right
             TimelineComponent *tc =
                 findParentComponentOfClass<TimelineComponent>();
             tc->resizeClipComponent(this);
@@ -391,6 +404,10 @@ void track::ClipComponent::mouseUp(const juce::MouseEvent &event) {
         tc->resizeTimelineComponent();
     }
 
+    if (!event.mods.isLeftButtonDown()) {
+        trimMode = 0;
+    }
+
     DBG(event.getDistanceFromDragStartX());
     repaint();
 }
@@ -417,9 +434,9 @@ void track::ClipComponent::mouseMove(const juce::MouseEvent &event) {
 
 bool track::ClipComponent::keyStateChanged(bool isKeyDown) {
     /*
-    juce::KeyPress curCombo = juce::KeyPress::createFromDescription("ctr+r");
-    if (curCombo.isCurrentlyDown()) {
-        DBG("curCombo is down");
+    juce::KeyPress curCombo =
+    juce::KeyPress::createFromDescription("ctr+r"); if
+    (curCombo.isCurrentlyDown()) { DBG("curCombo is down");
         DBG(curCombo.getKeyCode());
     }
     */
@@ -492,9 +509,9 @@ void track::TrackComponent::initializSliders() {
 }
 
 track::TrackComponent::TrackComponent(int trackIndex) : juce::Component() {
-    // starting text for track name label is set when TrackComponent is created
-    // in createTrackComponents()
-    // DBG("TrackComponent constructor called");
+    // starting text for track name label is set when TrackComponent is
+    // created in createTrackComponents() DBG("TrackComponent constructor
+    // called");
 
     trackNameLabel.setFont(
         getAudioNodeLabelFont().withHeight(17.f).withExtraKerningFactor(
@@ -857,9 +874,9 @@ void track::TrackComponent::paint(juce::Graphics &g) {
     g.drawText(juce::String(displayIndex + 1), 0, 0, UI_TRACK_INDEX_WIDTH,
                UI_TRACK_HEIGHT, juce::Justification::centred);
 
-    // TODO: this isn't scalable. if you move buttons in resized() they should
-    // be able to automatically reflect over here, but that isn't the case draw
-    // mute marker
+    // TODO: this isn't scalable. if you move buttons in resized() they
+    // should be able to automatically reflect over here, but that isn't the
+    // case draw mute marker
     if (getCorrespondingTrack()->m || getCorrespondingTrack()->s) {
         int btnSize = 24;
         juce::Rectangle<int> btnBounds = juce::Rectangle<int>(
@@ -1325,7 +1342,8 @@ int track::Tracklist::findChildren(audioNode *parentNode,
         addAndMakeVisible(*trackComponents.back());
 
         /*
-        DBG(tabs << "found " << (childNode->isTrack ? "track" : "group") << " "
+        DBG(tabs << "found " << (childNode->isTrack ? "track" : "group") <<
+        " "
                  << childNode->trackName << "(" << i << foundItems << depth
                  << ") " << getPrettyVector(route));
                  */
@@ -1613,8 +1631,8 @@ void track::audioNode::process(int numSamples, int currentSample) {
                     c.trimLeft + ((clipStart < currentSample)
                                       ? currentSample - clipStart
                                       : 0);
-                ++clipBufferStart; // avoid doing this the "proper" way; besides
-                                   // 1 sample doesn't matter
+                ++clipBufferStart; // avoid doing this the "proper" way;
+                                   // besides 1 sample doesn't matter
                 // how many samples can we safely copy?
                 int samplesToCopy = juce::jmin(
                     outputBufferLength - outputOffset,

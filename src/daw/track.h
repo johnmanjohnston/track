@@ -62,6 +62,7 @@ class ClipComponent : public juce::Component, public juce::ChangeListener {
     int startTrimLeftPositionSample = -1;
     int startTrimRightPositionSample = -1;
     int mouseClickX = -1;
+    int trimMode = 0; // -1 = left, 0 = none, 1 = right
 
     int drawTrimHandles = 0; // -1 for left, 1 for right, 0 for neither
 
