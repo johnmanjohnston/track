@@ -427,13 +427,22 @@ void track::PluginChainComponent::reorderPlugin(int srcIndex, int destIndex) {
     // std::move is absolute magic how have i not known of this sooner
     std::unique_ptr<juce::AudioPluginInstance> plugin =
         std::move(getCorrespondingTrack()->plugins[(size_t)srcIndex]);
+    bool isBypassed =
+        getCorrespondingTrack()->bypassedPlugins[(size_t)srcIndex];
 
+    // remove plugin and bypassed entry
     getCorrespondingTrack()->plugins.erase(
         getCorrespondingTrack()->plugins.begin() + srcIndex);
+    getCorrespondingTrack()->bypassedPlugins.erase(
+        getCorrespondingTrack()->bypassedPlugins.begin() + srcIndex);
 
+    // insert plugin and bypassed entry at intended indices
     getCorrespondingTrack()->plugins.insert(
         getCorrespondingTrack()->plugins.begin() + destIndex,
         std::move(plugin));
+    getCorrespondingTrack()->bypassedPlugins.insert(
+        getCorrespondingTrack()->bypassedPlugins.begin() + destIndex,
+        isBypassed);
 
     nodesWrapper.pluginNodeComponents.clear();
     nodesWrapper.createPluginNodeComponents();

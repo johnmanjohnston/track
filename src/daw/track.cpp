@@ -913,8 +913,10 @@ void track::TrackComponent::resized() {
                              (UI_TRACK_HEIGHT / 2) - (sliderHeight / 2) +
                                  (int)(UI_TRACK_HEIGHT * .2f) + 2,
                              sliderWidth, sliderHeight);
-    } else
+    } else {
         gainSlider.setVisible(false);
+        gainSlider.setBounds(1, 1, 1, 1);
+    }
 }
 
 // ASJAJSAJSJAS
