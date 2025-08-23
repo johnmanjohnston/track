@@ -1,6 +1,5 @@
 #include "plugin_chain.h"
 #include "defs.h"
-#include "juce_graphics/juce_graphics.h"
 #include "track.h"
 
 track::PluginNodeComponent::PluginNodeComponent() : juce::Component() {
@@ -57,6 +56,40 @@ track::PluginNodesWrapper::PluginNodesWrapper() : juce::Component() {}
 track::PluginNodesWrapper::~PluginNodesWrapper() {}
 track::PluginNodesViewport::PluginNodesViewport() : juce::Viewport() {}
 track::PluginNodesViewport::~PluginNodesViewport() {}
+
+void track::PluginNodeComponent::mouseUp(const juce::MouseEvent &event) {
+    if (event.mouseWasDraggedSinceMouseDown() &&
+        event.mods.isLeftButtonDown()) {
+        PluginChainComponent *pcc = (PluginChainComponent *)
+            findParentComponentOfClass<PluginChainComponent>();
+
+        float mouseX = event.getEventRelativeTo(pcc).position.getX() +
+                       (UI_PLUGIN_NODE_WIDTH + UI_PLUGIN_NODE_MARGIN) +
+                       (UI_PLUGIN_NODE_MARGIN / 2.f);
+        int displayNodes = (int)(mouseX / (float)(getWidth() + 4)) - 1;
+
+        DBG("FINAL NODE INDEX = " << displayNodes);
+
+        pcc->updateInsertIndicator(-1);
+    }
+}
+
+void track::PluginNodeComponent::mouseDrag(const juce::MouseEvent &event) {
+    if (event.mouseWasDraggedSinceMouseDown() &&
+        event.mods.isLeftButtonDown()) {
+        PluginChainComponent *pcc = (PluginChainComponent *)
+            findParentComponentOfClass<PluginChainComponent>();
+
+        float mouseX = event.getEventRelativeTo(pcc).position.getX() +
+                       (UI_PLUGIN_NODE_WIDTH + UI_PLUGIN_NODE_MARGIN) +
+                       (UI_PLUGIN_NODE_MARGIN / 2.f);
+        int displayNodes =
+            (int)(mouseX / (float)(UI_PLUGIN_NODE_WIDTH + 4)) - 1;
+        DBG("displayNodes = " << displayNodes);
+
+        pcc->updateInsertIndicator(displayNodes);
+    }
+}
 
 void track::PluginNodeComponent::paint(juce::Graphics &g) {
     if (getPlugin() && getPlugin()->get()) {
@@ -192,9 +225,9 @@ void track::PluginNodesWrapper::mouseDown(const juce::MouseEvent &event) {
 
 juce::Rectangle<int>
 track::PluginNodesWrapper::getBoundsForPluginNodeComponent(int index) {
-    int width = 250;
-    int sideMargin = 4;
-    return juce::Rectangle<int>((width + sideMargin) * index, 0, width, 88);
+    return juce::Rectangle<int>((UI_PLUGIN_NODE_WIDTH + UI_PLUGIN_NODE_MARGIN) *
+                                    index,
+                                0, UI_PLUGIN_NODE_WIDTH, 88);
 }
 
 std::unique_ptr<juce::AudioPluginInstance> *
@@ -229,6 +262,8 @@ track::PluginChainComponent::PluginChainComponent() : juce::Component() {
     nodesWrapper.pcc = this;
     nodesViewport.setViewedComponent(&nodesWrapper);
     addAndMakeVisible(nodesViewport);
+
+    addAndMakeVisible(insertIndicator);
 }
 
 void track::PluginChainComponent::resized() {
@@ -249,7 +284,7 @@ void track::PluginChainComponent::resized() {
         0, 0,
         jmax(getWidth() - 30,
              ((int)this->nodesWrapper.pluginNodeComponents.size() + 1) *
-                 (250 + 4)),
+                 (UI_PLUGIN_NODE_WIDTH + UI_PLUGIN_NODE_MARGIN)),
         getHeight() - UI_SUBWINDOW_TITLEBAR_HEIGHT - 1);
 
     nodesWrapper.setBounds(nodesWrapperBounds);
@@ -361,6 +396,23 @@ void track::PluginChainComponent::removePlugin(int pluginIndex) {
     // TODO: optimize this instead of using lazy where to recreate all p
     nodesWrapper.pluginNodeComponents.clear();
     nodesWrapper.createPluginNodeComponents();
+}
+
+void track::PluginChainComponent::updateInsertIndicator(int index) {
+    DBG("pcc updateInsertIndicator() called");
+
+    if (index > -1) {
+        this->insertIndicator.setVisible(true);
+        this->insertIndicator.toFront(false);
+        this->insertIndicator.setBounds(
+            ((UI_PLUGIN_NODE_WIDTH + UI_PLUGIN_NODE_MARGIN) * index) +
+                (UI_PLUGIN_NODE_MARGIN / 2) - 2,
+            UI_SUBWINDOW_TITLEBAR_HEIGHT, 1, getHeight());
+        repaint();
+        return;
+    }
+
+    this->insertIndicator.setVisible(false);
 }
 
 // plugin editor window

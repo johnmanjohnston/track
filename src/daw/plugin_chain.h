@@ -35,6 +35,9 @@ class PluginNodeComponent : public juce::Component {
     void paint(juce::Graphics &g) override;
     void resized() override;
 
+    void mouseDrag(const juce::MouseEvent &event) override;
+    void mouseUp(const juce::MouseEvent &event) override;
+
     int pluginIndex = -1;
     std::unique_ptr<juce::AudioPluginInstance> *getPlugin();
     bool getPluginBypassedStatus();
@@ -94,6 +97,9 @@ class PluginChainComponent : public juce::Component {
     audioNode *getCorrespondingTrack();
 
     void removePlugin(int pluginIndex);
+
+    track::InsertIndicator insertIndicator;
+    void updateInsertIndicator(int index);
 
     // TODO: this shouldn't belong in this class
     static const juce::Font getInterBoldItalic() {

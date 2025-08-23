@@ -15,6 +15,9 @@ constexpr int UI_TRACK_WIDTH = 300;
 constexpr int UI_TRACK_INDEX_WIDTH = 22;
 constexpr int UI_TRACK_DEPTH_INCREMENTS = 8;
 
+constexpr int UI_PLUGIN_NODE_WIDTH = 250;
+constexpr int UI_PLUGIN_NODE_MARGIN = 8;
+
 constexpr int UI_TOPBAR_HEIGHT = 50;
 
 constexpr int UI_SUBWINDOW_TITLEBAR_HEIGHT = 24;
