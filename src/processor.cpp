@@ -481,7 +481,6 @@ void AudioPluginAudioProcessor::setStateInformation(const void *data,
 }
 
 void AudioPluginAudioProcessor::updateLatency() {
-    DBG("updateLatency() called");
     int totalLatency = 0;
     for (track::audioNode &node : this->tracks) {
         /*

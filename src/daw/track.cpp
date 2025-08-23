@@ -1295,9 +1295,11 @@ int track::Tracklist::findChildren(audioNode *parentNode,
 
         addAndMakeVisible(*trackComponents.back());
 
+        /*
         DBG(tabs << "found " << (childNode->isTrack ? "track" : "group") << " "
                  << childNode->trackName << "(" << i << foundItems << depth
                  << ") " << getPrettyVector(route));
+                 */
 
         if (!childNode->isTrack) {
             foundItems = findChildren(childNode, route, foundItems, depth + 1);
@@ -1336,7 +1338,7 @@ void track::Tracklist::createTrackComponents() {
             t.trackName, juce::NotificationType::dontSendNotification);
         addAndMakeVisible(*trackComponents.back());
 
-        DBG("found " << t.trackName << " (root node)");
+        // DBG("found " << t.trackName << " (root node)");
         foundItems = findChildren(&t, route, foundItems, 1);
 
         trackComponents.back().get()->displayIndex = foundItems;
@@ -1448,7 +1450,7 @@ void track::audioNode::addPlugin(juce::String path) {
 
     apfm.addDefaultFormats();
 
-    DBG("scanning plugin");
+    // TODO: handle failure to scan plugin
     for (int i = 0; i < apfm.getNumFormats(); ++i)
         plist.scanAndAddFile(path, true, pluginDescriptions,
                              *apfm.getFormat(i));
@@ -1456,7 +1458,6 @@ void track::audioNode::addPlugin(juce::String path) {
     plugins.emplace_back();
     std::unique_ptr<juce::AudioPluginInstance> &plugin = this->plugins.back();
 
-    DBG("creating plugin instance");
     jassert(pluginDescriptions.size() > 0);
 
     plugin =
@@ -1497,8 +1498,6 @@ void track::audioNode::addPlugin(juce::String path) {
     DBG("   " << plugin->getMainBusNumInputChannels() << " inputs");
     DBG("   " << plugin->getMainBusNumOutputChannels() << " outputs");
     */
-
-    DBG("plugin added");
 }
 
 void track::audioNode::removePlugin(int index) {
