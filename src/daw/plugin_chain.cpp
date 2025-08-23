@@ -421,6 +421,10 @@ void track::PluginChainComponent::updateInsertIndicator(int index) {
 void track::PluginChainComponent::reorderPlugin(int srcIndex, int destIndex) {
     DBG("reorderPlugin() called with src,dest" << srcIndex << "," << destIndex);
 
+    destIndex = juce::jlimit(
+        0, (int)getCorrespondingTrack()->plugins.size() - 1, destIndex);
+
+    // std::move is absolute magic how have i not known of this sooner
     std::unique_ptr<juce::AudioPluginInstance> plugin =
         std::move(getCorrespondingTrack()->plugins[(size_t)srcIndex]);
 
