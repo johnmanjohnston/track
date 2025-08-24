@@ -402,6 +402,8 @@ void track::ClipComponent::mouseUp(const juce::MouseEvent &event) {
         TimelineComponent *tc = (TimelineComponent *)getParentComponent();
         jassert(tc != nullptr);
         tc->resizeTimelineComponent();
+
+        tc->grabKeyboardFocus();
     }
 
     if (!event.mods.isLeftButtonDown()) {
