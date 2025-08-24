@@ -65,6 +65,7 @@ class ClipComponent : public juce::Component, public juce::ChangeListener {
     int trimMode = 0; // -1 = left, 0 = none, 1 = right
 
     int drawTrimHandles = 0; // -1 for left, 1 for right, 0 for neither
+    bool reachedLeft = false;
 
     // TODO: this function should not be in this class
     juce::Font getInterSemiBold() {

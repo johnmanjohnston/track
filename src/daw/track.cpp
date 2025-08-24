@@ -325,6 +325,8 @@ void track::ClipComponent::mouseDrag(const juce::MouseEvent &event) {
 
             DBG("raw left = " << rawSamplePosTrimLeft);
 
+            this->reachedLeft = rawSamplePosTrimLeft <= 0;
+
             correspondingClip->trimLeft =
                 juce::jmax(0, correspondingClip->trimLeft);
         }
@@ -371,19 +373,39 @@ void track::ClipComponent::mouseDrag(const juce::MouseEvent &event) {
         }
     }
 
+    bool forbidMovement = trimMode == -1 && reachedLeft;
+
+    int oldEndPos = correspondingClip->startPositionSample +
+                    correspondingClip->buffer.getNumSamples() -
+                    correspondingClip->trimRight - correspondingClip->trimLeft;
+
+    // moving clips. fixing messed up left trim. this is a mess.
+    int newStartPos = -1;
+
+    double secondsPerBeat = 60.f / BPM;
+    int samplesPerBar = (secondsPerBeat * SAMPLE_RATE) * 4;
+    int samplesPerSnap = samplesPerBar / SNAP_DIVISION;
+
     // if alt held, don't snap
     if (event.mods.isAltDown()) {
-        correspondingClip->startPositionSample = rawSamplePos;
+        newStartPos = rawSamplePos;
     } else {
-        double secondsPerBeat = 60.f / BPM;
-        int samplesPerBar = (secondsPerBeat * SAMPLE_RATE) * 4;
-        int samplesPerSnap = samplesPerBar / SNAP_DIVISION;
-
         int snappedSamplePos =
             ((rawSamplePos + samplesPerSnap / 2) / samplesPerSnap) *
             samplesPerSnap;
 
-        correspondingClip->startPositionSample = snappedSamplePos;
+        newStartPos = snappedSamplePos;
+    }
+
+    correspondingClip->startPositionSample = newStartPos;
+
+    int newEndPos = newStartPos + correspondingClip->buffer.getNumSamples() -
+                    correspondingClip->trimRight - correspondingClip->trimLeft;
+
+    int diff = oldEndPos - newEndPos;
+
+    if (forbidMovement) {
+        correspondingClip->startPositionSample += diff;
     }
 
     TimelineComponent *tc = findParentComponentOfClass<TimelineComponent>();
@@ -409,6 +431,7 @@ void track::ClipComponent::mouseUp(const juce::MouseEvent &event) {
     if (!event.mods.isLeftButtonDown()) {
         trimMode = 0;
     }
+    reachedLeft = false;
 
     DBG(event.getDistanceFromDragStartX());
     repaint();
