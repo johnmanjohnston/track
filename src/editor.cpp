@@ -145,7 +145,7 @@ void AudioPluginAudioProcessorEditor::paint(juce::Graphics &g) {
 #if JUCE_LINUX
     g.setFont(epicFont.withHeight(14.f));
 #else
-    g.setFont(epicFont.withHeight(15.f).withExtraKerningFactor(-0.01));
+    g.setFont(epicFont.withHeight(15.f).withExtraKerningFactor(-0.02));
 #endif
 
     // [x86_64-linux VST3 44.1kHz 512spls 1ms]
@@ -194,7 +194,7 @@ void AudioPluginAudioProcessorEditor::paint(juce::Graphics &g) {
     }
 
     audioInfoText += "]";
-    g.drawText(audioInfoText, getWidth() - 270 - 3, 0, 270, 20,
+    g.drawText(audioInfoText, getWidth() - 290 - 3, 0, 290, 20,
                juce::Justification::right, false);
 }
 

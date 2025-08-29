@@ -205,10 +205,13 @@ void track::ClipComponent::mouseDown(const juce::MouseEvent &event) {
         contextMenu.addItem(MENU_TOGGLE_CLIP_ACTIVATION,
                             "Toggle activate/deactive clip");
         contextMenu.addItem(MENU_SHOW_IN_EXPLORER, "Show in explorer");
+
+        int splitSample =
+            ((float)event.x / UI_ZOOM_MULTIPLIER) * SAMPLE_RATE;
         contextMenu.addItem(
             MENU_SPLIT_CLIP,
-            "split at " + juce::String(((float)event.x / UI_ZOOM_MULTIPLIER) *
-                                       SAMPLE_RATE));
+                            "split at " +
+                                juce::String(splitSample / SAMPLE_RATE) + " seconds");
 
         juce::PopupMenu::Options options;
 
