@@ -323,7 +323,7 @@ void track::ClipComponent::mouseDrag(const juce::MouseEvent &event) {
                 correspondingClip->trimLeft = snappedTrimLeft;
             }
 
-            DBG("raw left = " << rawSamplePosTrimLeft);
+            // DBG("raw left = " << rawSamplePosTrimLeft);
 
             this->reachedLeft = rawSamplePosTrimLeft <= 0;
 
@@ -404,9 +404,24 @@ void track::ClipComponent::mouseDrag(const juce::MouseEvent &event) {
 
     int diff = oldEndPos - newEndPos;
 
+    // if we want to forbid movement, then shove the clip back its orginal
+    // place. there's probably a better way to take care of this.
     if (forbidMovement) {
         correspondingClip->startPositionSample += diff;
     }
+
+    int endPosPostCorrection = correspondingClip->startPositionSample +
+                               correspondingClip->buffer.getNumSamples() -
+                               correspondingClip->trimRight -
+                               correspondingClip->trimLeft;
+
+    // there's a strange bug where is you untrim left too quickly, the whole
+    // clip shifts to the right a bit. this should shove the clip back in place
+    if (finalEndPos - endPosPostCorrection < 0) {
+        correspondingClip->startPositionSample +=
+            finalEndPos - endPosPostCorrection;
+    }
+    finalEndPos = endPosPostCorrection;
 
     TimelineComponent *tc = findParentComponentOfClass<TimelineComponent>();
     tc->resizeClipComponent(this);

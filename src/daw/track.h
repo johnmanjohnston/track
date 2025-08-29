@@ -67,6 +67,8 @@ class ClipComponent : public juce::Component, public juce::ChangeListener {
     int drawTrimHandles = 0; // -1 for left, 1 for right, 0 for neither
     bool reachedLeft = false;
 
+    int finalEndPos = -1;
+
     // TODO: this function should not be in this class
     juce::Font getInterSemiBold() {
         static auto typeface = Typeface::createSystemTypefaceFor(
