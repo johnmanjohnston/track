@@ -12,7 +12,7 @@
 AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
     AudioPluginAudioProcessor &p)
     : AudioProcessorEditor(&p), processorRef(p),
-      masterSliderAttachment(p.apvts, "master", masterSlider) {
+      masterSliderAttachment(p.apvts, "master", masterSlider), latencyPoller(&p) {
 
     juce::ignoreUnused(processorRef);
 
@@ -95,15 +95,13 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
 
             else if (result == MENU_UPDATE_LATENCY) {
                 processorRef.updateLatency();
-                this->updateLastKnownLatency();
+                latencyPoller.updateLastKnownLatency();
                 repaint();
             }
         });
     };
 
     addAndMakeVisible(configBtn);
-
-    this->updateLastKnownLatencyAfterDelay();
 }
 
 AudioPluginAudioProcessorEditor::~AudioPluginAudioProcessorEditor() {
@@ -113,6 +111,8 @@ AudioPluginAudioProcessorEditor::~AudioPluginAudioProcessorEditor() {
     DBG("plugin chain coomponents vector size is "
         << pluginChainComponents.size());
         */
+
+    stopTimer();
 
     setLookAndFeel(nullptr);
     track::clipboard::releaseResources();
@@ -184,11 +184,11 @@ void AudioPluginAudioProcessorEditor::paint(juce::Graphics &g) {
     audioInfoText += juce::String(track::SAMPLES_PER_BLOCK);
 
     audioInfoText += "spls ";
-    if (lastKnownLatency == -1)
+    if (latencyPoller.knownLatencySamples == -1)
         audioInfoText += "-";
     else {
         int latencyMs =
-            std::round((lastKnownLatency / track::SAMPLE_RATE) * 1000.f);
+            std::round((latencyPoller.knownLatencySamples / track::SAMPLE_RATE) * 1000.f);
         audioInfoText += latencyMs;
         audioInfoText += "ms";
     }
@@ -214,20 +214,6 @@ void AudioPluginAudioProcessorEditor::resized() {
     configBtn.setColour(juce::TextButton::ColourIds::textColourOnId,
                         juce::Colours::orange);
     configBtn.setBounds(getWidth() - 66, 25, 62, 20);
-}
-
-void AudioPluginAudioProcessorEditor::updateLastKnownLatency() {
-    this->lastKnownLatency = processorRef.getLatencySamples();
-}
-
-void AudioPluginAudioProcessorEditor::updateLastKnownLatencyAfterDelay(
-    int delay) {
-    juce::Timer::callAfterDelay(delay, [this] {
-        this->updateLastKnownLatency();
-        repaint();
-
-        this->updateLastKnownLatencyAfterDelay();
-    });
 }
 
 void AudioPluginAudioProcessorEditor::openFxChain(std::vector<int> route) {
@@ -278,7 +264,7 @@ void AudioPluginAudioProcessorEditor::scan() {
 
     if (pluginListComponent.get() == nullptr) {
         pluginListComponent = std::make_unique<juce::PluginListComponent>(
-            apfm, knownPluginList, juce::File(), propertiesFile.get(), true);
+        apfm, knownPluginList, juce::File(), propertiesFile.get(), true);
     }
 
     juce::AudioPluginFormat *format = apfm.getFormat(0);

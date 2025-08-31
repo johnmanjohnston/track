@@ -1659,12 +1659,14 @@ void track::audioNode::process(int numSamples, int currentSample) {
             if (clipEnd > currentSample &&
                 clipStart < currentSample + outputBufferLength) {
 
+                /*
                 DBG("clip in bounds: "
                     << c.name << "; clipstart: " << c.startPositionSample
                     << "; trimleft=" << c.trimLeft << "; clipstart+trimleft="
                     << c.startPositionSample + c.trimLeft
                     << "; cursample=" << currentSample
                     << "; clipUsableNumSamples=" << clipUsableNumSamples);
+                    */
 
                 // where in buffer should clip start?
                 int outputOffset =

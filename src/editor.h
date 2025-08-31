@@ -11,6 +11,24 @@ class PluginChainComponent;
 class PluginEditorWindow;
 } // namespace track
 
+class LatencyPoller : public juce::Timer {
+  public:
+    LatencyPoller(AudioPluginAudioProcessor *p) { 
+        this->processor = p;
+        startTimer(1500);
+    }
+    ~LatencyPoller() { stopTimer(); }
+
+    void timerCallback() override { this->updateLastKnownLatency(); }
+
+    void updateLastKnownLatency() {
+        knownLatencySamples = processor->getLatencySamples();
+    }
+
+    AudioPluginAudioProcessor *processor = nullptr;
+    int knownLatencySamples = -1;
+};
+
 class AudioPluginAudioProcessorEditor : public juce::AudioProcessorEditor,
                                         public juce::Timer {
   public:
@@ -32,9 +50,10 @@ class AudioPluginAudioProcessorEditor : public juce::AudioProcessorEditor,
     void scan();
 
     juce::TextButton configBtn;
-    int lastKnownLatency = -1;
-    void updateLastKnownLatency();
-    void updateLastKnownLatencyAfterDelay(int delay = 1000);
+    //int lastKnownLatency = -1;
+    //void updateLastKnownLatency();
+    //void updateLastKnownLatencyAfterDelay(int delay = 1000);
+    LatencyPoller latencyPoller;
 
     // track::PluginChainComponent pluginChainComponent;
     std::vector<std::unique_ptr<track::PluginChainComponent>>

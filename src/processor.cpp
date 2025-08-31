@@ -20,6 +20,8 @@ AudioPluginAudioProcessor::AudioPluginAudioProcessor()
     // 0.f, 6.f, 1.f));
 
     DBG("track v" << VERSION_STRING << " " << BUILD_TYPE_STRING);
+
+    updateLatencyAfterDelay();
 }
 
 AudioPluginAudioProcessor::~AudioPluginAudioProcessor() {}
