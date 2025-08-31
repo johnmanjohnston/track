@@ -1679,7 +1679,7 @@ void track::audioNode::process(int numSamples, int currentSample) {
                 // how many samples can we safely copy?
                 int samplesToCopy = juce::jmin(
                     outputBufferLength - outputOffset,
-                    c.buffer.getNumSamples() - c.trimRight - clipBufferStart);
+                    c.buffer.getNumSamples() - c.trimRight - clipBufferStart - 1);
 
                 if (samplesToCopy <= 0 || clipBufferStart < 0)
                     continue;
