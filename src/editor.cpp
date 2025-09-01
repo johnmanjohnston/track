@@ -11,8 +11,8 @@
 
 AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
     AudioPluginAudioProcessor &p)
-    : AudioProcessorEditor(&p), processorRef(p),
-      masterSliderAttachment(p.apvts, "master", masterSlider), latencyPoller(&p) {
+    : AudioProcessorEditor(&p), latencyPoller(&p, this), processorRef(p),
+      masterSliderAttachment(p.apvts, "master", masterSlider) {
 
     juce::ignoreUnused(processorRef);
 
@@ -187,8 +187,8 @@ void AudioPluginAudioProcessorEditor::paint(juce::Graphics &g) {
     if (latencyPoller.knownLatencySamples == -1)
         audioInfoText += "-";
     else {
-        int latencyMs =
-            std::round((latencyPoller.knownLatencySamples / track::SAMPLE_RATE) * 1000.f);
+        int latencyMs = std::round(
+            (latencyPoller.knownLatencySamples / track::SAMPLE_RATE) * 1000.f);
         audioInfoText += latencyMs;
         audioInfoText += "ms";
     }
@@ -264,7 +264,7 @@ void AudioPluginAudioProcessorEditor::scan() {
 
     if (pluginListComponent.get() == nullptr) {
         pluginListComponent = std::make_unique<juce::PluginListComponent>(
-        apfm, knownPluginList, juce::File(), propertiesFile.get(), true);
+            apfm, knownPluginList, juce::File(), propertiesFile.get(), true);
     }
 
     juce::AudioPluginFormat *format = apfm.getFormat(0);
