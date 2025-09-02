@@ -55,6 +55,7 @@ class AudioPluginAudioProcessorEditor : public juce::AudioProcessorEditor,
     std::unique_ptr<juce::PropertiesFile> propertiesFile =
         std::make_unique<juce::PropertiesFile>(options);
     void scan();
+    void lazyScan();
 
     juce::TextButton configBtn;
     // int lastKnownLatency = -1;

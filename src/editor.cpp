@@ -74,10 +74,15 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
         contextMenu.setLookAndFeel(&getLookAndFeel());
 
 #define MENU_PLUGIN_SCAN 1
+#define MENU_PLUGIN_LAZY_SCAN 4
+#define MENU_CLEAR_SCANNED_PLUGINS 5
 #define MENU_ABOUT 2
 #define MENU_UPDATE_LATENCY 3
 
         contextMenu.addItem(MENU_PLUGIN_SCAN, "Scan plugins");
+        contextMenu.addItem(MENU_PLUGIN_LAZY_SCAN, "Lazy scan for plugins");
+        contextMenu.addItem(MENU_CLEAR_SCANNED_PLUGINS,
+                            "Clear scanned plugins");
         contextMenu.addItem(MENU_UPDATE_LATENCY, "Update latency");
         contextMenu.addSeparator();
         contextMenu.addItem(MENU_ABOUT, "About");
@@ -86,6 +91,14 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
         contextMenu.showMenuAsync(popupmenuOptions, [this](int result) {
             if (result == MENU_PLUGIN_SCAN) {
                 scan();
+            }
+
+            else if (result == MENU_PLUGIN_LAZY_SCAN) {
+                lazyScan();
+            }
+
+            else if (result == MENU_CLEAR_SCANNED_PLUGINS) {
+                knownPluginList.clear();
             }
 
             else if (result == MENU_ABOUT) {
@@ -269,4 +282,9 @@ void AudioPluginAudioProcessorEditor::scan() {
 
     juce::AudioPluginFormat *format = apfm.getFormat(0);
     pluginListComponent->scanFor(*format);
+}
+
+void AudioPluginAudioProcessorEditor::lazyScan() {
+    // TODO: this
+    DBG("lazyScan() called");
 }
