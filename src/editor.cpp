@@ -98,7 +98,7 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
             }
 
             else if (result == MENU_CLEAR_SCANNED_PLUGINS) {
-                knownPluginList.clear();
+                this->processorRef.knownPluginList.clear();
             }
 
             else if (result == MENU_ABOUT) {
@@ -234,7 +234,7 @@ void AudioPluginAudioProcessorEditor::openFxChain(std::vector<int> route) {
     std::unique_ptr<track::PluginChainComponent> &pcc =
         pluginChainComponents.back();
 
-    pcc->nodesWrapper.knownPluginList = &this->knownPluginList;
+    pcc->nodesWrapper.knownPluginList = &this->processorRef.knownPluginList;
     pcc->route = route;
     pcc->processor = &processorRef;
     pcc->nodesWrapper.createPluginNodeComponents();
@@ -277,7 +277,8 @@ void AudioPluginAudioProcessorEditor::scan() {
 
     if (pluginListComponent.get() == nullptr) {
         pluginListComponent = std::make_unique<juce::PluginListComponent>(
-            apfm, knownPluginList, juce::File(), propertiesFile.get(), true);
+            apfm, this->processorRef.knownPluginList, juce::File(),
+            propertiesFile.get(), true);
     }
 
     juce::AudioPluginFormat *format = apfm.getFormat(0);

@@ -46,7 +46,6 @@ class AudioPluginAudioProcessorEditor : public juce::AudioProcessorEditor,
     void resized() override;
 
     // scanning
-    juce::KnownPluginList knownPluginList;
     juce::AudioPluginFormatManager apfm;
 
     std::unique_ptr<juce::PluginListComponent> pluginListComponent;

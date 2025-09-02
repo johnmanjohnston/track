@@ -48,6 +48,8 @@ class AudioPluginAudioProcessor : public juce::AudioProcessor {
     void updateLatency();
     void updateLatencyAfterDelay();
 
+    juce::KnownPluginList knownPluginList;
+
   private:
     juce::Random random;
 

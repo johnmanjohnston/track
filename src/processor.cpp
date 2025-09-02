@@ -1,6 +1,8 @@
 #include "processor.h"
 #include "daw/defs.h"
 #include "editor.h"
+#include "juce_audio_processors/juce_audio_processors.h"
+#include "juce_core/juce_core.h"
 
 AudioPluginAudioProcessor::AudioPluginAudioProcessor()
     : AudioProcessor(
@@ -441,6 +443,7 @@ void AudioPluginAudioProcessor::getStateInformation(
 
     xml->deleteAllChildElementsWithTagName("node");
     xml->deleteAllChildElementsWithTagName("projectsettings");
+    xml->deleteAllChildElementsWithTagName("knownplugins");
 
     // DBG("getStateInformation() called");
 
@@ -448,7 +451,50 @@ void AudioPluginAudioProcessor::getStateInformation(
     projectSettings->setAttribute("samplerate", getSampleRate());
     projectSettings->setAttribute("samplesperblock", track::SAMPLES_PER_BLOCK);
 
+    juce::XmlElement *knownPlugins = new juce::XmlElement("knownplugins");
+    DBG("getStateInformation() called. plugins known are: ");
+    for (auto &p : knownPluginList.getTypes()) {
+        // DBG(p.name << " by " << p.manufacturerName);
+        // juce::XmlElement *knownPluginElement = p.createXml().get();
+        // knownPlugins->addChildElement(knownPluginElement);
+
+        // ripped from PluginDescription.cpp's PluginDescription::createXml()
+        // auto e = std::make_unique<XmlElement>("PLUGIN");
+
+        DBG("serializing " << p.name);
+        juce::XmlElement *e =
+            new juce::XmlElement("PLUGIN"); // has to be called this otherwise
+                                            // loadFromXml() won't work nicely
+
+        e->setAttribute("name", p.name);
+        if (p.descriptiveName != p.name)
+            e->setAttribute("descriptiveName", p.descriptiveName);
+
+        e->setAttribute("format", p.pluginFormatName);
+        e->setAttribute("category", p.category);
+        e->setAttribute("manufacturer", p.manufacturerName);
+        e->setAttribute("version", p.version);
+        e->setAttribute("file", p.fileOrIdentifier);
+        e->setAttribute("uniqueId", String::toHexString(p.uniqueId));
+        e->setAttribute("isInstrument", p.isInstrument);
+        e->setAttribute("fileTime", String::toHexString(
+                                        p.lastFileModTime.toMilliseconds()));
+        e->setAttribute(
+            "infoUpdateTime",
+            String::toHexString(p.lastInfoUpdateTime.toMilliseconds()));
+        e->setAttribute("numInputs", p.numInputChannels);
+        e->setAttribute("numOutputs", p.numOutputChannels);
+        e->setAttribute("isShell", p.hasSharedContainer);
+        e->setAttribute("hasARAExtension", p.hasARAExtension);
+        e->setAttribute("uid", String::toHexString(p.deprecatedUid));
+
+        knownPlugins->addChildElement(e);
+    }
+
+    DBG(knownPlugins->createDocument(""));
+
     xml->addChildElement(projectSettings);
+    xml->addChildElement(knownPlugins);
 
     for (size_t i = 0; i < tracks.size(); ++i) {
         xml->addChildElement(serializeNode(&tracks[i]));
@@ -474,6 +520,22 @@ void AudioPluginAudioProcessor::setStateInformation(const void *data,
         track::SAMPLE_RATE = projectSettings->getDoubleAttribute("samplerate");
         track::SAMPLES_PER_BLOCK =
             projectSettings->getIntAttribute("samplesperblock");
+
+        DBG("setStateInformation() -- looking for known plugins");
+        juce::XmlElement *knownPlugins =
+            xmlState->getChildByName("knownplugins");
+        juce::XmlElement *curPluginElement =
+            knownPlugins->getChildByName("PLUGIN");
+
+        while (curPluginElement != nullptr) {
+            juce::PluginDescription pd;
+            pd.loadFromXml(*curPluginElement);
+            DBG("setStateInformation() - found " << pd.name);
+            knownPluginList.addType(pd);
+
+            curPluginElement =
+                curPluginElement->getNextElementWithTagName("PLUGIN");
+        }
 
         juce::XmlElement *nodeElement = xmlState->getChildByName("node");
 
