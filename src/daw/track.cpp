@@ -4,6 +4,7 @@
 #include "clipboard.h"
 #include "defs.h"
 #include "timeline.h"
+#include <algorithm>
 
 track::ClipComponent::ClipComponent(clip *c)
     : juce::Component(), thumbnailCache(5),
@@ -196,8 +197,11 @@ void track::ClipComponent::mouseDown(const juce::MouseEvent &event) {
 #define MENU_SHOW_IN_EXPLORER 5
 #define MENU_SPLIT_CLIP 6
 #define MENU_RENAME_CLIP 7
+#define MENU_DUPLICATE_CLIP_IMMEDIATELY_AFTER 8
 
         contextMenu.addItem(MENU_RENAME_CLIP, "Rename clip");
+        contextMenu.addItem(MENU_DUPLICATE_CLIP_IMMEDIATELY_AFTER,
+                            "Duplicate clip immediately after");
         contextMenu.addItem(MENU_COPY_CLIP, "Copy clip");
         contextMenu.addItem(MENU_CUT_CLIP, "Cut");
         contextMenu.addSeparator();
@@ -206,12 +210,10 @@ void track::ClipComponent::mouseDown(const juce::MouseEvent &event) {
                             "Toggle activate/deactive clip");
         contextMenu.addItem(MENU_SHOW_IN_EXPLORER, "Show in explorer");
 
-        int splitSample =
-            ((float)event.x / UI_ZOOM_MULTIPLIER) * SAMPLE_RATE;
+        int splitSample = ((float)event.x / UI_ZOOM_MULTIPLIER) * SAMPLE_RATE;
         contextMenu.addItem(
             MENU_SPLIT_CLIP,
-                            "split at " +
-                                juce::String(splitSample / SAMPLE_RATE) + " seconds");
+            "split at " + juce::String(splitSample / SAMPLE_RATE) + " seconds");
 
         juce::PopupMenu::Options options;
 
@@ -230,6 +232,41 @@ void track::ClipComponent::mouseDown(const juce::MouseEvent &event) {
                 thumbnailCache.clear();
                 thumbnail.setSource(&correspondingClip->buffer, SAMPLE_RATE, 2);
                 repaint();
+            }
+
+            else if (result == MENU_DUPLICATE_CLIP_IMMEDIATELY_AFTER) {
+                std::unique_ptr<clip> newClip(new clip());
+                newClip->path = correspondingClip->path;
+                newClip->buffer = correspondingClip->buffer;
+                newClip->active = correspondingClip->active;
+                newClip->name = correspondingClip->name;
+                newClip->trimLeft = correspondingClip->trimLeft;
+                newClip->trimRight = correspondingClip->trimRight;
+
+                int clipLength = correspondingClip->buffer.getNumSamples() -
+                                 correspondingClip->trimLeft -
+                                 correspondingClip->trimRight;
+                newClip->startPositionSample =
+                    correspondingClip->startPositionSample + clipLength;
+
+                // retrieve viewport, then get tracklist via viewport
+                track::TimelineViewport *viewport = (track::TimelineViewport *)
+                    findParentComponentOfClass<TimelineViewport>();
+                jassert(viewport != nullptr);
+
+                track::Tracklist *tracklist = viewport->tracklist;
+                audioNode *node =
+                    tracklist->trackComponents[(size_t)this->nodeDisplayIndex]
+                        ->getCorrespondingTrack();
+
+                node->clips.push_back(*newClip);
+
+                // update clip components otherwise shit hits the fan
+                track::TimelineComponent *tc = (track::TimelineComponent *)
+                    findParentComponentOfClass<TimelineComponent>();
+                jassert(tc != nullptr);
+
+                tc->updateClipComponents();
             }
 
             else if (result == MENU_CUT_CLIP) {
@@ -1679,9 +1716,10 @@ void track::audioNode::process(int numSamples, int currentSample) {
                 ++clipBufferStart; // avoid doing this the "proper" way;
                                    // besides 1 sample doesn't matter
                 // how many samples can we safely copy?
-                int samplesToCopy = juce::jmin(
-                    outputBufferLength - outputOffset,
-                    c.buffer.getNumSamples() - c.trimRight - clipBufferStart - 1);
+                int samplesToCopy =
+                    juce::jmin(outputBufferLength - outputOffset,
+                               c.buffer.getNumSamples() - c.trimRight -
+                                   clipBufferStart - 1);
 
                 if (samplesToCopy <= 0 || clipBufferStart < 0)
                     continue;
