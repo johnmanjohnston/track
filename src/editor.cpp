@@ -4,9 +4,6 @@
 #include "daw/plugin_chain.h"
 #include "daw/timeline.h"
 #include "daw/track.h"
-#include "juce_audio_processors/juce_audio_processors.h"
-#include "juce_graphics/juce_graphics.h"
-#include "juce_gui_basics/juce_gui_basics.h"
 #include "lookandfeel.h"
 #include "processor.h"
 #include <cmath>
@@ -85,6 +82,7 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
         contextMenu.addItem(MENU_PLUGIN_LAZY_SCAN, "Lazy scan for plugins");
         contextMenu.addItem(MENU_CLEAR_SCANNED_PLUGINS,
                             "Clear scanned plugins");
+        contextMenu.addSeparator();
         contextMenu.addItem(MENU_UPDATE_LATENCY, "Update latency");
         contextMenu.addSeparator();
         contextMenu.addItem(MENU_ABOUT, "About");
@@ -183,7 +181,7 @@ void AudioPluginAudioProcessorEditor::paint(juce::Graphics &g) {
 #if JUCE_LINUX
     audioInfoText += "linux ";
 #elif JUCE_WINDOWS
-    audioInfoText += "windows ";
+    audioInfoText += "win ";
 #elif JUCE_MAC
     audioInfoText += "mac ";
 #elif JUCE_BSD
@@ -214,7 +212,7 @@ void AudioPluginAudioProcessorEditor::paint(juce::Graphics &g) {
 }
 
 void AudioPluginAudioProcessorEditor::resized() {
-    masterSlider.setBounds((getWidth() / 3) * 2, -8, 200, 70);
+    masterSlider.setBounds(((getWidth() / 3) * 2) - 30, -8, 200, 70);
 
     int timeInfoBgWidth = 280;
     int timeInfoBgHeight = 40;

@@ -1,6 +1,5 @@
 #include "plugin_chain.h"
 #include "defs.h"
-#include "juce_audio_processors/juce_audio_processors.h"
 #include "track.h"
 
 track::PluginNodeComponent::PluginNodeComponent() : juce::Component() {

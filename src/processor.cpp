@@ -1,8 +1,6 @@
 #include "processor.h"
 #include "daw/defs.h"
 #include "editor.h"
-#include "juce_audio_processors/juce_audio_processors.h"
-#include "juce_core/juce_core.h"
 
 AudioPluginAudioProcessor::AudioPluginAudioProcessor()
     : AudioProcessor(
