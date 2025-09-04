@@ -4,7 +4,9 @@
 #include "daw/plugin_chain.h"
 #include "daw/timeline.h"
 #include "daw/track.h"
+#include "juce_audio_processors/juce_audio_processors.h"
 #include "juce_graphics/juce_graphics.h"
+#include "juce_gui_basics/juce_gui_basics.h"
 #include "lookandfeel.h"
 #include "processor.h"
 #include <cmath>
@@ -286,6 +288,44 @@ void AudioPluginAudioProcessorEditor::scan() {
 }
 
 void AudioPluginAudioProcessorEditor::lazyScan() {
-    // TODO: this
     DBG("lazyScan() called");
+
+    processorRef.knownPluginList.clear();
+
+    fileChooser = std::make_unique<juce::FileChooser>(
+        "Select folders to scan...",
+        juce::File::getSpecialLocation(juce::File::userHomeDirectory),
+        "*.vst3");
+
+    int flags = juce::FileBrowserComponent::openMode |
+                juce::FileBrowserComponent::canSelectDirectories |
+                juce::FileBrowserComponent::canSelectMultipleItems;
+
+    fileChooser->launchAsync(flags, [this](const juce::FileChooser &chooser) {
+        DBG("file chooser deployed KAJSDFJKASDF");
+
+        for (auto searchDir : chooser.getResults()) {
+            juce::String currentDir = searchDir.getFullPathName();
+
+            juce::FileSearchPath fsp(currentDir);
+
+            auto pluginFileEntries = fsp.findChildFiles(
+                juce::File::TypesOfFileToFind::findFilesAndDirectories, true,
+                "*.vst3");
+
+            for (auto f : pluginFileEntries) {
+                DBG("f: " << f.getFileName() << " at " << f.getFullPathName());
+
+                // find file entries for .vst3 files and create dummy plugin
+                // description data
+                juce::PluginDescription pd;
+                pd.name = f.getFileName().dropLastCharacters(5); // ".vst3"
+                pd.fileOrIdentifier = f.getFullPathName();
+                pd.numInputChannels = 2;
+                pd.numOutputChannels = 2;
+
+                processorRef.knownPluginList.addType(pd);
+            }
+        }
+    });
 }

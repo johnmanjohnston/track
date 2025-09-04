@@ -3,6 +3,7 @@
 #include "daw/timeline.h"
 #include "daw/track.h"
 #include "daw/transport_status.h"
+#include "juce_gui_basics/juce_gui_basics.h"
 #include "lookandfeel.h"
 #include "processor.h"
 
@@ -55,6 +56,8 @@ class AudioPluginAudioProcessorEditor : public juce::AudioProcessorEditor,
         std::make_unique<juce::PropertiesFile>(options);
     void scan();
     void lazyScan();
+
+    std::unique_ptr<juce::FileChooser> fileChooser;
 
     juce::TextButton configBtn;
     // int lastKnownLatency = -1;
