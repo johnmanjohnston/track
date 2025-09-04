@@ -958,7 +958,9 @@ void track::TrackComponent::paint(juce::Graphics &g) {
     // should be able to automatically reflect over here, but that isn't the
     // case draw mute marker
     if (getCorrespondingTrack()->m || getCorrespondingTrack()->s) {
-        int btnSize = 24;
+        int btnSize =
+            UI_TRACK_HEIGHT > UI_TRACK_HEIGHT_COLLAPSE_BREAKPOINT ? 24 : 18;
+
         juce::Rectangle<int> btnBounds = juce::Rectangle<int>(
             UI_TRACK_WIDTH - 130, (UI_TRACK_HEIGHT / 2) - (btnSize / 2),
             btnSize, btnSize);
@@ -999,7 +1001,7 @@ void track::TrackComponent::resized() {
     trackNameLabel.setBounds(trackNameLabelBounds);
 
     int btnSize =
-        UI_TRACK_HEIGHT > UI_TRACK_HEIGHT_COLLAPSE_BREAKPOINT ? 24 : 21;
+        UI_TRACK_HEIGHT > UI_TRACK_HEIGHT_COLLAPSE_BREAKPOINT ? 24 : 18;
     int btnHeight = btnSize;
     int btnWidth = btnSize;
 
