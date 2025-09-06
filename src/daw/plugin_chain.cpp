@@ -562,7 +562,7 @@ void track::PluginEditorWindow::mouseDrag(const juce::MouseEvent &event) {
         newBounds.setY(newBounds.getY() + event.getDistanceFromDragStartY());
         setBounds(newBounds);
 
-        ape->setBounds(0, UI_SUBWINDOW_TITLEBAR_HEIGHT, getWidth() - 1,
+        ape->setBounds(0, UI_SUBWINDOW_TITLEBAR_HEIGHT, getWidth(),
                        getHeight() - UI_SUBWINDOW_TITLEBAR_HEIGHT);
     }
 
