@@ -2,6 +2,15 @@
 audio plugin which acts as a mini DAW, as a workaround to track count limits in major DAWs 
 
 ## About
+track is a free plugin developed as a workaround to track count limits in DAWs (like in Ableton Live Lite)
+to start using track, add the plugin to any track within your host DAW—you now have a mini DAW in a plugin
+you can then create tracks to play audio clips, as well as hosting other plugins with delay compensation
+
+# Features
+- unlimited stereo audio tracks, which can be nested using groups
+- scanning and hosting plugins for individual tracks and/or groups
+
+# Usage
 TODO
 
 ## Installation
@@ -18,7 +27,7 @@ $ cd track
 $ git clone https://github.com/juce-framework/JUCE.git
 ```
 
-```
+```bash
 # generate build files with CMake
 $ cmake .
 ```
