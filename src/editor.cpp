@@ -11,7 +11,7 @@
 AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
     AudioPluginAudioProcessor &p)
     : AudioProcessorEditor(&p), latencyPoller(&p, this), processorRef(p),
-      masterSliderAttachment(p.apvts, "master", masterSlider) {
+      masterSliderAttachment(*p.masterGain, masterSlider) {
 
     juce::ignoreUnused(processorRef);
 

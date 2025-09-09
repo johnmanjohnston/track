@@ -3,6 +3,7 @@
 #include "daw/timeline.h"
 #include "daw/track.h"
 #include "daw/transport_status.h"
+#include "juce_audio_processors/juce_audio_processors.h"
 #include "lookandfeel.h"
 #include "processor.h"
 
@@ -89,7 +90,7 @@ class AudioPluginAudioProcessorEditor : public juce::AudioProcessorEditor,
     track::ui::CustomLookAndFeel lnf;
 
     juce::Slider masterSlider;
-    juce::AudioProcessorValueTreeState::SliderAttachment masterSliderAttachment;
+    juce::SliderParameterAttachment masterSliderAttachment;
 
     void timerCallback() override {
         transportStatus.repaint();

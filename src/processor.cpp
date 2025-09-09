@@ -1,6 +1,7 @@
 #include "processor.h"
 #include "daw/defs.h"
 #include "editor.h"
+#include "juce_core/juce_core.h"
 
 AudioPluginAudioProcessor::AudioPluginAudioProcessor()
     : AudioProcessor(
@@ -11,17 +12,16 @@ AudioPluginAudioProcessor::AudioPluginAudioProcessor()
 #endif
               .withOutput("Output", juce::AudioChannelSet::stereo(), true)
 #endif
-              ),
-      apvts(*this, nullptr, juce::Identifier("track"),
-            {std::make_unique<juce::AudioParameterFloat>("master", "Master",
-                                                         0.f, 6.f, 1.f)}) {
-    // addParameter(masterGain = new juce::AudioParameterFloat("master",
-    // "Master",
-    // 0.f, 6.f, 1.f));
+      ) {
+    addParameter(masterGain = new juce::AudioParameterFloat("master", "Master",
+                                                            0.f, 6.f, 1.f));
 
     DBG("track v" << VERSION_STRING << " " << BUILD_TYPE_STRING);
 
     updateLatencyAfterDelay();
+
+    addParameter(johnFloat = new juce::AudioParameterFloat("john", "john", -1.f,
+                                                           2.f, 1.f));
 }
 
 AudioPluginAudioProcessor::~AudioPluginAudioProcessor() {}
@@ -296,7 +296,7 @@ void AudioPluginAudioProcessor::processBlock(juce::AudioBuffer<float> &buffer,
     }
     */
 
-    buffer.applyGain(apvts.getParameter("master")->getValue());
+    buffer.applyGain(*masterGain);
 }
 
 bool AudioPluginAudioProcessor::hasEditor() const {
@@ -436,8 +436,8 @@ void AudioPluginAudioProcessor::deserializeNode(juce::XmlElement *nodeElement,
 
 void AudioPluginAudioProcessor::getStateInformation(
     juce::MemoryBlock &destData) {
-    auto state = apvts.copyState();
-    std::unique_ptr<juce::XmlElement> xml(state.createXml());
+    std::unique_ptr<juce::XmlElement> xml =
+        std::make_unique<juce::XmlElement>("track");
 
     xml->deleteAllChildElementsWithTagName("node");
     xml->deleteAllChildElementsWithTagName("projectsettings");
@@ -448,6 +448,7 @@ void AudioPluginAudioProcessor::getStateInformation(
     juce::XmlElement *projectSettings = new juce::XmlElement("projectsettings");
     projectSettings->setAttribute("samplerate", getSampleRate());
     projectSettings->setAttribute("samplesperblock", track::SAMPLES_PER_BLOCK);
+    projectSettings->setAttribute("mastergain", *this->masterGain);
 
     juce::XmlElement *knownPlugins = new juce::XmlElement("knownplugins");
     DBG("getStateInformation() called. plugins known are: ");
@@ -508,9 +509,6 @@ void AudioPluginAudioProcessor::setStateInformation(const void *data,
     std::unique_ptr<juce::XmlElement> xmlState(
         getXmlFromBinary(data, sizeInBytes));
     if (xmlState.get() != nullptr) {
-        if (xmlState->hasTagName(apvts.state.getType()))
-            apvts.replaceState(juce::ValueTree::fromXml(*xmlState));
-
         tracks.clear();
 
         juce::XmlElement *projectSettings =
@@ -518,6 +516,8 @@ void AudioPluginAudioProcessor::setStateInformation(const void *data,
         track::SAMPLE_RATE = projectSettings->getDoubleAttribute("samplerate");
         track::SAMPLES_PER_BLOCK =
             projectSettings->getIntAttribute("samplesperblock");
+        *this->masterGain =
+            (float)projectSettings->getDoubleAttribute("mastergain", 1.0);
 
         DBG("setStateInformation() -- looking for known plugins");
         juce::XmlElement *knownPlugins =
