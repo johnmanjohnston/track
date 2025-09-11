@@ -54,6 +54,8 @@ class AudioPluginAudioProcessor : public juce::AudioProcessor {
 
     juce::AudioParameterFloat *johnFloat;
 
+    int automatableParametersIndexOffset = -1;
+
   private:
     juce::Random random;
 

@@ -1,7 +1,6 @@
 #include "processor.h"
 #include "daw/defs.h"
 #include "editor.h"
-#include "juce_core/juce_core.h"
 
 AudioPluginAudioProcessor::AudioPluginAudioProcessor()
     : AudioProcessor(
@@ -22,6 +21,32 @@ AudioPluginAudioProcessor::AudioPluginAudioProcessor()
 
     addParameter(johnFloat = new juce::AudioParameterFloat("john", "john", -1.f,
                                                            2.f, 1.f));
+
+    for (int i = 0; i < 128; ++i) {
+        juce::String paramID = "param_" + juce::String(i);
+        juce::AudioParameterFloat *param = new juce::AudioParameterFloat(
+            paramID, paramID, -32768.f, 32768.f, 0.f);
+        //  TODO: consider maybe setting min and max values to 0 and 100, so the
+        //  user is really controlling the PERCENTAGE of the parameter that's
+        //  being automated?
+
+        addParameter(param);
+
+        // DBG("added " << paramID);
+    }
+
+    for (int i = 0; i < getParameters().size(); ++i) {
+        juce::AudioProcessorParameter *param = getParameters()[i];
+        juce::AudioProcessorParameterWithID *paramWithID =
+            (juce::AudioProcessorParameterWithID *)param;
+
+        if (paramWithID->getName(16) == "param_0") {
+            automatableParametersIndexOffset = i;
+            break;
+        }
+    }
+
+    DBG("offset is " << automatableParametersIndexOffset);
 }
 
 AudioPluginAudioProcessor::~AudioPluginAudioProcessor() {}
@@ -446,6 +471,13 @@ void AudioPluginAudioProcessor::getStateInformation(
     // DBG("getStateInformation() called");
 
     juce::XmlElement *projectSettings = new juce::XmlElement("projectsettings");
+    // relayed params
+    for (int i = 0; i < 128; ++i) {
+        int index = i + automatableParametersIndexOffset;
+        projectSettings->setAttribute("param_" + juce::String(i),
+                                      getParameters()[index]->getValue());
+    }
+
     projectSettings->setAttribute("samplerate", getSampleRate());
     projectSettings->setAttribute("samplesperblock", track::SAMPLES_PER_BLOCK);
     projectSettings->setAttribute("mastergain", *this->masterGain);
@@ -513,36 +545,43 @@ void AudioPluginAudioProcessor::setStateInformation(const void *data,
 
         juce::XmlElement *projectSettings =
             xmlState->getChildByName("projectsettings");
+
+        // deserialize relay params first because we need their indexes and
+        // doing it this way is just easier
+        for (int i = 0; i < 128; ++i) {
+            int index = i + automatableParametersIndexOffset;
+            float val = projectSettings->getAttributeValue(i).getFloatValue();
+            getParameters()[index]->setValue(val);
+        }
+
         track::SAMPLE_RATE = projectSettings->getDoubleAttribute("samplerate");
         track::SAMPLES_PER_BLOCK =
             projectSettings->getIntAttribute("samplesperblock");
         *this->masterGain =
             (float)projectSettings->getDoubleAttribute("mastergain", 1.0);
+    }
 
-        DBG("setStateInformation() -- looking for known plugins");
-        juce::XmlElement *knownPlugins =
-            xmlState->getChildByName("knownplugins");
-        juce::XmlElement *curPluginElement =
-            knownPlugins->getChildByName("PLUGIN");
+    DBG("setStateInformation() -- looking for known plugins");
+    juce::XmlElement *knownPlugins = xmlState->getChildByName("knownplugins");
+    juce::XmlElement *curPluginElement = knownPlugins->getChildByName("PLUGIN");
 
-        while (curPluginElement != nullptr) {
-            juce::PluginDescription pd;
-            pd.loadFromXml(*curPluginElement);
-            DBG("setStateInformation() - found " << pd.name);
-            knownPluginList.addType(pd);
+    while (curPluginElement != nullptr) {
+        juce::PluginDescription pd;
+        pd.loadFromXml(*curPluginElement);
+        DBG("setStateInformation() - found " << pd.name);
+        knownPluginList.addType(pd);
 
-            curPluginElement =
-                curPluginElement->getNextElementWithTagName("PLUGIN");
-        }
+        curPluginElement =
+            curPluginElement->getNextElementWithTagName("PLUGIN");
+    }
 
-        juce::XmlElement *nodeElement = xmlState->getChildByName("node");
+    juce::XmlElement *nodeElement = xmlState->getChildByName("node");
 
-        while (nodeElement != nullptr) {
-            track::audioNode *node = &tracks.emplace_back();
-            // DBG("root deserialization call for " << node->trackName);
-            deserializeNode(nodeElement, node);
-            nodeElement = nodeElement->getNextElementWithTagName("node");
-        }
+    while (nodeElement != nullptr) {
+        track::audioNode *node = &tracks.emplace_back();
+        // DBG("root deserialization call for " << node->trackName);
+        deserializeNode(nodeElement, node);
+        nodeElement = nodeElement->getNextElementWithTagName("node");
     }
 
     // DBG(xmlState->createDocument(""));
