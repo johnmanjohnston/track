@@ -118,14 +118,15 @@ void track::PluginNodeComponent::paint(juce::Graphics &g) {
 
         // draw name
         g.setFont(pluginDataFont.withHeight(22.f));
-        g.drawText(getPlugin()->get()->getName(), 10, 8, getWidth(), 20,
+        g.drawText(getPlugin()->get()->plugin->getName(), 10, 8, getWidth(), 20,
                    juce::Justification::left);
 
         // draw manufacturer name
         g.setColour(juce::Colour(0xFF'595959));
         g.setFont(pluginDataFont.withHeight(16.f));
-        g.drawText(getPlugin()->get()->getPluginDescription().manufacturerName,
-                   10, 30, getWidth(), 20, juce::Justification::left);
+        g.drawText(
+            getPlugin()->get()->plugin->getPluginDescription().manufacturerName,
+            10, 30, getWidth(), 20, juce::Justification::left);
     }
 }
 
@@ -155,7 +156,8 @@ void track::PluginNodesWrapper::createPluginNodeComponents() {
     audioNode *node = pcc->getCorrespondingTrack();
 
     for (size_t i = 0; i < node->plugins.size(); ++i) {
-        DBG("creating plugin node for " << node->plugins[i].get()->getName());
+        DBG("creating plugin node for "
+            << node->plugins[i].get()->plugin->getName());
 
         this->pluginNodeComponents.emplace_back(new track::PluginNodeComponent);
         PluginNodeComponent &nc = *this->pluginNodeComponents.back();
@@ -232,8 +234,7 @@ track::PluginNodesWrapper::getBoundsForPluginNodeComponent(int index) {
                                 0, UI_PLUGIN_NODE_WIDTH, 88);
 }
 
-std::unique_ptr<juce::AudioPluginInstance> *
-track::PluginNodeComponent::getPlugin() {
+std::unique_ptr<track::Subplugin> *track::PluginNodeComponent::getPlugin() {
     PluginChainComponent *pcc =
         findParentComponentOfClass<PluginChainComponent>();
     jassert(pcc != nullptr);
@@ -424,7 +425,7 @@ void track::PluginChainComponent::reorderPlugin(int srcIndex, int destIndex) {
         0, (int)getCorrespondingTrack()->plugins.size() - 1, destIndex);
 
     // std::move is absolute magic how have i not known of this sooner
-    std::unique_ptr<juce::AudioPluginInstance> plugin =
+    std::unique_ptr<track::Subplugin> plugin =
         std::move(getCorrespondingTrack()->plugins[(size_t)srcIndex]);
     bool isBypassed =
         getCorrespondingTrack()->bypassedPlugins[(size_t)srcIndex];
@@ -460,13 +461,13 @@ track::PluginEditorWindow::~PluginEditorWindow() {
     if (!getPlugin()->get())
         return;
 
-    if (getPlugin()->get()->getActiveEditor() != nullptr) {
+    if (getPlugin()->get()->plugin->getActiveEditor() != nullptr) {
         DBG("active plugin's editor is not nullptr. deleting active "
             "editor");
-        delete getPlugin()->get()->getActiveEditor();
+        delete getPlugin()->get()->plugin->getActiveEditor();
 
-        getPlugin()->get()->editorBeingDeleted(
-            getPlugin()->get()->getActiveEditor());
+        getPlugin()->get()->plugin->editorBeingDeleted(
+            getPlugin()->get()->plugin->getActiveEditor());
     }
 }
 
@@ -494,8 +495,9 @@ void track::PluginEditorWindow::paint(juce::Graphics &g) {
     g.setColour(juce::Colour(0xFF'595959));
     g.setFont(g.getCurrentFont().withHeight(17.f));
 
-    int latency = getPlugin()->get()->getLatencySamples();
-    float latencyMs = (latency / getPlugin()->get()->getSampleRate()) * 1000.f;
+    int latency = getPlugin()->get()->plugin->getLatencySamples();
+    float latencyMs =
+        (latency / getPlugin()->get()->plugin->getSampleRate()) * 1000.f;
     juce::String otherInfoText = pluginManufacturer + "        " +
                                  juce::String(route[route.size() - 1]) + "/" +
                                  trackName + "        " +
@@ -518,15 +520,15 @@ void track::PluginEditorWindow::createEditor() {
     jassert(pluginIndex > -1);
     jassert(processor != nullptr);
 
-    this->ape = getPlugin()->get()->createEditorIfNeeded();
+    this->ape = getPlugin()->get()->plugin->createEditorIfNeeded();
     ape->setBounds(0, UI_SUBWINDOW_TITLEBAR_HEIGHT, 100, 100);
 
     addAndMakeVisible(*ape);
 
     // assign data to show on titlebar
-    pluginName = getPlugin()->get()->getPluginDescription().name;
+    pluginName = getPlugin()->get()->plugin->getPluginDescription().name;
     pluginManufacturer =
-        getPlugin()->get()->getPluginDescription().manufacturerName;
+        getPlugin()->get()->plugin->getPluginDescription().manufacturerName;
     trackName = getCorrespondingTrack()->trackName;
 
     DBG(pluginName);
@@ -593,8 +595,7 @@ track::audioNode *track::PluginEditorWindow::getCorrespondingTrack() {
     return head;
 }
 
-std::unique_ptr<juce::AudioPluginInstance> *
-track::PluginEditorWindow::getPlugin() {
+std::unique_ptr<track::Subplugin> *track::PluginEditorWindow::getPlugin() {
     return &getCorrespondingTrack()->plugins[(size_t)this->pluginIndex];
 }
 

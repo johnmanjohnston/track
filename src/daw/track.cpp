@@ -4,7 +4,6 @@
 #include "clipboard.h"
 #include "defs.h"
 #include "timeline.h"
-#include <algorithm>
 
 track::ClipComponent::ClipComponent(clip *c)
     : juce::Component(), thumbnailCache(5),
@@ -1116,7 +1115,8 @@ void track::Tracklist::copyNode(audioNode *dest, audioNode *src) {
         }
     }
 
-    for (auto &pluginInstance : src->plugins) {
+    for (auto &p : src->plugins) {
+        auto &pluginInstance = p->plugin;
         juce::MemoryBlock pluginData;
         pluginInstance->getStateInformation(pluginData);
         pluginInstance->releaseResources();
@@ -1129,7 +1129,7 @@ void track::Tracklist::copyNode(audioNode *dest, audioNode *src) {
         // add plugin to new node and copy data
         DBG("adding plugin to new node, using identifier " << identifier);
         dest->addPlugin(identifier);
-        dest->plugins[dest->plugins.size() - 1]->setStateInformation(
+        dest->plugins[dest->plugins.size() - 1]->plugin->setStateInformation(
             pluginData.getData(), pluginData.getSize());
     }
 }
@@ -1188,9 +1188,11 @@ void track::Tracklist::recursivelyDeleteNodePlugins(audioNode *node) {
         }
         */
 
+        /*
         DBG("recursivelyDeleteNodePlugins(): deleting a plugin: "
             << plugin->getPluginDescription().name);
         plugin->releaseResources();
+        */
     }
 }
 
@@ -1261,7 +1263,7 @@ void track::Tracklist::deepCopyGroupInsideGroup(audioNode *childNode,
 
         // now the annoying thing, copying plugins. (which is why you can't
         // just push_back() trackNode into groupNode->childNodes)
-        for (auto &pluginInstance : child.plugins) {
+        for (auto &p : child.plugins) {
             /*
             if (pluginInstance->getActiveEditor() != nullptr) {
                 DBG("pluginInstance's active editor still exists");
@@ -1269,6 +1271,7 @@ void track::Tracklist::deepCopyGroupInsideGroup(audioNode *childNode,
             }
             */
 
+            auto &pluginInstance = p->plugin;
             // retrieve data then free up original plugin instance's
             // resources
             juce::MemoryBlock pluginData;
@@ -1283,8 +1286,9 @@ void track::Tracklist::deepCopyGroupInsideGroup(audioNode *childNode,
             // add plugin to new node and copy data
             DBG("adding plugin to new node, using identifier " << identifier);
             newNode->addPlugin(identifier);
-            newNode->plugins[newNode->plugins.size() - 1]->setStateInformation(
-                pluginData.getData(), pluginData.getSize());
+            newNode->plugins[newNode->plugins.size() - 1]
+                ->plugin->setStateInformation(pluginData.getData(),
+                                              pluginData.getSize());
         }
     }
 }
@@ -1366,9 +1370,9 @@ void track::Tracklist::moveNodeToGroup(track::TrackComponent *caller,
         DBG("deleting orphan node with index " << routeCopy[0]);
         for (auto &pluginInstance : p->tracks[(size_t)routeCopy[0]].plugins) {
             AudioProcessorEditor *subpluginEditor =
-                pluginInstance->getActiveEditor();
+                pluginInstance->plugin->getActiveEditor();
             if (subpluginEditor != nullptr) {
-                pluginInstance->editorBeingDeleted(subpluginEditor);
+                pluginInstance->plugin->editorBeingDeleted(subpluginEditor);
             }
         }
 
@@ -1533,6 +1537,61 @@ void track::Tracklist::updateInsertIndicator(int index) {
     this->insertIndicator.setVisible(false);
 }
 
+void track::Subplugin::initializePlugin(juce::String path) {
+    juce::OwnedArray<PluginDescription> pluginDescriptions;
+    juce::KnownPluginList plist;
+    juce::AudioPluginFormatManager apfm;
+    juce::String errorMsg;
+
+    DBG(track::SAMPLE_RATE);
+    DBG(track::SAMPLES_PER_BLOCK);
+
+    DBG("fuck 1");
+    if (track::SAMPLE_RATE < 0) {
+        DBG("track::SAMPLE_RATE = 0; defaulting to 44100Hz");
+        track::SAMPLE_RATE = 44100;
+    }
+
+    apfm.addDefaultFormats();
+    DBG("fuck 2");
+
+    // TODO: handle failure to scan plugin
+    for (int i = 0; i < apfm.getNumFormats(); ++i)
+        plist.scanAndAddFile(path, true, pluginDescriptions,
+                             *apfm.getFormat(i));
+
+    jassert(pluginDescriptions.size() > 0);
+
+    DBG("fuck 3");
+    plugin =
+        apfm.createPluginInstance(*pluginDescriptions[0], track::SAMPLE_RATE,
+                                  track::SAMPLES_PER_BLOCK, errorMsg);
+
+    DBG("fuck 3.1");
+    /*
+    this->plugin =
+        apfm.createPluginInstance(*pluginDescriptions[0], track::SAMPLE_RATE,
+                                  track::SAMPLES_PER_BLOCK, errorMsg);
+                                  */
+
+    DBG("fuck 4");
+    plugin->setPlayConfigDetails(2, 2, track::SAMPLE_RATE,
+                                 track::SAMPLES_PER_BLOCK);
+    DBG("fuck 5");
+
+    if (track::SAMPLES_PER_BLOCK <= 0) {
+        DBG("setting maxSamplesPerBlock to 512");
+        track::SAMPLES_PER_BLOCK = 512;
+    }
+
+    DBG("fuck 6");
+    plugin->prepareToPlay(track::SAMPLE_RATE, track::SAMPLES_PER_BLOCK);
+
+    DBG("! PLUGIN ADDED");
+}
+track::Subplugin::Subplugin() {}
+track::Subplugin::~Subplugin() {}
+
 // TODO: update this function to take care of more advanced audio clip
 // operations (like trimming, and offsetting)
 void track::clip::updateBuffer() {
@@ -1557,6 +1616,13 @@ void track::clip::updateBuffer() {
 void track::clip::reverse() { buffer.reverse(0, buffer.getNumSamples()); }
 
 void track::audioNode::addPlugin(juce::String path) {
+    jassert(processor != nullptr);
+    AudioPluginAudioProcessor *p = (AudioPluginAudioProcessor *)processor;
+
+    // plugins.back()->initializePlugin(path);
+
+    p->updateLatencyAfterDelay();
+
     this->bypassedPlugins.push_back(false);
 
     DBG("track::track addPlugin() called with path " << path);
@@ -1564,10 +1630,6 @@ void track::audioNode::addPlugin(juce::String path) {
     juce::KnownPluginList plist;
     juce::AudioPluginFormatManager apfm;
     juce::String errorMsg;
-
-    jassert(processor != nullptr);
-
-    AudioPluginAudioProcessor *p = (AudioPluginAudioProcessor *)processor;
 
     if (track::SAMPLE_RATE < 0) {
         DBG("track::SAMPLE_RATE = 0; defaulting to 44100Hz");
@@ -1585,13 +1647,15 @@ void track::audioNode::addPlugin(juce::String path) {
                              *apfm.getFormat(i));
 
     plugins.emplace_back();
-    std::unique_ptr<juce::AudioPluginInstance> &plugin = this->plugins.back();
+    // std::unique_ptr<juce::AudioPluginInstance> &plugin =
+    // this->plugins.back();
 
     jassert(pluginDescriptions.size() > 0);
 
-    plugin =
+    plugins.back()->plugin =
         apfm.createPluginInstance(*pluginDescriptions[0], track::SAMPLE_RATE,
                                   track::SAMPLES_PER_BLOCK, errorMsg);
+    auto &plugin = plugins.back()->plugin;
 
     /*
     DBG("LOGGING OUTPUTS:");
@@ -1641,7 +1705,7 @@ int track::audioNode::getLatencySamples() {
     int retval = 0;
 
     for (auto &pluginInstance : plugins) {
-        retval += pluginInstance->getLatencySamples();
+        retval += pluginInstance->plugin->getLatencySamples();
     }
 
     return retval;
@@ -1660,8 +1724,8 @@ int track::audioNode::getTotalLatencySamples() {
 }
 
 void track::audioNode::preparePlugins() {
-    for (std::unique_ptr<juce::AudioPluginInstance> &plugin : plugins) {
-        plugin->prepareToPlay(track::SAMPLE_RATE, track::SAMPLES_PER_BLOCK);
+    for (auto &p : plugins) {
+        p->plugin->prepareToPlay(track::SAMPLE_RATE, track::SAMPLES_PER_BLOCK);
     }
 }
 
@@ -1770,7 +1834,7 @@ void track::audioNode::process(int numSamples, int currentSample) {
             continue;
 
         juce::MidiBuffer mb;
-        this->plugins[i]->processBlock(this->buffer, mb);
+        this->plugins[i]->plugin->processBlock(this->buffer, mb);
     }
 
     // pan audio

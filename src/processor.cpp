@@ -350,12 +350,12 @@ AudioPluginAudioProcessor::serializeNode(track::audioNode *node) {
         juce::XmlElement *pluginElement = new juce::XmlElement("plugin");
 
         juce::String identifier =
-            pluginInstance->getPluginDescription()
+            pluginInstance->plugin->getPluginDescription()
                 .fileOrIdentifier.upToLastOccurrenceOf(".vst3", true, true);
         pluginElement->setAttribute("identifier", identifier);
 
         juce::MemoryBlock pluginData;
-        pluginInstance->getStateInformation(pluginData);
+        pluginInstance->plugin->getStateInformation(pluginData);
         pluginElement->setAttribute("data", pluginData.toBase64Encoding());
         pluginElement->setAttribute("bypass", node->bypassedPlugins[i]);
 
@@ -412,8 +412,8 @@ void AudioPluginAudioProcessor::deserializeNode(juce::XmlElement *nodeElement,
         juce::MemoryBlock pluginData;
 
         pluginData.fromBase64Encoding(encodedPluginData);
-        pluginInstance.setStateInformation(pluginData.getData(),
-                                           pluginData.getSize());
+        pluginInstance.plugin->setStateInformation(pluginData.getData(),
+                                                   pluginData.getSize());
         bool bypassed = pluginElement->getBoolAttribute("bypass", false);
 
         // addPlugin() already adds element to bypassedPlugins vector

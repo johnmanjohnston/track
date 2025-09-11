@@ -39,7 +39,7 @@ class PluginNodeComponent : public juce::Component {
     void mouseUp(const juce::MouseEvent &event) override;
 
     int pluginIndex = -1;
-    std::unique_ptr<juce::AudioPluginInstance> *getPlugin();
+    std::unique_ptr<track::Subplugin> *getPlugin();
     bool getPluginBypassedStatus();
 };
 
@@ -143,7 +143,7 @@ class PluginEditorWindow : public juce::Component, juce::Timer {
 
     AudioPluginAudioProcessor *processor = nullptr;
     audioNode *getCorrespondingTrack();
-    std::unique_ptr<juce::AudioPluginInstance> *getPlugin();
+    std::unique_ptr<track::Subplugin> *getPlugin();
 
     // TODO: this shouldn't belong in this class
     static const juce::Font getInterBoldItalic() {
