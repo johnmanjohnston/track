@@ -344,7 +344,6 @@ AudioPluginAudioProcessor::serializeNode(track::audioNode *node) {
     nodeElement->setAttribute("gain", node->gain);
     nodeElement->setAttribute("pan", node->pan);
 
-    jassert(node->plugins.size() == node->bypassedPlugins.size());
     for (size_t i = 0; i < node->plugins.size(); ++i) {
         auto &pluginInstance = node->plugins[i];
         juce::XmlElement *pluginElement = new juce::XmlElement("plugin");
@@ -357,7 +356,7 @@ AudioPluginAudioProcessor::serializeNode(track::audioNode *node) {
         juce::MemoryBlock pluginData;
         pluginInstance->plugin->getStateInformation(pluginData);
         pluginElement->setAttribute("data", pluginData.toBase64Encoding());
-        pluginElement->setAttribute("bypass", node->bypassedPlugins[i]);
+        pluginElement->setAttribute("bypass", pluginInstance->bypassed);
 
         nodeElement->addChildElement(pluginElement);
     }
@@ -395,7 +394,6 @@ void AudioPluginAudioProcessor::deserializeNode(juce::XmlElement *nodeElement,
     node->gain = (float)nodeElement->getDoubleAttribute("gain", 1.0);
     node->pan = (float)nodeElement->getDoubleAttribute("pan", 0.0);
     node->processor = this;
-    node->bypassedPlugins.clear();
 
     juce::XmlElement *pluginElement = nodeElement->getChildByName("plugin");
     for (size_t i = 0; pluginElement != nullptr; ++i) {
@@ -417,7 +415,7 @@ void AudioPluginAudioProcessor::deserializeNode(juce::XmlElement *nodeElement,
         bool bypassed = pluginElement->getBoolAttribute("bypass", false);
 
         // addPlugin() already adds element to bypassedPlugins vector
-        node->bypassedPlugins[i] = bypassed;
+        node->plugins[i]->bypassed = bypassed;
 
         pluginElement = pluginElement->getNextElementWithTagName("plugin");
     }

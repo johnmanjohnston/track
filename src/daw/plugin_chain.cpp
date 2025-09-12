@@ -1,6 +1,7 @@
 #include "plugin_chain.h"
 #include "defs.h"
 #include "track.h"
+#include <cstddef>
 
 track::PluginNodeComponent::PluginNodeComponent() : juce::Component() {
     this->openEditorBtn.setButtonText("EDITOR");
@@ -45,8 +46,8 @@ track::PluginNodeComponent::PluginNodeComponent() : juce::Component() {
         audioNode *node = pcc->getCorrespondingTrack();
         jassert(node != nullptr);
 
-        node->bypassedPlugins[(size_t)this->pluginIndex] =
-            !getPluginBypassedStatus();
+        node->plugins[(size_t)this->pluginIndex]->bypassed =
+            !node->plugins[(size_t)this->pluginIndex]->bypassed;
 
         repaint();
     };
@@ -246,9 +247,6 @@ std::unique_ptr<track::Subplugin> *track::PluginNodeComponent::getPlugin() {
 }
 
 bool track::PluginNodeComponent::getPluginBypassedStatus() {
-
-    return false;
-
     PluginChainComponent *pcc =
         findParentComponentOfClass<PluginChainComponent>();
     jassert(pcc != nullptr);
@@ -256,7 +254,7 @@ bool track::PluginNodeComponent::getPluginBypassedStatus() {
     audioNode *node = pcc->getCorrespondingTrack();
     jassert(node != nullptr);
 
-    return node->bypassedPlugins[(size_t)pluginIndex];
+    return node->plugins[(size_t)pluginIndex]->bypassed;
 }
 
 track::PluginChainComponent::PluginChainComponent() : juce::Component() {
@@ -430,22 +428,15 @@ void track::PluginChainComponent::reorderPlugin(int srcIndex, int destIndex) {
     // std::move is absolute magic how have i not known of this sooner
     std::unique_ptr<track::Subplugin> plugin =
         std::move(getCorrespondingTrack()->plugins[(size_t)srcIndex]);
-    bool isBypassed =
-        getCorrespondingTrack()->bypassedPlugins[(size_t)srcIndex];
 
-    // remove plugin and bypassed entry
+    // remove plugin
     getCorrespondingTrack()->plugins.erase(
         getCorrespondingTrack()->plugins.begin() + srcIndex);
-    getCorrespondingTrack()->bypassedPlugins.erase(
-        getCorrespondingTrack()->bypassedPlugins.begin() + srcIndex);
 
     // insert plugin and bypassed entry at intended indices
     getCorrespondingTrack()->plugins.insert(
         getCorrespondingTrack()->plugins.begin() + destIndex,
         std::move(plugin));
-    getCorrespondingTrack()->bypassedPlugins.insert(
-        getCorrespondingTrack()->bypassedPlugins.begin() + destIndex,
-        isBypassed);
 
     nodesWrapper.pluginNodeComponents.clear();
     nodesWrapper.createPluginNodeComponents();

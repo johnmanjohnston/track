@@ -1099,7 +1099,6 @@ track::Tracklist::~Tracklist() {}
 void track::Tracklist::copyNode(audioNode *dest, audioNode *src) {
     dest->isTrack = src->isTrack;
     dest->trackName = src->trackName;
-    dest->bypassedPlugins = src->bypassedPlugins;
     dest->gain = src->gain;
     dest->processor = processor;
     dest->s = src->s;
@@ -1129,8 +1128,9 @@ void track::Tracklist::copyNode(audioNode *dest, audioNode *src) {
         // add plugin to new node and copy data
         DBG("adding plugin to new node, using identifier " << identifier);
         dest->addPlugin(identifier);
-        dest->plugins[dest->plugins.size() - 1]->plugin->setStateInformation(
-            pluginData.getData(), pluginData.getSize());
+        dest->plugins.back()->plugin->setStateInformation(pluginData.getData(),
+                                                          pluginData.getSize());
+        dest->plugins.back()->bypassed = p->bypassed;
     }
 }
 
@@ -1625,8 +1625,6 @@ void track::audioNode::addPlugin(juce::String path) {
     p->updateLatencyAfterDelay();
     return;
 
-    this->bypassedPlugins.push_back(false);
-
     DBG("track::track addPlugin() called with path " << path);
     juce::OwnedArray<PluginDescription> pluginDescriptions;
     juce::KnownPluginList plist;
@@ -1704,7 +1702,6 @@ void track::audioNode::addPlugin(juce::String path) {
 
 void track::audioNode::removePlugin(int index) {
     this->plugins.erase(this->plugins.begin() + index);
-    this->bypassedPlugins.erase(this->bypassedPlugins.begin() + index);
 
     AudioPluginAudioProcessor *p = (AudioPluginAudioProcessor *)processor;
     p->updateLatencyAfterDelay();
@@ -1839,7 +1836,7 @@ void track::audioNode::process(int numSamples, int currentSample) {
         if (this->plugins[i] == nullptr)
             return;
 
-        if (this->bypassedPlugins[i] == true)
+        if (this->plugins[i]->bypassed == true)
             continue;
 
         juce::MidiBuffer mb;
