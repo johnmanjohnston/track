@@ -246,6 +246,9 @@ std::unique_ptr<track::Subplugin> *track::PluginNodeComponent::getPlugin() {
 }
 
 bool track::PluginNodeComponent::getPluginBypassedStatus() {
+
+    return false;
+
     PluginChainComponent *pcc =
         findParentComponentOfClass<PluginChainComponent>();
     jassert(pcc != nullptr);

@@ -1538,6 +1538,7 @@ void track::Tracklist::updateInsertIndicator(int index) {
 }
 
 void track::Subplugin::initializePlugin(juce::String path) {
+    DBG("please kill me");
     juce::OwnedArray<PluginDescription> pluginDescriptions;
     juce::KnownPluginList plist;
     juce::AudioPluginFormatManager apfm;
@@ -1546,39 +1547,34 @@ void track::Subplugin::initializePlugin(juce::String path) {
     DBG(track::SAMPLE_RATE);
     DBG(track::SAMPLES_PER_BLOCK);
 
-    DBG("fuck 1");
     if (track::SAMPLE_RATE < 0) {
-        DBG("track::SAMPLE_RATE = 0; defaulting to 44100Hz");
         track::SAMPLE_RATE = 44100;
     }
 
+    DBG("fuck 1");
     apfm.addDefaultFormats();
-    DBG("fuck 2");
 
     // TODO: handle failure to scan plugin
     for (int i = 0; i < apfm.getNumFormats(); ++i)
         plist.scanAndAddFile(path, true, pluginDescriptions,
                              *apfm.getFormat(i));
 
+    DBG("fuck 2");
     jassert(pluginDescriptions.size() > 0);
 
-    DBG("fuck 3");
+    DBG("plugin is " << apfm.createPluginInstance(
+                                *pluginDescriptions[0], track::SAMPLE_RATE,
+                                track::SAMPLES_PER_BLOCK, errorMsg)
+                            ->getName());
+
+    DBG("before fualt;");
     plugin =
         apfm.createPluginInstance(*pluginDescriptions[0], track::SAMPLE_RATE,
                                   track::SAMPLES_PER_BLOCK, errorMsg);
+    DBG("after fault");
 
-    DBG("fuck 3.1");
-    /*
-    this->plugin =
-        apfm.createPluginInstance(*pluginDescriptions[0], track::SAMPLE_RATE,
-                                  track::SAMPLES_PER_BLOCK, errorMsg);
-                                  */
-
-    DBG("fuck 4");
     plugin->setPlayConfigDetails(2, 2, track::SAMPLE_RATE,
                                  track::SAMPLES_PER_BLOCK);
-    DBG("fuck 5");
-
     if (track::SAMPLES_PER_BLOCK <= 0) {
         DBG("setting maxSamplesPerBlock to 512");
         track::SAMPLES_PER_BLOCK = 512;
@@ -1589,7 +1585,7 @@ void track::Subplugin::initializePlugin(juce::String path) {
 
     DBG("! PLUGIN ADDED");
 }
-track::Subplugin::Subplugin() {}
+track::Subplugin::Subplugin() : plugin() {}
 track::Subplugin::~Subplugin() {}
 
 // TODO: update this function to take care of more advanced audio clip
@@ -1619,9 +1615,15 @@ void track::audioNode::addPlugin(juce::String path) {
     jassert(processor != nullptr);
     AudioPluginAudioProcessor *p = (AudioPluginAudioProcessor *)processor;
 
+    DBG("calling initializePlugin()");
+    // plugins.emplace_back();
     // plugins.back()->initializePlugin(path);
 
+    this->plugins.push_back(std::make_unique<Subplugin>());
+    plugins.back()->initializePlugin(path);
+
     p->updateLatencyAfterDelay();
+    return;
 
     this->bypassedPlugins.push_back(false);
 
@@ -1652,9 +1654,16 @@ void track::audioNode::addPlugin(juce::String path) {
 
     jassert(pluginDescriptions.size() > 0);
 
+    DBG("i will fucking jump off a bridge: "
+        << apfm.createPluginInstance(*pluginDescriptions[0], track::SAMPLE_RATE,
+                                     track::SAMPLES_PER_BLOCK, errorMsg)
+               ->getName());
+
+    DBG("befoer fuck up");
     plugins.back()->plugin =
         apfm.createPluginInstance(*pluginDescriptions[0], track::SAMPLE_RATE,
                                   track::SAMPLES_PER_BLOCK, errorMsg);
+    DBG("fuck up not fuck up");
     auto &plugin = plugins.back()->plugin;
 
     /*
