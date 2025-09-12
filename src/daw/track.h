@@ -82,10 +82,10 @@ class ClipComponent : public juce::Component, public juce::ChangeListener {
     juce::Label clipNameLabel;
 };
 
-class Subplugin {
+class subplugin {
   public:
-    Subplugin();
-    ~Subplugin();
+    subplugin();
+    ~subplugin();
 
     void initializePlugin(juce::String path);
 
@@ -104,7 +104,7 @@ class audioNode {
     juce::String trackName = "Untitled Node";
 
     // future john, have fun trying to implement hosting audio plugins :skull:
-    std::vector<std::unique_ptr<Subplugin>> plugins;
+    std::vector<std::unique_ptr<subplugin>> plugins;
     void addPlugin(juce::String path);
     void removePlugin(int index);
     void preparePlugins();

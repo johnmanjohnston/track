@@ -808,11 +808,6 @@ void track::TrackComponent::mouseUp(const juce::MouseEvent &event) {
                 DBG("BOTH ARE SIBLINGS");
                 if (this->route.size() == 1) {
                     // trivially move node
-                    // TODO: copy plugins 
-                    // TODO: handle moving groups
-
-                    //DBG("displaynodes is " << displayNodes);
-                    //DBG("route[0] is " << route[0]);
 
                     int insertionNode = displayNodes;
                     int sourceNode = route[0];
@@ -1537,7 +1532,7 @@ void track::Tracklist::updateInsertIndicator(int index) {
     this->insertIndicator.setVisible(false);
 }
 
-void track::Subplugin::initializePlugin(juce::String path) {
+void track::subplugin::initializePlugin(juce::String path) {
     DBG("please kill me");
     juce::OwnedArray<PluginDescription> pluginDescriptions;
     juce::KnownPluginList plist;
@@ -1573,8 +1568,8 @@ void track::Subplugin::initializePlugin(juce::String path) {
 
     plugin->prepareToPlay(track::SAMPLE_RATE, track::SAMPLES_PER_BLOCK);
 }
-track::Subplugin::Subplugin() : plugin() {}
-track::Subplugin::~Subplugin() {}
+track::subplugin::subplugin() : plugin() {}
+track::subplugin::~subplugin() {}
 
 // TODO: update this function to take care of more advanced audio clip
 // operations (like trimming, and offsetting)
@@ -1605,7 +1600,7 @@ void track::audioNode::addPlugin(juce::String path) {
 
     DBG("calling initializePlugin()");
 
-    plugins.push_back(std::make_unique<Subplugin>());
+    plugins.push_back(std::make_unique<subplugin>());
     plugins.back()->initializePlugin(path);
 
     p->updateLatencyAfterDelay();

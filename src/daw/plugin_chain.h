@@ -1,3 +1,4 @@
+#pragma once
 #include "../editor.h"
 #include "../processor.h"
 #include "BinaryData.h"
@@ -31,6 +32,7 @@ class PluginNodeComponent : public juce::Component {
     juce::TextButton openEditorBtn;
     juce::TextButton removePluginBtn;
     juce::TextButton bypassBtn;
+    juce::TextButton automationButton;
 
     void paint(juce::Graphics &g) override;
     void resized() override;
@@ -39,7 +41,7 @@ class PluginNodeComponent : public juce::Component {
     void mouseUp(const juce::MouseEvent &event) override;
 
     int pluginIndex = -1;
-    std::unique_ptr<track::Subplugin> *getPlugin();
+    std::unique_ptr<track::subplugin> *getPlugin();
     bool getPluginBypassedStatus();
 };
 
@@ -143,7 +145,7 @@ class PluginEditorWindow : public juce::Component, juce::Timer {
 
     AudioPluginAudioProcessor *processor = nullptr;
     audioNode *getCorrespondingTrack();
-    std::unique_ptr<track::Subplugin> *getPlugin();
+    std::unique_ptr<track::subplugin> *getPlugin();
 
     // TODO: this shouldn't belong in this class
     static const juce::Font getInterBoldItalic() {

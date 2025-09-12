@@ -38,6 +38,7 @@ target_sources(track PRIVATE
     src/daw/transport_status.cpp
     src/daw/playhead.cpp
     src/daw/plugin_chain.cpp
+    src/daw/automation_relay.cpp
     src/daw/clipboard.cpp
     src/lookandfeel.cpp)
 

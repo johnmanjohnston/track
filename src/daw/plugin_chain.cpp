@@ -7,11 +7,14 @@ track::PluginNodeComponent::PluginNodeComponent() : juce::Component() {
     this->openEditorBtn.setButtonText("EDITOR");
     addAndMakeVisible(openEditorBtn);
 
-    this->removePluginBtn.setButtonText("REMOVE");
+    this->removePluginBtn.setButtonText("X");
     addAndMakeVisible(removePluginBtn);
 
     this->bypassBtn.setButtonText("BYPASS");
     addAndMakeVisible(bypassBtn);
+
+    this->automationButton.setButtonText("AUTOMATE");
+    addAndMakeVisible(automationButton);
 
     openEditorBtn.onClick = [this] {
         PluginChainComponent *pcc =
@@ -50,6 +53,11 @@ track::PluginNodeComponent::PluginNodeComponent() : juce::Component() {
             !node->plugins[(size_t)this->pluginIndex]->bypassed;
 
         repaint();
+    };
+
+    automationButton.onClick = [this] {
+        // TODO: this
+        DBG("automation button clicked");
     };
 }
 track::PluginNodeComponent::~PluginNodeComponent() {}
@@ -138,17 +146,22 @@ void track::PluginNodeComponent::resized() {
     int bottomMargin = 7;
     int buttonSideMargin = 4;
 
-    this->openEditorBtn.setBounds(initialLeftMargin,
-                                  getHeight() - btnHeight - bottomMargin,
-                                  btnWidth, btnHeight);
+    this->automationButton.setBounds(initialLeftMargin,
+                                     getHeight() - btnHeight - bottomMargin,
+                                     btnWidth, btnHeight);
 
-    this->removePluginBtn.setBounds(
-        initialLeftMargin + btnWidth + buttonSideMargin,
+    this->openEditorBtn.setBounds(
+        initialLeftMargin + (btnWidth + buttonSideMargin),
         getHeight() - btnHeight - bottomMargin, btnWidth, btnHeight);
 
     this->bypassBtn.setBounds(
         initialLeftMargin + ((btnWidth + buttonSideMargin) * 2),
         getHeight() - btnHeight - bottomMargin, btnWidth, btnHeight);
+
+    int closeBtnSize = 22;
+    int closeBtnMargin = 2;
+    this->removePluginBtn.setBounds(getWidth() - closeBtnSize - closeBtnMargin,
+                                    closeBtnMargin, closeBtnSize, closeBtnSize);
 }
 
 void track::PluginNodesWrapper::createPluginNodeComponents() {
@@ -235,7 +248,7 @@ track::PluginNodesWrapper::getBoundsForPluginNodeComponent(int index) {
                                 0, UI_PLUGIN_NODE_WIDTH, 88);
 }
 
-std::unique_ptr<track::Subplugin> *track::PluginNodeComponent::getPlugin() {
+std::unique_ptr<track::subplugin> *track::PluginNodeComponent::getPlugin() {
     PluginChainComponent *pcc =
         findParentComponentOfClass<PluginChainComponent>();
     jassert(pcc != nullptr);
@@ -426,7 +439,7 @@ void track::PluginChainComponent::reorderPlugin(int srcIndex, int destIndex) {
         0, (int)getCorrespondingTrack()->plugins.size() - 1, destIndex);
 
     // std::move is absolute magic how have i not known of this sooner
-    std::unique_ptr<track::Subplugin> plugin =
+    std::unique_ptr<track::subplugin> plugin =
         std::move(getCorrespondingTrack()->plugins[(size_t)srcIndex]);
 
     // remove plugin
@@ -589,7 +602,7 @@ track::audioNode *track::PluginEditorWindow::getCorrespondingTrack() {
     return head;
 }
 
-std::unique_ptr<track::Subplugin> *track::PluginEditorWindow::getPlugin() {
+std::unique_ptr<track::subplugin> *track::PluginEditorWindow::getPlugin() {
     return &getCorrespondingTrack()->plugins[(size_t)this->pluginIndex];
 }
 

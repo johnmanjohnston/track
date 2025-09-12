@@ -104,6 +104,8 @@ void track::ui::CustomLookAndFeel::drawButtonBackground(
 
     if (b.getButtonText().toLowerCase() == "config") {
         c = juce::Colour(0xFF'B5B5B5);
+    } else if (b.getButtonText().toLowerCase() == "x") {
+        c = juce::Colour(0xFF'121212);
     }
 
     if (shouldDrawButtonAsHighlighted) {
@@ -120,6 +122,8 @@ void track::ui::CustomLookAndFeel::drawButtonBackground(
     if (b.getButtonText().toLowerCase() == "editor" ||
         b.getButtonText().toLowerCase() == "remove" ||
         b.getButtonText().toLowerCase() == "bypass" ||
+        b.getButtonText().toLowerCase() == "automate" ||
+        b.getButtonText().toLowerCase() == "x" ||
 
         b.getButtonText().toLowerCase() == "config")
         return;
@@ -144,7 +148,8 @@ void track::ui::CustomLookAndFeel::drawButtonText(
 
     if (button.getButtonText().toLowerCase() == "config") {
         g.setColour(juce::Colours::black.withAlpha(0.5f));
-    }
+    } else if (button.getButtonText().toLowerCase() == "x")
+        g.setColour(juce::Colours::white.withAlpha(0.5f));
 
     const int yIndent = jmin(4, button.proportionOfHeight(0.3f));
     const int cornerSize = jmin(button.getHeight(), button.getWidth()) / 2;
@@ -325,11 +330,11 @@ void track::ui::CustomLookAndFeel::drawLabel(Graphics &g, Label &label) {
 }
 
 Font track::ui::CustomLookAndFeel::getPopupMenuFont() {
-    #if JUCE_WINDOWS
+#if JUCE_WINDOWS
     return getInterRegular().withHeight(19.f).withExtraKerningFactor(-.01f);
-    #else
+#else
     return getInterRegular().withHeight(18.f).withExtraKerningFactor(-.03f);
-    #endif
+#endif
 }
 
 Font track::ui::CustomLookAndFeel::getTextButtonFont(TextButton &button,
@@ -337,6 +342,8 @@ Font track::ui::CustomLookAndFeel::getTextButtonFont(TextButton &button,
     if (button.getButtonText().toLowerCase() == "editor" ||
         button.getButtonText().toLowerCase() == "remove" ||
         button.getButtonText().toLowerCase() == "bypass" ||
+        button.getButtonText().toLowerCase() == "automate" ||
+        button.getButtonText().toLowerCase() == "x" ||
 
         button.getButtonText().toLowerCase() == "config") {
 
