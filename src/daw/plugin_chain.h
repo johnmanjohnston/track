@@ -2,28 +2,11 @@
 #include "../editor.h"
 #include "../processor.h"
 #include "BinaryData.h"
+#include "subwindow.h"
 #include "track.h"
 #include <JuceHeader.h>
 
 namespace track {
-class CloseButton : public juce::Component {
-  public:
-    CloseButton();
-    ~CloseButton();
-
-    juce::Font font;
-    void paint(juce::Graphics &g) override;
-    void mouseUp(const juce::MouseEvent &event) override;
-
-    bool isHoveredOver = false;
-    void mouseEnter(const juce::MouseEvent &event) override;
-    void mouseExit(const juce::MouseEvent &event) override;
-    juce::Colour normalColor = juce::Colour(0xFF'585858);
-    juce::Colour hoveredColor = juce::Colour(0xFF'808080);
-
-    bool behaveLikeANormalCloseButton = true;
-};
-
 class PluginNodeComponent : public juce::Component {
   public:
     PluginNodeComponent();
@@ -75,21 +58,13 @@ class PluginNodesViewport : public juce::Viewport {
     ~PluginNodesViewport();
 };
 
-class PluginChainComponent : public juce::Component {
+class PluginChainComponent : public track::Subwindow {
   public:
     PluginChainComponent();
     ~PluginChainComponent();
 
     PluginNodesViewport nodesViewport;
     PluginNodesWrapper nodesWrapper;
-
-    CloseButton closeBtn;
-
-    int titlebarHeight = -1;
-
-    void mouseDown(const juce::MouseEvent &event) override;
-    void mouseDrag(const juce::MouseEvent &event) override;
-    juce::Rectangle<int> dragStartBounds;
 
     void paint(juce::Graphics &g) override;
     void resized() override;
@@ -103,15 +78,6 @@ class PluginChainComponent : public juce::Component {
     track::InsertIndicator insertIndicator;
     void updateInsertIndicator(int index);
     void reorderPlugin(int srcIndex, int destIndex);
-
-    // TODO: this shouldn't belong in this class
-    static const juce::Font getInterBoldItalic() {
-        static auto typeface = Typeface::createSystemTypefaceFor(
-            BinaryData::Inter_18ptBoldItalic_ttf,
-            BinaryData::Inter_18ptBoldItalic_ttfSize);
-
-        return typeface;
-    }
 };
 
 class PluginEditorWindow : public juce::Component, juce::Timer {

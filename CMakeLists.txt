@@ -37,6 +37,7 @@ target_sources(track PRIVATE
     src/daw/defs.cpp
     src/daw/transport_status.cpp
     src/daw/playhead.cpp
+    src/daw/subwindow.cpp
     src/daw/plugin_chain.cpp
     src/daw/automation_relay.cpp
     src/daw/clipboard.cpp
