@@ -1551,7 +1551,6 @@ void track::Subplugin::initializePlugin(juce::String path) {
         track::SAMPLE_RATE = 44100;
     }
 
-    DBG("fuck 1");
     apfm.addDefaultFormats();
 
     // TODO: handle failure to scan plugin
@@ -1559,19 +1558,11 @@ void track::Subplugin::initializePlugin(juce::String path) {
         plist.scanAndAddFile(path, true, pluginDescriptions,
                              *apfm.getFormat(i));
 
-    DBG("fuck 2");
     jassert(pluginDescriptions.size() > 0);
 
-    DBG("plugin is " << apfm.createPluginInstance(
-                                *pluginDescriptions[0], track::SAMPLE_RATE,
-                                track::SAMPLES_PER_BLOCK, errorMsg)
-                            ->getName());
-
-    DBG("before fualt;");
     plugin =
         apfm.createPluginInstance(*pluginDescriptions[0], track::SAMPLE_RATE,
                                   track::SAMPLES_PER_BLOCK, errorMsg);
-    DBG("after fault");
 
     plugin->setPlayConfigDetails(2, 2, track::SAMPLE_RATE,
                                  track::SAMPLES_PER_BLOCK);
@@ -1580,10 +1571,7 @@ void track::Subplugin::initializePlugin(juce::String path) {
         track::SAMPLES_PER_BLOCK = 512;
     }
 
-    DBG("fuck 6");
     plugin->prepareToPlay(track::SAMPLE_RATE, track::SAMPLES_PER_BLOCK);
-
-    DBG("! PLUGIN ADDED");
 }
 track::Subplugin::Subplugin() : plugin() {}
 track::Subplugin::~Subplugin() {}
@@ -1616,88 +1604,11 @@ void track::audioNode::addPlugin(juce::String path) {
     AudioPluginAudioProcessor *p = (AudioPluginAudioProcessor *)processor;
 
     DBG("calling initializePlugin()");
-    // plugins.emplace_back();
-    // plugins.back()->initializePlugin(path);
 
-    this->plugins.push_back(std::make_unique<Subplugin>());
+    plugins.push_back(std::make_unique<Subplugin>());
     plugins.back()->initializePlugin(path);
 
     p->updateLatencyAfterDelay();
-    return;
-
-    DBG("track::track addPlugin() called with path " << path);
-    juce::OwnedArray<PluginDescription> pluginDescriptions;
-    juce::KnownPluginList plist;
-    juce::AudioPluginFormatManager apfm;
-    juce::String errorMsg;
-
-    if (track::SAMPLE_RATE < 0) {
-        DBG("track::SAMPLE_RATE = 0; defaulting to 44100Hz");
-        track::SAMPLE_RATE = 44100;
-    }
-
-    // jassert(track::SAMPLE_RATE > 0);
-    // jassert(maxSamplesPerBlock > 0);
-
-    apfm.addDefaultFormats();
-
-    // TODO: handle failure to scan plugin
-    for (int i = 0; i < apfm.getNumFormats(); ++i)
-        plist.scanAndAddFile(path, true, pluginDescriptions,
-                             *apfm.getFormat(i));
-
-    plugins.emplace_back();
-    // std::unique_ptr<juce::AudioPluginInstance> &plugin =
-    // this->plugins.back();
-
-    jassert(pluginDescriptions.size() > 0);
-
-    DBG("i will fucking jump off a bridge: "
-        << apfm.createPluginInstance(*pluginDescriptions[0], track::SAMPLE_RATE,
-                                     track::SAMPLES_PER_BLOCK, errorMsg)
-               ->getName());
-
-    DBG("befoer fuck up");
-    plugins.back()->plugin =
-        apfm.createPluginInstance(*pluginDescriptions[0], track::SAMPLE_RATE,
-                                  track::SAMPLES_PER_BLOCK, errorMsg);
-    DBG("fuck up not fuck up");
-    auto &plugin = plugins.back()->plugin;
-
-    /*
-    DBG("LOGGING OUTPUTS:");
-    DBG("   " << plugin->getMainBusNumInputChannels() << " inputs");
-    DBG("   " << plugin->getMainBusNumOutputChannels() << " outputs");
-    */
-
-    // DBG("setting plugin play config details");
-    plugin->setPlayConfigDetails(2, 2, track::SAMPLE_RATE,
-                                 track::SAMPLES_PER_BLOCK);
-
-    /*
-    DBG("setting buses");
-    AudioPluginAudioProcessor *p = (AudioPluginAudioProcessor *)processor;
-    AudioPluginAudioProcessor::BusesLayout busesLayout =
-    p->getBusesLayout(); plugin->setBusesLayout(busesLayout);
-
-    DBG("setting rate and buffer size details");
-    plugin->setRateAndBufferSizeDetails(sampleRate, maxSamplesPerBlock);
-    */
-
-    // TODO: is this really a good idea?
-    if (track::SAMPLES_PER_BLOCK <= 0) {
-        DBG("setting maxSamplesPerBlock to 512");
-        track::SAMPLES_PER_BLOCK = 512;
-    }
-    plugin->prepareToPlay(track::SAMPLE_RATE, track::SAMPLES_PER_BLOCK);
-
-    p->updateLatencyAfterDelay();
-
-    /*
-    DBG("LOGGING OUTPUTS:");
-    DBG("   " << plugin->getMainBusNumInputChannels() << " inputs");
-    DBG("   " << plugin->getMainBusNumOutputChannels() << " outputs");
-    */
 }
 
 void track::audioNode::removePlugin(int index) {
