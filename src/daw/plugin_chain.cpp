@@ -1,5 +1,6 @@
 #include "plugin_chain.h"
 #include "defs.h"
+#include "subwindow.h"
 #include "track.h"
 #include <cstddef>
 
@@ -58,6 +59,13 @@ track::PluginNodeComponent::PluginNodeComponent() : juce::Component() {
     automationButton.onClick = [this] {
         // TODO: this
         DBG("automation button clicked");
+
+        PluginChainComponent *pcc =
+            findParentComponentOfClass<PluginChainComponent>();
+        jassert(pcc != nullptr);
+        AudioPluginAudioProcessorEditor *editor =
+            this->findParentComponentOfClass<AudioPluginAudioProcessorEditor>();
+        editor->openRelayMenu(pcc->route, this->pluginIndex);
     };
 }
 track::PluginNodeComponent::~PluginNodeComponent() {}
@@ -271,7 +279,6 @@ bool track::PluginNodeComponent::getPluginBypassedStatus() {
 }
 
 track::PluginChainComponent::PluginChainComponent() : Subwindow() {
-    closeBtn.font = getInterBoldItalic();
     addAndMakeVisible(closeBtn);
 
     nodesWrapper.pcc = this;
@@ -282,10 +289,7 @@ track::PluginChainComponent::PluginChainComponent() : Subwindow() {
 }
 
 void track::PluginChainComponent::resized() {
-    int closeBtnSize = UI_SUBWINDOW_TITLEBAR_HEIGHT;
-    closeBtn.setBounds(getWidth() - closeBtnSize - UI_SUBWINDOW_TITLEBAR_MARGIN,
-                       0, closeBtnSize + UI_SUBWINDOW_TITLEBAR_MARGIN,
-                       closeBtnSize);
+    Subwindow::resized();
 
     nodesViewport.setScrollBarsShown(false, true, false, true);
 
@@ -308,13 +312,9 @@ void track::PluginChainComponent::resized() {
 track::PluginChainComponent::~PluginChainComponent() {}
 
 void track::PluginChainComponent::paint(juce::Graphics &g) {
-    // bg
-    g.fillAll(juce::Colour(0xFF'282828));
+    Subwindow::paint(g);
 
     // titlebar
-    juce::Rectangle<int> titlebarBounds = getLocalBounds();
-    titlebarBounds.setHeight(UI_SUBWINDOW_TITLEBAR_HEIGHT);
-    titlebarBounds.reduce(UI_SUBWINDOW_TITLEBAR_MARGIN, 0);
     g.setColour(juce::Colours::green);
     // g.fillRect(titlebarBounds);
 
@@ -322,13 +322,13 @@ void track::PluginChainComponent::paint(juce::Graphics &g) {
     g.setColour(juce::Colour(0xFF'A7A7A7)); // track name text color
     // juce::String x = juce::String(getCorrespondingTrack()->clips.size());
     g.drawText(getCorrespondingTrack()->trackName,
-               titlebarBounds.withLeft(37).withTop(2),
+               getTitleBarBounds().withLeft(37).withTop(2),
                juce::Justification::left);
 
     // fx logo
     // outline
     juce::Rectangle<int> fxLogoBounds =
-        juce::Rectangle<int>(8, 1, 30, titlebarBounds.getHeight());
+        juce::Rectangle<int>(8, 1, 30, getTitleBarBounds().getHeight());
 
     juce::Path textPath;
     juce::GlyphArrangement glyphs;
@@ -352,8 +352,8 @@ void track::PluginChainComponent::paint(juce::Graphics &g) {
     juce::Colour g2 = juce::Colour(0xFF'565656);
     juce::Colour g3 = juce::Colour(0xFF'313131);
 
-    juce::ColourGradient gradient =
-        juce::ColourGradient::vertical(g1, 0.f, g1, titlebarBounds.getHeight());
+    juce::ColourGradient gradient = juce::ColourGradient::vertical(
+        g1, 0.f, g1, getTitleBarBounds().getHeight());
     gradient.addColour(.3f, g2);
     gradient.addColour(.4f, g3);
     gradient.addColour(.6f, g3);
@@ -362,12 +362,6 @@ void track::PluginChainComponent::paint(juce::Graphics &g) {
     g.setGradientFill(gradient);
     g.setFont(this->getInterBoldItalic().withHeight(22.f));
     g.drawText("FX", fxLogoBounds, juce::Justification::left, false);
-
-    // border
-    g.setColour(juce::Colour(0xFF'4A4A4A));
-    // g.drawHorizontalLine(titlebarBounds.getHeight(), 0, getWidth());
-    g.fillRect(0, titlebarBounds.getHeight(), getWidth(), 2);
-    g.drawRect(getLocalBounds(), 2);
 
     /*
     g.setColour(juce::Colours::white);

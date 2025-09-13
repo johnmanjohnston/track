@@ -1,4 +1,5 @@
 #pragma once
+#include "daw/automation_relay.h"
 #include "daw/playhead.h"
 #include "daw/timeline.h"
 #include "daw/track.h"
@@ -68,6 +69,10 @@ class AudioPluginAudioProcessorEditor : public juce::AudioProcessorEditor,
     std::vector<std::unique_ptr<track::PluginChainComponent>>
         pluginChainComponents;
     void openFxChain(std::vector<int> route);
+
+    std::vector<std::unique_ptr<track::RelayManagerComponent>>
+        relayManagerCompnoents;
+    void openRelayMenu(std::vector<int>, int pluginIndex);
 
     std::vector<std::unique_ptr<track::PluginEditorWindow>> pluginEditorWindows;
     void openPluginEditorWindow(std::vector<int> route, int pluginIndex);

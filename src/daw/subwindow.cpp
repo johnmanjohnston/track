@@ -1,4 +1,5 @@
 #include "subwindow.h"
+#include "defs.h"
 #include "plugin_chain.h"
 #include "track.h"
 
@@ -68,4 +69,30 @@ void track::Subwindow::mouseDown(const juce::MouseEvent &event) {
         dragStartBounds = getBounds();
 
     this->toFront(true);
+}
+
+juce::Rectangle<int> track::Subwindow::getTitleBarBounds() {
+    juce::Rectangle<int> titlebarBounds = getLocalBounds();
+    titlebarBounds.setHeight(UI_SUBWINDOW_TITLEBAR_HEIGHT);
+    titlebarBounds.reduce(UI_SUBWINDOW_TITLEBAR_MARGIN, 0);
+
+    return titlebarBounds;
+}
+
+void track::Subwindow::resized() {
+    int closeBtnSize = UI_SUBWINDOW_TITLEBAR_HEIGHT;
+    closeBtn.setBounds(getWidth() - closeBtnSize - UI_SUBWINDOW_TITLEBAR_MARGIN,
+                       0, closeBtnSize + UI_SUBWINDOW_TITLEBAR_MARGIN,
+                       closeBtnSize);
+}
+
+void track::Subwindow::paint(juce::Graphics &g) {
+    // bg
+    g.fillAll(juce::Colour(0xFF'282828));
+
+    // border
+    g.setColour(juce::Colour(0xFF'4A4A4A));
+    // g.drawHorizontalLine(titlebarBounds.getHeight(), 0, getWidth());
+    g.fillRect(0, getTitleBarBounds().getHeight(), getWidth(), 2);
+    g.drawRect(getLocalBounds(), 2);
 }

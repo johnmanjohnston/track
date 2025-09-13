@@ -1,4 +1,5 @@
 #include "editor.h"
+#include "daw/automation_relay.h"
 #include "daw/clipboard.h"
 #include "daw/defs.h"
 #include "daw/plugin_chain.h"
@@ -227,6 +228,21 @@ void AudioPluginAudioProcessorEditor::resized() {
     configBtn.setColour(juce::TextButton::ColourIds::textColourOnId,
                         juce::Colours::orange);
     configBtn.setBounds(getWidth() - 66, 25, 62, 20);
+}
+
+void AudioPluginAudioProcessorEditor::openRelayMenu(std::vector<int> route,
+                                                    int pluginIndex) {
+    relayManagerCompnoents.emplace_back(new track::RelayManagerComponent());
+    std::unique_ptr<track::RelayManagerComponent> &rmc =
+        relayManagerCompnoents.back();
+
+    rmc->route = route;
+    rmc->pluginIndex = pluginIndex;
+    rmc->procesor = &processorRef;
+
+    addAndMakeVisible(*rmc);
+    rmc->setBounds(10, 10, 900, 124);
+    repaint();
 }
 
 void AudioPluginAudioProcessorEditor::openFxChain(std::vector<int> route) {

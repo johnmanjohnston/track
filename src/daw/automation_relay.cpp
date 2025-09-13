@@ -1,6 +1,7 @@
 #include "automation_relay.h"
+#include "subwindow.h"
 
-float ::track::relayParam::getValueUsingPercentage(float min, float max) {
+float track::relayParam::getValueUsingPercentage(float min, float max) {
     float v = juce::jlimit(0.f, 100.f, this->value);
     float retval = -1.f;
 
@@ -8,4 +9,14 @@ float ::track::relayParam::getValueUsingPercentage(float min, float max) {
     return min + mul * (max - min);
 
     return retval;
+}
+
+track::RelayManagerComponent::RelayManagerComponent() : track::Subwindow() {}
+track::RelayManagerComponent::~RelayManagerComponent() {}
+
+void track::RelayManagerComponent::paint(juce::Graphics &g) {
+    Subwindow::paint(g);
+
+    // TODO: this
+    // g.fillAll(juce::Colours::magenta);
 }

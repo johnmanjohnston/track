@@ -23,7 +23,10 @@ class CloseButton : public juce::Component {
 
 class Subwindow : public juce::Component {
   public:
-    Subwindow() : juce::Component() { addAndMakeVisible(closeBtn); }
+    Subwindow() : juce::Component() {
+        closeBtn.font = getInterBoldItalic();
+        addAndMakeVisible(closeBtn);
+    }
     ~Subwindow() {}
 
     CloseButton closeBtn;
@@ -31,6 +34,10 @@ class Subwindow : public juce::Component {
     void mouseDown(const juce::MouseEvent &event) override;
     void mouseDrag(const juce::MouseEvent &event) override;
     juce::Rectangle<int> dragStartBounds;
+    juce::Rectangle<int> getTitleBarBounds();
+
+    void resized() override;
+    void paint(juce::Graphics &g) override;
 
     static const juce::Font getInterBoldItalic() {
         static auto typeface = Typeface::createSystemTypefaceFor(
