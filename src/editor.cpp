@@ -238,7 +238,7 @@ void AudioPluginAudioProcessorEditor::openRelayMenu(std::vector<int> route,
 
     rmc->route = route;
     rmc->pluginIndex = pluginIndex;
-    rmc->procesor = &processorRef;
+    rmc->processor = &processorRef;
 
     addAndMakeVisible(*rmc);
     rmc->setBounds(10, 10, 900, 124);

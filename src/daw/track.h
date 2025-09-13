@@ -1,6 +1,5 @@
 #pragma once
 #include "BinaryData.h"
-#include "juce_audio_processors/juce_audio_processors.h"
 #include <JuceHeader.h>
 
 namespace track {
@@ -82,6 +81,7 @@ class ClipComponent : public juce::Component, public juce::ChangeListener {
     juce::Label clipNameLabel;
 };
 
+class relayParam;
 class subplugin {
   public:
     subplugin();
@@ -90,6 +90,7 @@ class subplugin {
     void initializePlugin(juce::String path);
 
     std::unique_ptr<juce::AudioPluginInstance> plugin;
+    std::vector<relayParam> relayParams;
 
     bool bypassed = false;
 };

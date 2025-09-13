@@ -39,6 +39,10 @@ class Subwindow : public juce::Component {
     void resized() override;
     void paint(juce::Graphics &g) override;
 
+    juce::Font getTitleBarFont() {
+        return getInterBoldItalic().withHeight(19.f);
+    }
+
     static const juce::Font getInterBoldItalic() {
         static auto typeface = Typeface::createSystemTypefaceFor(
             BinaryData::Inter_18ptBoldItalic_ttf,

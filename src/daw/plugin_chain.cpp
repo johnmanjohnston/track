@@ -318,7 +318,7 @@ void track::PluginChainComponent::paint(juce::Graphics &g) {
     g.setColour(juce::Colours::green);
     // g.fillRect(titlebarBounds);
 
-    g.setFont(this->getInterBoldItalic().withHeight(19.f));
+    g.setFont(getTitleBarFont());
     g.setColour(juce::Colour(0xFF'A7A7A7)); // track name text color
     // juce::String x = juce::String(getCorrespondingTrack()->clips.size());
     g.drawText(getCorrespondingTrack()->trackName,
