@@ -1,5 +1,5 @@
 #include "automation_relay.h"
-#include "juce_graphics/juce_graphics.h"
+#include "defs.h"
 #include "subwindow.h"
 #include "track.h"
 
@@ -13,7 +13,12 @@ float track::relayParam::getValueUsingPercentage(float min, float max) {
     return retval;
 }
 
-track::RelayManagerComponent::RelayManagerComponent() : track::Subwindow() {}
+track::RelayManagerComponent::RelayManagerComponent() : track::Subwindow() {
+    rmViewport.setViewedComponent(&rmNodesWrapper);
+    addAndMakeVisible(this->rmViewport);
+
+    rmNodesWrapper.createRelayNodes();
+}
 track::RelayManagerComponent::~RelayManagerComponent() {}
 
 track::audioNode *track::RelayManagerComponent::getCorrespondingTrack() {
@@ -56,4 +61,23 @@ void track::RelayManagerComponent::paint(juce::Graphics &g) {
 void track::RelayManagerComponent::resized() {
     // TODO: this
     Subwindow::resized();
+
+    rmViewport.setBounds(0, UI_SUBWINDOW_TITLEBAR_HEIGHT, getWidth(),
+                         getHeight() - UI_SUBWINDOW_TITLEBAR_HEIGHT);
+    rmNodesWrapper.setBounds(0, 0, getWidth(), 2000);
+}
+
+void track::RelayManagerNodesWrapper::createRelayNodes() {
+    for (int i = 0; i < 10; ++i) {
+        DBG("creating relay node " << i);
+        this->relayNodes.emplace_back(new RelayManagerNode);
+        auto &x = relayNodes.back();
+        x->setBounds(0, (i * 100), 200, 100 - 10);
+        addAndMakeVisible(*x);
+    }
+}
+
+void track::RelayManagerNode::paint(juce::Graphics &g) {
+    // TODO: this
+    g.fillAll(juce::Colours::green);
 }

@@ -21,15 +21,19 @@ class relayParam {
 
 class RelayManagerNode : public juce::Component {
   public:
-    RelayManagerNode();
-    ~RelayManagerNode();
+    RelayManagerNode() {}
+    ~RelayManagerNode() {}
 
     void paint(juce::Graphics &g) override;
 };
 
 class RelayManagerNodesWrapper : public juce::Component {
+  public:
     RelayManagerNodesWrapper() : juce::Component() {}
     ~RelayManagerNodesWrapper(){};
+
+    std::vector<std::unique_ptr<RelayManagerNode>> relayNodes;
+    void createRelayNodes();
 };
 
 class RelayManagerViewport : public juce::Viewport {
@@ -48,6 +52,9 @@ class RelayManagerComponent : public track::Subwindow {
     AudioPluginAudioProcessor *processor = nullptr;
     std::vector<int> route;
     int pluginIndex = -1;
+
+    RelayManagerViewport rmViewport;
+    RelayManagerNodesWrapper rmNodesWrapper;
 
     void paint(juce::Graphics &g) override;
     void resized() override;
