@@ -1,6 +1,5 @@
 #pragma once
 #include "../processor.h"
-#include "juce_gui_basics/juce_gui_basics.h"
 #include "subwindow.h"
 #include "track.h"
 #include <JuceHeader.h>
@@ -11,7 +10,7 @@ class relayParam {
     relayParam() {}
     ~relayParam() {}
 
-    juce::String pluginsParamID;
+    juce::String pluginsParamID = "unset in param id";
     int outputParamID = -1;
 
     float value = -1.f;
@@ -19,12 +18,21 @@ class relayParam {
     float getValueUsingPercentage(float min, float max);
 };
 
+class RelayManagerComponent;
 class RelayManagerNode : public juce::Component {
   public:
-    RelayManagerNode() {}
-    ~RelayManagerNode() {}
+    RelayManagerNode();
+    ~RelayManagerNode();
 
     void paint(juce::Graphics &g) override;
+    void resized() override;
+    void createMenuEntries();
+    int paramVectorIndex = -1;
+
+    juce::ComboBox hostedPluginParamSelector;
+    juce::ComboBox relaySelector;
+
+    RelayManagerComponent *rmc = nullptr;
 };
 
 class RelayManagerNodesWrapper : public juce::Component {
@@ -32,8 +40,11 @@ class RelayManagerNodesWrapper : public juce::Component {
     RelayManagerNodesWrapper() : juce::Component() {}
     ~RelayManagerNodesWrapper(){};
 
+    void mouseDown(const juce::MouseEvent &event) override;
+
     std::vector<std::unique_ptr<RelayManagerNode>> relayNodes;
     void createRelayNodes();
+    void setRelayNodesBounds();
 };
 
 class RelayManagerViewport : public juce::Viewport {

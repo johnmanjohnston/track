@@ -16,8 +16,6 @@ float track::relayParam::getValueUsingPercentage(float min, float max) {
 track::RelayManagerComponent::RelayManagerComponent() : track::Subwindow() {
     rmViewport.setViewedComponent(&rmNodesWrapper);
     addAndMakeVisible(this->rmViewport);
-
-    rmNodesWrapper.createRelayNodes();
 }
 track::RelayManagerComponent::~RelayManagerComponent() {}
 
@@ -68,16 +66,106 @@ void track::RelayManagerComponent::resized() {
 }
 
 void track::RelayManagerNodesWrapper::createRelayNodes() {
+    /*
     for (int i = 0; i < 10; ++i) {
         DBG("creating relay node " << i);
         this->relayNodes.emplace_back(new RelayManagerNode);
         auto &x = relayNodes.back();
-        x->setBounds(0, (i * 100), 200, 100 - 10);
         addAndMakeVisible(*x);
+    }
+    */
+
+    relayNodes.clear();
+
+    track::RelayManagerComponent *rmc = (RelayManagerComponent *)
+        findParentComponentOfClass<RelayManagerComponent>();
+    jassert(rmc != nullptr);
+
+    jassert(rmc->processor != nullptr);
+
+    std::unique_ptr<track::subplugin> *plugin = rmc->getPlugin();
+    jassert(plugin != nullptr);
+
+    for (size_t i = 0; i < plugin->get()->relayParams.size(); ++i) {
+        relayNodes.emplace_back(new RelayManagerNode());
+        auto &x = relayNodes.back();
+        x->paramVectorIndex = (int)i;
+        x->rmc = rmc;
+        x->createMenuEntries();
+        addAndMakeVisible(*x);
+    }
+
+    setRelayNodesBounds();
+}
+
+void track::RelayManagerNodesWrapper::setRelayNodesBounds() {
+    int nodeHeight = 50;
+
+    for (size_t i = 0; i < relayNodes.size(); ++i) {
+        relayNodes[i]->setBounds(8, 10 + ((int)i * nodeHeight), 272,
+                                 nodeHeight - 10);
+    }
+}
+
+void track::RelayManagerNodesWrapper::mouseDown(const juce::MouseEvent &event) {
+    if (event.mods.isRightButtonDown()) {
+        juce::PopupMenu addRelayParamMenu;
+
+        addRelayParamMenu.addItem("Add relayed parameter", [this] {
+            // TODO: this
+            DBG("add relayed param clicked");
+
+            track::RelayManagerComponent *rmc = (RelayManagerComponent *)
+                findParentComponentOfClass<RelayManagerComponent>();
+            jassert(rmc != nullptr);
+
+            std::unique_ptr<track::subplugin> *plugin = rmc->getPlugin();
+            jassert(plugin != nullptr);
+
+            plugin->get()->relayParams.emplace_back();
+
+            createRelayNodes();
+        });
+
+        addRelayParamMenu.setLookAndFeel(&getLookAndFeel());
+
+        addRelayParamMenu.showMenuAsync(juce::PopupMenu::Options());
+    }
+}
+
+track::RelayManagerNode::RelayManagerNode() : juce::Component() {
+    addAndMakeVisible(relaySelector);
+    addAndMakeVisible(hostedPluginParamSelector);
+}
+track::RelayManagerNode::~RelayManagerNode() {}
+
+void track::RelayManagerNode::createMenuEntries() {
+    DBG("createMenuEntries() called");
+
+    for (int i = 1; i <= 128; ++i) {
+        relaySelector.addItem(juce::String(i), i);
+    }
+
+    std::unique_ptr<track::subplugin> *plugin = rmc->getPlugin();
+    jassert(plugin != nullptr);
+
+    std::unique_ptr<juce::AudioPluginInstance> *pluginInstance =
+        &plugin->get()->plugin;
+    jassert(pluginInstance != nullptr);
+
+    auto params = pluginInstance->get()->getParameters();
+    for (int i = 0; i < params.size(); ++i) {
+        DBG(params[i]->getName(64) << "/" << juce::String(i));
+        hostedPluginParamSelector.addItem(params[i]->getName(64), 1 + i);
     }
 }
 
 void track::RelayManagerNode::paint(juce::Graphics &g) {
     // TODO: this
     g.fillAll(juce::Colours::green);
+}
+
+void track::RelayManagerNode::resized() {
+    this->hostedPluginParamSelector.setBounds(100, 0, 100, 24);
+    this->relaySelector.setBounds(0, 0, 100, 24);
 }

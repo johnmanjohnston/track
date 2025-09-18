@@ -240,6 +240,8 @@ void AudioPluginAudioProcessorEditor::openRelayMenu(std::vector<int> route,
     rmc->pluginIndex = pluginIndex;
     rmc->processor = &processorRef;
 
+    rmc->rmNodesWrapper.createRelayNodes();
+
     addAndMakeVisible(*rmc);
     rmc->setBounds(10, 10, 280, 640);
     repaint();
