@@ -136,14 +136,34 @@ void track::RelayManagerNodesWrapper::mouseDown(const juce::MouseEvent &event) {
 track::RelayManagerNode::RelayManagerNode() : juce::Component() {
     addAndMakeVisible(relaySelector);
     addAndMakeVisible(hostedPluginParamSelector);
+
+    hostedPluginParamSelector.onChange = [this] {
+        DBG(hostedPluginParamSelector.getSelectedId());
+
+        std::unique_ptr<track::subplugin> *plugin = rmc->getPlugin();
+        jassert(plugin != nullptr);
+
+        plugin->get()
+            ->relayParams[(size_t)this->paramVectorIndex]
+            .pluginParamIndex = hostedPluginParamSelector.getSelectedId();
+    };
+
+    relaySelector.onChange = [this] {
+        std::unique_ptr<track::subplugin> *plugin = rmc->getPlugin();
+        jassert(plugin != nullptr);
+
+        plugin->get()
+            ->relayParams[(size_t)this->paramVectorIndex]
+            .outputParamID = relaySelector.getSelectedId();
+    };
 }
 track::RelayManagerNode::~RelayManagerNode() {}
 
 void track::RelayManagerNode::createMenuEntries() {
     DBG("createMenuEntries() called");
 
-    for (int i = 1; i <= 128; ++i) {
-        relaySelector.addItem(juce::String(i), i);
+    for (int i = 0; i < 128; ++i) {
+        relaySelector.addItem("param_" + juce::String(i), i + 1);
     }
 
     std::unique_ptr<track::subplugin> *plugin = rmc->getPlugin();
@@ -153,11 +173,26 @@ void track::RelayManagerNode::createMenuEntries() {
         &plugin->get()->plugin;
     jassert(pluginInstance != nullptr);
 
-    auto params = pluginInstance->get()->getParameters();
+    params = pluginInstance->get()->getParameters();
+
     for (int i = 0; i < params.size(); ++i) {
         DBG(params[i]->getName(64) << "/" << juce::String(i));
         hostedPluginParamSelector.addItem(params[i]->getName(64), 1 + i);
     }
+
+    // set selected
+    int hostedSelectedID = plugin->get()
+                               ->relayParams[(size_t)this->paramVectorIndex]
+                               .pluginParamIndex;
+
+    if (hostedSelectedID != -1)
+        hostedPluginParamSelector.setSelectedId(hostedSelectedID);
+
+    int relayedID = plugin->get()
+                        ->relayParams[(size_t)this->paramVectorIndex]
+                        .outputParamID;
+    if (relayedID != -1)
+        relaySelector.setSelectedId(relayedID);
 }
 
 void track::RelayManagerNode::paint(juce::Graphics &g) {
@@ -166,6 +201,6 @@ void track::RelayManagerNode::paint(juce::Graphics &g) {
 }
 
 void track::RelayManagerNode::resized() {
-    this->hostedPluginParamSelector.setBounds(100, 0, 100, 24);
-    this->relaySelector.setBounds(0, 0, 100, 24);
+    this->hostedPluginParamSelector.setBounds(110, 0, 100, 20);
+    this->relaySelector.setBounds(0, 0, 110, 20);
 }

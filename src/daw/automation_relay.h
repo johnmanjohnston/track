@@ -10,7 +10,7 @@ class relayParam {
     relayParam() {}
     ~relayParam() {}
 
-    juce::String pluginsParamID = "unset in param id";
+    int pluginParamIndex = -1;
     int outputParamID = -1;
 
     float value = -1.f;
@@ -31,6 +31,8 @@ class RelayManagerNode : public juce::Component {
 
     juce::ComboBox hostedPluginParamSelector;
     juce::ComboBox relaySelector;
+
+    juce::Array<juce::AudioProcessorParameter *> params;
 
     RelayManagerComponent *rmc = nullptr;
 };
