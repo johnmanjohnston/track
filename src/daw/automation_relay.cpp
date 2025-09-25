@@ -4,7 +4,7 @@
 #include "track.h"
 
 float track::relayParam::getValueUsingPercentage(float min, float max) {
-    float v = juce::jlimit(0.f, 100.f, this->value);
+    float v = juce::jlimit(0.f, 100.f, this->percentage);
     float retval = -1.f;
 
     float mul = v / 100.f;
@@ -145,7 +145,7 @@ track::RelayManagerNode::RelayManagerNode() : juce::Component() {
 
         plugin->get()
             ->relayParams[(size_t)this->paramVectorIndex]
-            .pluginParamIndex = hostedPluginParamSelector.getSelectedId();
+            .pluginParamIndex = hostedPluginParamSelector.getSelectedId() - 1;
     };
 
     relaySelector.onChange = [this] {

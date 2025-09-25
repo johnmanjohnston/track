@@ -13,7 +13,7 @@ class relayParam {
     int pluginParamIndex = -1;
     int outputParamID = -1;
 
-    float value = -1.f;
+    float percentage = -1.f;
 
     float getValueUsingPercentage(float min, float max);
 };

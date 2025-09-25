@@ -92,6 +92,10 @@ class subplugin {
     std::unique_ptr<juce::AudioPluginInstance> plugin;
     std::vector<relayParam> relayParams;
 
+    void relayParamsToPlugin();
+
+    void *processor = nullptr;
+
     bool bypassed = false;
 };
 

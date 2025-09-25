@@ -24,11 +24,8 @@ AudioPluginAudioProcessor::AudioPluginAudioProcessor()
 
     for (int i = 0; i < 128; ++i) {
         juce::String paramID = "param_" + juce::String(i);
-        juce::AudioParameterFloat *param = new juce::AudioParameterFloat(
-            paramID, paramID, -32768.f, 32768.f, 0.f);
-        //  TODO: consider maybe setting min and max values to 0 and 100, so the
-        //  user is really controlling the PERCENTAGE of the parameter that's
-        //  being automated?
+        juce::AudioParameterFloat *param =
+            new juce::AudioParameterFloat(paramID, paramID, 0.f, 100.f, 0.f);
 
         addParameter(param);
 
@@ -281,6 +278,14 @@ void AudioPluginAudioProcessor::processBlock(juce::AudioBuffer<float> &buffer,
 
     auto playhead = getPlayHead();
     bool playheadExists = playhead != nullptr;
+
+    bool temporaryThing = false;
+    if (temporaryThing) {
+        // process tracks; tracks populate their internal buffer
+        for (track::audioNode &t : tracks) {
+            t.process(buffer.getNumSamples(), 44100);
+        }
+    }
 
     if (playheadExists) {
         if (playhead->getPosition()->getIsPlaying() == true) {
