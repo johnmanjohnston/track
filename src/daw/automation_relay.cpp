@@ -47,12 +47,11 @@ void track::RelayManagerComponent::paint(juce::Graphics &g) {
 }
 
 void track::RelayManagerComponent::resized() {
-    // TODO: this
     Subwindow::resized();
 
     rmViewport.setBounds(0, UI_SUBWINDOW_TITLEBAR_HEIGHT, getWidth(),
                          getHeight() - UI_SUBWINDOW_TITLEBAR_HEIGHT);
-    rmNodesWrapper.setBounds(0, 0, getWidth(), 2000);
+    rmNodesWrapper.setBounds(0, 0, getWidth() - 8, 2000);
 }
 
 void track::RelayManagerNodesWrapper::createRelayNodes() {
@@ -89,10 +88,10 @@ void track::RelayManagerNodesWrapper::createRelayNodes() {
 }
 
 void track::RelayManagerNodesWrapper::setRelayNodesBounds() {
-    int nodeHeight = 50;
+    int nodeHeight = 64 - 1;
 
     for (size_t i = 0; i < relayNodes.size(); ++i) {
-        relayNodes[i]->setBounds(8, 10 + ((int)i * nodeHeight), 272,
+        relayNodes[i]->setBounds(8, 10 + ((int)i * nodeHeight), 270 - 6,
                                  nodeHeight - 10);
     }
 }
@@ -102,7 +101,6 @@ void track::RelayManagerNodesWrapper::mouseDown(const juce::MouseEvent &event) {
         juce::PopupMenu addRelayParamMenu;
 
         addRelayParamMenu.addItem("Add relayed parameter", [this] {
-            // TODO: this
             DBG("add relayed param clicked");
 
             track::RelayManagerComponent *rmc = (RelayManagerComponent *)
@@ -186,11 +184,15 @@ void track::RelayManagerNode::createMenuEntries() {
 }
 
 void track::RelayManagerNode::paint(juce::Graphics &g) {
-    // TODO: this
-    g.fillAll(juce::Colours::green);
+    g.setColour(juce::Colours::grey);
+    g.drawRect(getLocalBounds());
+
+    g.setFont(getInterBoldItalic());
+    g.drawText("IN", 4, 4, 30 - 2, 20, juce::Justification::right);
+    g.drawText("OUT", 4, 22 + 4, 30 - 2, 20, juce::Justification::right);
 }
 
 void track::RelayManagerNode::resized() {
-    this->hostedPluginParamSelector.setBounds(110, 0, 100, 20);
-    this->relaySelector.setBounds(0, 0, 110, 20);
+    this->relaySelector.setBounds(10 + 30, 4, 220 - 2, 20);
+    this->hostedPluginParamSelector.setBounds(10 + 30, 22 + 6, 220 - 2, 20);
 }

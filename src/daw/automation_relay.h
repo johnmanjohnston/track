@@ -33,6 +33,14 @@ class RelayManagerNode : public juce::Component {
     juce::Array<juce::AudioProcessorParameter *> params;
 
     RelayManagerComponent *rmc = nullptr;
+
+    static const juce::Font getInterBoldItalic() {
+        static auto typeface = Typeface::createSystemTypefaceFor(
+            BinaryData::Inter_18ptBoldItalic_ttf,
+            BinaryData::Inter_18ptBoldItalic_ttfSize);
+
+        return typeface;
+    }
 };
 
 class RelayManagerNodesWrapper : public juce::Component {

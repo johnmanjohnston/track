@@ -21,6 +21,10 @@ class CustomLookAndFeel : public juce::LookAndFeel_V4 {
         setColour(Slider::thumbColourId, juce::Colour(0xFF'67FF76));
         setColour(Slider::trackColourId, juce::Colour(0xFF'303030));
 
+        setColour(ComboBox::textColourId, juce::Colour(0xFF'E5E5E5));
+        setColour(ComboBox::backgroundColourId, juce::Colour(0xFF'1F1F1F));
+        setColour(ComboBox::outlineColourId, juce::Colour(0xFF'3F3F3F));
+
         setColour(PopupMenu::textColourId, juce::Colour(0xFF'E5E5E5));
         setColour(PopupMenu::backgroundColourId, juce::Colour(0xFF'1F1F1F));
         setColour(PopupMenu::highlightedBackgroundColourId,
@@ -30,6 +34,7 @@ class CustomLookAndFeel : public juce::LookAndFeel_V4 {
                   juce::Colours::transparentWhite);
     }
 
+    static const juce::Font getInterRegularScaledForPlatforms();
     static const juce::Font getRobotoMonoThin();
     static const juce::Font getInterRegular();
     static const juce::Font getInterSemiBold();
@@ -52,11 +57,16 @@ class CustomLookAndFeel : public juce::LookAndFeel_V4 {
                         bool /*shouldDrawButtonAsHighlighted*/,
                         bool /*shouldDrawButtonAsDown*/) override;
 
+    void drawComboBox(Graphics &g, int width, int height, bool, int, int, int,
+                      int, ComboBox &box) override;
+
     void drawPopupMenuBackground(Graphics &g, int width, int height) override;
 
     void drawLabel(Graphics &g, Label &label) override;
 
     Font getPopupMenuFont() override;
+
+    Font getComboBoxFont(ComboBox &) override;
 
     Font getTextButtonFont(TextButton &button, int buttonHeight) override;
 };

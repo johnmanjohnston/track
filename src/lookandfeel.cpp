@@ -8,6 +8,15 @@ const juce::Font track::ui::CustomLookAndFeel::getRobotoMonoThin() {
     return Font(typeface);
 }
 
+const juce::Font
+track::ui::CustomLookAndFeel::getInterRegularScaledForPlatforms() {
+#if JUCE_WINDOWS
+    return getInterRegular().withHeight(19.f).withExtraKerningFactor(-.01f);
+#else
+    return getInterRegular().withHeight(18.f).withExtraKerningFactor(-.03f);
+#endif
+}
+
 const juce::Font track::ui::CustomLookAndFeel::getInterRegular() {
     static auto typeface = Typeface::createSystemTypefaceFor(
         BinaryData::Inter_18ptRegular_ttf,
@@ -329,12 +338,39 @@ void track::ui::CustomLookAndFeel::drawLabel(Graphics &g, Label &label) {
     // g.drawRect(label.getLocalBounds());
 }
 
+void track::ui::CustomLookAndFeel::drawComboBox(Graphics &g, int width,
+                                                int height, bool, int, int, int,
+                                                int, ComboBox &box) {
+    float cornerSize = 1.f;
+    Rectangle<int> boxBounds(0, 0, width, height);
+
+    g.setColour(box.findColour(ComboBox::backgroundColourId));
+    g.fillRoundedRectangle(boxBounds.toFloat(), cornerSize);
+
+    g.setColour(box.findColour(ComboBox::outlineColourId));
+    g.drawRoundedRectangle(boxBounds.toFloat().reduced(0.5f, 0.5f), cornerSize,
+                           1.0f);
+
+    Rectangle<int> arrowZone(width - 30, 0, 20, height);
+    Path path;
+    path.startNewSubPath((float)arrowZone.getX() + 3.0f,
+                         (float)arrowZone.getCentreY() - 2.0f);
+    path.lineTo((float)arrowZone.getCentreX(),
+                (float)arrowZone.getCentreY() + 3.0f);
+    path.lineTo((float)arrowZone.getRight() - 3.0f,
+                (float)arrowZone.getCentreY() - 2.0f);
+
+    g.setColour(box.findColour(ComboBox::arrowColourId)
+                    .withAlpha((box.isEnabled() ? 0.9f : 0.2f)));
+    g.strokePath(path, PathStrokeType(2.0f));
+}
+
 Font track::ui::CustomLookAndFeel::getPopupMenuFont() {
-#if JUCE_WINDOWS
-    return getInterRegular().withHeight(19.f).withExtraKerningFactor(-.01f);
-#else
-    return getInterRegular().withHeight(18.f).withExtraKerningFactor(-.03f);
-#endif
+    return getInterRegularScaledForPlatforms();
+}
+
+Font track::ui::CustomLookAndFeel::getComboBoxFont(ComboBox &) {
+    return getInterRegularScaledForPlatforms();
 }
 
 Font track::ui::CustomLookAndFeel::getTextButtonFont(TextButton &button,
