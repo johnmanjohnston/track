@@ -3,16 +3,6 @@
 #include "subwindow.h"
 #include "track.h"
 
-float track::relayParam::getValueUsingPercentage(float min, float max) {
-    float v = juce::jlimit(0.f, 100.f, this->percentage);
-    float retval = -1.f;
-
-    float mul = v / 100.f;
-    return min + mul * (max - min);
-
-    return retval;
-}
-
 track::RelayManagerComponent::RelayManagerComponent() : track::Subwindow() {
     rmViewport.setViewedComponent(&rmNodesWrapper);
     addAndMakeVisible(this->rmViewport);

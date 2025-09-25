@@ -1539,14 +1539,11 @@ void track::subplugin::relayParamsToPlugin() {
     DBG("relayParamsToPlugin() called");
 
     for (size_t i = 0; i < relayParams.size(); ++i) {
-        DBG("iter " << i);
-        DBG("fuck 1");
         relayParam *rp = &this->relayParams[i];
 
         if (rp->outputParamID == -1 || rp->pluginParamIndex == -1)
             continue;
 
-        DBG("fuck 2");
         // get hosted plugin's param
         juce::RangedAudioParameter *rawPluginParam =
             (juce::RangedAudioParameter *)this->plugin->getHostedParameter(
@@ -1556,32 +1553,18 @@ void track::subplugin::relayParamsToPlugin() {
         DBG("raw plugin param name is" << rawPluginParam->getName(64));
         jassert(rawPluginParam != nullptr);
 
-        DBG("fuck 3");
         // get percentage from processor params
         AudioPluginAudioProcessor *p = (AudioPluginAudioProcessor *)processor;
         jassert(p != nullptr);
 
-        DBG("fuck 4");
-        juce::RangedAudioParameter *theActualFuckingRelayParameter =
+        juce::RangedAudioParameter *relayParameterPtr =
             (juce::RangedAudioParameter *)
                 p->getParameters()[rp->outputParamID + 1];
-        DBG("relay param being used is "
-            << theActualFuckingRelayParameter->getName(64));
-        float percentage = theActualFuckingRelayParameter->getValue();
+        DBG("relay param being used is " << relayParameterPtr->getName(64));
+        float percentage = relayParameterPtr->getValue();
 
         rp->percentage = percentage;
-        DBG("percetange = " << percentage);
-        DBG("fuck 4.1");
 
-        // get scaled value
-        // juce::NormalisableRange<float> range =
-        // rawPluginParam->getNormalisableRange();
-        DBG("fuck 4.2");
-        float value = rp->getValueUsingPercentage(0, 21000 * 100);
-        DBG("scaled value is " << value);
-
-        DBG("fuck 5");
-        // plugin->setParameter(rp->pluginParamIndex, value);
         rawPluginParam->setValue(percentage);
     }
 }

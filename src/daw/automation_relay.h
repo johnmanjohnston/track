@@ -14,8 +14,6 @@ class relayParam {
     int outputParamID = -1;
 
     float percentage = -1.f;
-
-    float getValueUsingPercentage(float min, float max);
 };
 
 class RelayManagerComponent;
