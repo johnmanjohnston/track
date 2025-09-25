@@ -1,6 +1,8 @@
 #include "processor.h"
+#include "daw/automation_relay.h"
 #include "daw/defs.h"
 #include "editor.h"
+#include "juce_core/juce_core.h"
 
 AudioPluginAudioProcessor::AudioPluginAudioProcessor()
     : AudioProcessor(
@@ -363,6 +365,25 @@ AudioPluginAudioProcessor::serializeNode(track::audioNode *node) {
         pluginElement->setAttribute("data", pluginData.toBase64Encoding());
         pluginElement->setAttribute("bypass", pluginInstance->bypassed);
 
+        for (size_t j = 0; j < pluginInstance->relayParams.size(); ++j) {
+            juce::XmlElement *relayParamElement =
+                new juce::XmlElement("relayparam");
+
+            relayParamElement->setAttribute(
+                "pluginparamindex",
+                pluginInstance->relayParams[j].pluginParamIndex);
+
+            relayParamElement->setAttribute(
+                "relayindex", pluginInstance->relayParams[j].outputParamID);
+
+            DBG("serializing "
+                << node->trackName << " with "
+                << pluginInstance->relayParams[j].pluginParamIndex << ";"
+                << pluginInstance->relayParams[j].outputParamID);
+
+            pluginElement->addChildElement(relayParamElement);
+        }
+
         nodeElement->addChildElement(pluginElement);
     }
 
@@ -421,6 +442,23 @@ void AudioPluginAudioProcessor::deserializeNode(juce::XmlElement *nodeElement,
 
         // addPlugin() already adds element to bypassedPlugins vector
         node->plugins[i]->bypassed = bypassed;
+
+        juce::XmlElement *relayParamElement =
+            pluginElement->getChildByName("relayparam");
+
+        while (relayParamElement != nullptr) {
+            node->plugins[i]->relayParams.emplace_back();
+            track::relayParam *relayParam =
+                &node->plugins[i]->relayParams.back();
+
+            relayParam->pluginParamIndex =
+                relayParamElement->getIntAttribute("pluginparamindex", -1);
+            relayParam->outputParamID =
+                relayParamElement->getIntAttribute("relayindex", -1);
+
+            relayParamElement =
+                relayParamElement->getNextElementWithTagName("relayparam");
+        }
 
         pluginElement = pluginElement->getNextElementWithTagName("plugin");
     }

@@ -1536,8 +1536,6 @@ void track::Tracklist::updateInsertIndicator(int index) {
 }
 
 void track::subplugin::relayParamsToPlugin() {
-    DBG("relayParamsToPlugin() called");
-
     for (size_t i = 0; i < relayParams.size(); ++i) {
         relayParam *rp = &this->relayParams[i];
 
@@ -1548,9 +1546,7 @@ void track::subplugin::relayParamsToPlugin() {
         juce::RangedAudioParameter *rawPluginParam =
             (juce::RangedAudioParameter *)this->plugin->getHostedParameter(
                 rp->pluginParamIndex);
-        DBG("using rp->pluginParamIndex " << rp->pluginParamIndex);
 
-        DBG("raw plugin param name is" << rawPluginParam->getName(64));
         jassert(rawPluginParam != nullptr);
 
         // get percentage from processor params
@@ -1560,7 +1556,6 @@ void track::subplugin::relayParamsToPlugin() {
         juce::RangedAudioParameter *relayParameterPtr =
             (juce::RangedAudioParameter *)
                 p->getParameters()[rp->outputParamID + 1];
-        DBG("relay param being used is " << relayParameterPtr->getName(64));
         float percentage = relayParameterPtr->getValue();
 
         rp->percentage = percentage;
