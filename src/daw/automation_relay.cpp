@@ -184,9 +184,10 @@ void track::RelayManagerNode::createMenuEntries() {
 }
 
 void track::RelayManagerNode::paint(juce::Graphics &g) {
-    g.setColour(juce::Colours::grey);
+    g.setColour(juce::Colour(0xFF'585858));
     g.drawRect(getLocalBounds());
 
+    g.setColour(juce::Colours::grey);
     g.setFont(getInterBoldItalic());
     g.drawText("IN", 4, 4, 30 - 2, 20, juce::Justification::right);
     g.drawText("OUT", 4, 22 + 4, 30 - 2, 20, juce::Justification::right);

@@ -69,5 +69,8 @@ class CustomLookAndFeel : public juce::LookAndFeel_V4 {
     Font getComboBoxFont(ComboBox &) override;
 
     Font getTextButtonFont(TextButton &button, int buttonHeight) override;
+
+    PopupMenu::Options getOptionsForComboBoxPopupMenu(ComboBox &b,
+                                                      Label &l) override;
 };
 } // namespace track::ui

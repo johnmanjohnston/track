@@ -1,5 +1,6 @@
 #include "lookandfeel.h"
 #include "BinaryData.h"
+#include "juce_gui_basics/juce_gui_basics.h"
 
 const juce::Font track::ui::CustomLookAndFeel::getRobotoMonoThin() {
     static auto typeface = Typeface::createSystemTypefaceFor(
@@ -408,4 +409,11 @@ Font track::ui::CustomLookAndFeel::getTextButtonFont(TextButton &button,
     }
 
     return getInterSemiBold().withHeight((float)buttonHeight / 2.f);
+}
+
+PopupMenu::Options
+track::ui::CustomLookAndFeel::getOptionsForComboBoxPopupMenu(ComboBox &b,
+                                                             Label &l) {
+    return juce::LookAndFeel_V4::getOptionsForComboBoxPopupMenu(b, l)
+        .withMinimumNumColumns(b.getNumItems() / 40 + 1);
 }
