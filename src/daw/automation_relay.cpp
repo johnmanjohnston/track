@@ -133,7 +133,7 @@ track::RelayManagerNode::RelayManagerNode() : juce::Component() {
 
         plugin->get()
             ->relayParams[(size_t)this->paramVectorIndex]
-            .pluginParamIndex = hostedPluginParamSelector.getSelectedId() - 1;
+            .pluginParamIndex = hostedPluginParamSelector.getSelectedId();
     };
 
     relaySelector.onChange = [this] {

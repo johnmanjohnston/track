@@ -1545,7 +1545,7 @@ void track::subplugin::relayParamsToPlugin() {
         // get hosted plugin's param
         juce::RangedAudioParameter *rawPluginParam =
             (juce::RangedAudioParameter *)this->plugin->getHostedParameter(
-                rp->pluginParamIndex);
+                rp->pluginParamIndex - 1);
 
         jassert(rawPluginParam != nullptr);
 
