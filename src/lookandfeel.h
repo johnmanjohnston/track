@@ -34,7 +34,8 @@ class CustomLookAndFeel : public juce::LookAndFeel_V4 {
                   juce::Colours::transparentWhite);
     }
 
-    static const juce::Font getInterRegularScaledForPlatforms();
+    static const juce::Font
+    getInterRegularScaledForPlatforms(float scale = 1.f);
     static const juce::Font getRobotoMonoThin();
     static const juce::Font getInterRegular();
     static const juce::Font getInterSemiBold();

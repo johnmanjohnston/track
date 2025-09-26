@@ -1,6 +1,5 @@
 #include "lookandfeel.h"
 #include "BinaryData.h"
-#include "juce_gui_basics/juce_gui_basics.h"
 
 const juce::Font track::ui::CustomLookAndFeel::getRobotoMonoThin() {
     static auto typeface = Typeface::createSystemTypefaceFor(
@@ -10,11 +9,15 @@ const juce::Font track::ui::CustomLookAndFeel::getRobotoMonoThin() {
 }
 
 const juce::Font
-track::ui::CustomLookAndFeel::getInterRegularScaledForPlatforms() {
+track::ui::CustomLookAndFeel::getInterRegularScaledForPlatforms(float scale) {
 #if JUCE_WINDOWS
-    return getInterRegular().withHeight(19.f).withExtraKerningFactor(-.01f);
+    return getInterRegular()
+        .withHeight(19.f * scale)
+        .withExtraKerningFactor(-.01f);
 #else
-    return getInterRegular().withHeight(18.f).withExtraKerningFactor(-.03f);
+    return getInterRegular()
+        .withHeight(18.f * scale)
+        .withExtraKerningFactor(-.03f);
 #endif
 }
 
@@ -371,7 +374,7 @@ Font track::ui::CustomLookAndFeel::getPopupMenuFont() {
 }
 
 Font track::ui::CustomLookAndFeel::getComboBoxFont(ComboBox &) {
-    return getInterRegularScaledForPlatforms();
+    return getInterRegularScaledForPlatforms(0.9f);
 }
 
 Font track::ui::CustomLookAndFeel::getTextButtonFont(TextButton &button,
