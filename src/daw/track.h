@@ -97,6 +97,10 @@ class subplugin {
     void *processor = nullptr;
 
     bool bypassed = false;
+
+    float dryWetMix = 0.f;
+
+    void process(juce::AudioBuffer<float> &buffer);
 };
 
 class audioNode {

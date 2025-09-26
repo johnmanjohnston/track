@@ -17,6 +17,13 @@ track::PluginNodeComponent::PluginNodeComponent() : juce::Component() {
     this->automationButton.setButtonText("AUTOMATE");
     addAndMakeVisible(automationButton);
 
+    this->dryWetSlider.setRange(0.f, 1.f);
+    addAndMakeVisible(dryWetSlider);
+
+    dryWetSlider.onValueChange = [this] {
+        getPlugin()->get()->dryWetMix = dryWetSlider.getValue();
+    };
+
     openEditorBtn.onClick = [this] {
         PluginChainComponent *pcc =
             findParentComponentOfClass<PluginChainComponent>();
@@ -43,6 +50,7 @@ track::PluginNodeComponent::PluginNodeComponent() : juce::Component() {
     };
 
     bypassBtn.onClick = [this] {
+        /*
         PluginChainComponent *pcc =
             findParentComponentOfClass<PluginChainComponent>();
         jassert(pcc != nullptr);
@@ -52,6 +60,9 @@ track::PluginNodeComponent::PluginNodeComponent() : juce::Component() {
 
         node->plugins[(size_t)this->pluginIndex]->bypassed =
             !node->plugins[(size_t)this->pluginIndex]->bypassed;
+            */
+
+        getPlugin()->get()->bypassed = !getPlugin()->get()->bypassed;
 
         repaint();
     };
@@ -148,6 +159,8 @@ void track::PluginNodeComponent::paint(juce::Graphics &g) {
 }
 
 void track::PluginNodeComponent::resized() {
+    dryWetSlider.setBounds(50, 30, 180, 20);
+
     int btnWidth = 76;
     int btnHeight = 21;
     int initialLeftMargin = 7;

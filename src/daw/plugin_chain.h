@@ -17,6 +17,8 @@ class PluginNodeComponent : public juce::Component {
     juce::TextButton bypassBtn;
     juce::TextButton automationButton;
 
+    juce::Slider dryWetSlider;
+
     void paint(juce::Graphics &g) override;
     void resized() override;
 

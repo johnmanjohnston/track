@@ -1564,6 +1564,18 @@ void track::subplugin::relayParamsToPlugin() {
     }
 }
 
+void track::subplugin::process(juce::AudioBuffer<float> &buffer) {
+    juce::MidiBuffer mb;
+
+    juce::AudioBuffer<float> dryBuffer = buffer;
+    this->plugin->processBlock(buffer, mb);
+
+    for (int ch = 0; ch < buffer.getNumChannels(); ++ch) {
+        buffer.addFrom(ch, 0, dryBuffer, ch, 0, buffer.getNumSamples(),
+                       dryWetMix);
+    }
+}
+
 void track::subplugin::initializePlugin(juce::String path) {
     DBG("please kill me");
     juce::OwnedArray<PluginDescription> pluginDescriptions;
@@ -1779,8 +1791,8 @@ void track::audioNode::process(int numSamples, int currentSample) {
             continue;
 
         juce::MidiBuffer mb;
-        this->plugins[i]->plugin->processBlock(this->buffer, mb);
         this->plugins[i]->relayParamsToPlugin();
+        this->plugins[i]->process(this->buffer);
     }
 
     // pan audio
