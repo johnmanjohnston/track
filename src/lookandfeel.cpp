@@ -40,8 +40,24 @@ const juce::Font track::ui::CustomLookAndFeel::getInterSemiBold() {
 void track::ui::CustomLookAndFeel::drawRotarySlider(
     Graphics &g, int x, int y, int width, int height, float sliderPos,
     const float rotaryStartAngle, const float rotaryEndAngle, Slider &slider) {
-    auto outline = slider.findColour(Slider::rotarySliderOutlineColourId);
-    auto fill = slider.findColour(Slider::rotarySliderFillColourId);
+
+    // differentiate by pan slider and dry/wet signal slider by its slider
+    // style. not ideal but whatever
+    bool isPanSlider = (slider.getSliderStyle() ==
+                        Slider::SliderStyle::RotaryHorizontalVerticalDrag);
+
+    auto fill = Colour(0xFF'909090);
+    auto outline = Colour(0xFF'252525);
+
+    auto thumbColor = outline;
+    auto bgColor = fill;
+
+    if (isPanSlider) {
+        outline = slider.findColour(Slider::rotarySliderOutlineColourId);
+        fill = slider.findColour(Slider::rotarySliderFillColourId);
+        thumbColor = slider.findColour(Slider::thumbColourId);
+        bgColor = slider.findColour(Slider::backgroundColourId);
+    }
 
     auto bounds = Rectangle<int>(x, y, width, height).toFloat().reduced(10);
 
@@ -53,12 +69,19 @@ void track::ui::CustomLookAndFeel::drawRotarySlider(
     auto arcRadius = radius - lineW * 0.5f;
 
     // background circle
-    g.setColour(juce::Colour(0xFF'818181));
+    float mul = 1.9f;
+
+    if (isPanSlider)
+        g.setColour(Colour(0xFF'818181));
+    else
+        g.setColour(Colour(0xFF'3A3A3A));
+
     g.fillEllipse(
-        bounds.getX() + 2, bounds.getY() + 2, (arcRadius * 1.7f) + 1.f,
-        arcRadius * 1.7f); // probably not the best way to position the cirlce
-                           // but i couldn't be bothered to implement a better
-                           // way. this is now a problem for you, future john
+        bounds.getX() + 2, bounds.getY() + 2, (arcRadius * mul) + 1.f,
+        arcRadius *
+            (mul * 0.95f)); // probably not the best way to position the cirlce
+                            // but i couldn't be bothered to implement a better
+                            // way. this is now a problem for you, future john
 
     Path backgroundArc;
     backgroundArc.addCentredArc(bounds.getCentreX(), bounds.getCentreY(),
@@ -72,9 +95,16 @@ void track::ui::CustomLookAndFeel::drawRotarySlider(
     if (slider.isEnabled()) {
         Path valueArc;
         float pi = juce::MathConstants<float>::pi;
-        valueArc.addCentredArc(bounds.getCentreX(), bounds.getCentreY(),
-                               arcRadius, arcRadius, 0.0f, 2 * pi, toAngle,
-                               true);
+
+        if (isPanSlider) {
+            valueArc.addCentredArc(bounds.getCentreX(), bounds.getCentreY(),
+                                   arcRadius, arcRadius, 0.0f, 2 * pi, toAngle,
+                                   true);
+        } else {
+            valueArc.addCentredArc(bounds.getCentreX(), bounds.getCentreY(),
+                                   arcRadius, arcRadius, 0.0f, rotaryStartAngle,
+                                   toAngle, true);
+        }
 
         g.setColour(fill);
         g.strokePath(valueArc, PathStrokeType(lineW, PathStrokeType::curved,
@@ -88,12 +118,12 @@ void track::ui::CustomLookAndFeel::drawRotarySlider(
         bounds.getCentreY() +
             arcRadius * std::sin(toAngle - MathConstants<float>::halfPi));
 
-    g.setColour(slider.findColour(Slider::thumbColourId));
+    g.setColour(isPanSlider ? thumbColor : outline);
     g.fillEllipse(
         Rectangle<float>(thumbWidth, thumbWidth).withCentre(thumbPoint));
 
     // draw line from center to the thumb
-    g.setColour(findColour(Slider::backgroundColourId));
+    g.setColour(bgColor);
     Path centerToThumbLine;
 
     juce::Line<float> line;
@@ -130,8 +160,8 @@ void track::ui::CustomLookAndFeel::drawButtonBackground(
     g.fillRect(b.getLocalBounds());
 
     // don't draw border for certain buttons by checking its content. i
-    // cannot think of another way that does not involve making my own button
-    // class/making multiple lookandfeels outline
+    // cannot think of another way that does not involve making my own
+    // button class/making multiple lookandfeels outline
     if (b.getButtonText().toLowerCase() == "editor" ||
         b.getButtonText().toLowerCase() == "remove" ||
         b.getButtonText().toLowerCase() == "bypass" ||
@@ -399,8 +429,8 @@ Font track::ui::CustomLookAndFeel::getTextButtonFont(TextButton &button,
         return retval;
     }
 
-    // is length is <= 2 then it's one of those "icon" buttons like mute button
-    // or FX chain button
+    // is length is <= 2 then it's one of those "icon" buttons like mute
+    // button or FX chain button
     if (button.getButtonText().length() <= 2) {
 #if JUCE_WINDOWS
         auto f = getInterRegular().withHeight((float)buttonHeight / 1.4f);

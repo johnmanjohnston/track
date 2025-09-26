@@ -20,6 +20,10 @@ track::PluginNodeComponent::PluginNodeComponent() : juce::Component() {
     this->dryWetSlider.setRange(0.f, 1.f);
     addAndMakeVisible(dryWetSlider);
 
+    dryWetSlider.setTextBoxStyle(juce::Slider::TextEntryBoxPosition::NoTextBox,
+                                 true, 0, 0);
+    dryWetSlider.setSliderStyle(
+        juce::Slider::SliderStyle::RotaryHorizontalDrag);
     dryWetSlider.onValueChange = [this] {
         getPlugin()->get()->dryWetMix = dryWetSlider.getValue();
     };
@@ -68,7 +72,6 @@ track::PluginNodeComponent::PluginNodeComponent() : juce::Component() {
     };
 
     automationButton.onClick = [this] {
-        // TODO: this
         DBG("automation button clicked");
 
         PluginChainComponent *pcc =
@@ -121,6 +124,10 @@ void track::PluginNodeComponent::mouseDrag(const juce::MouseEvent &event) {
     }
 }
 
+void track::PluginNodeComponent::setDryWetSliderValue() {
+    this->dryWetSlider.setValue(getPlugin()->get()->dryWetMix);
+}
+
 void track::PluginNodeComponent::paint(juce::Graphics &g) {
     if (getPlugin() && getPlugin()->get()) {
         g.fillAll(juce::Colour(0xFF'121212));
@@ -159,7 +166,7 @@ void track::PluginNodeComponent::paint(juce::Graphics &g) {
 }
 
 void track::PluginNodeComponent::resized() {
-    dryWetSlider.setBounds(50, 30, 180, 20);
+    this->dryWetSlider.setBounds(211, 20, 40, 40);
 
     int btnWidth = 76;
     int btnHeight = 21;
@@ -200,6 +207,7 @@ void track::PluginNodesWrapper::createPluginNodeComponents() {
 
         addAndMakeVisible(nc);
         nc.setBounds(getBoundsForPluginNodeComponent(i));
+        nc.setDryWetSliderValue();
     }
 
     DBG("pluginNodeComponents.size() = " << this->pluginNodeComponents.size());

@@ -19,6 +19,8 @@ class PluginNodeComponent : public juce::Component {
 
     juce::Slider dryWetSlider;
 
+    void setDryWetSliderValue();
+
     void paint(juce::Graphics &g) override;
     void resized() override;
 

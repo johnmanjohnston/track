@@ -98,7 +98,7 @@ class subplugin {
 
     bool bypassed = false;
 
-    float dryWetMix = 0.f;
+    float dryWetMix = 1.f;
 
     void process(juce::AudioBuffer<float> &buffer);
 };
