@@ -87,6 +87,18 @@ void track::RelayManagerNodesWrapper::createRelayNodes() {
     setRelayNodesBounds();
 }
 
+void track::RelayManagerNodesWrapper::removeRelayNode(int index) {
+    // relayNodes.erase(relayNodes.begin() + index);
+
+    RelayManagerComponent *rmc = (RelayManagerComponent *)
+        findParentComponentOfClass<RelayManagerComponent>();
+    rmc->getPlugin()->get()->relayParams.erase(
+        rmc->getPlugin()->get()->relayParams.begin() + index);
+
+    relayNodes.clear();
+    createRelayNodes();
+}
+
 void track::RelayManagerNodesWrapper::setRelayNodesBounds() {
     int nodeHeight = 64 - 1;
 
@@ -181,6 +193,25 @@ void track::RelayManagerNode::createMenuEntries() {
                         .outputParamID;
     if (relayedID != -1)
         relaySelector.setSelectedId(relayedID);
+}
+
+void track::RelayManagerNode::mouseDown(const juce::MouseEvent &event) {
+    if (event.mods.isRightButtonDown()) {
+        juce::PopupMenu menu;
+
+        menu.addItem("Remove this relay parameter",
+                     [this] { this->removeThisRelayParam(); });
+
+        menu.setLookAndFeel(&getLookAndFeel());
+
+        menu.showMenuAsync(juce::PopupMenu::Options());
+    }
+}
+
+void track::RelayManagerNode::removeThisRelayParam() {
+    RelayManagerNodesWrapper *nodesWrapper = (RelayManagerNodesWrapper *)
+        findParentComponentOfClass<RelayManagerNodesWrapper>();
+    nodesWrapper->removeRelayNode(this->paramVectorIndex);
 }
 
 void track::RelayManagerNode::paint(juce::Graphics &g) {

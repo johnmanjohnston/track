@@ -27,6 +27,10 @@ class RelayManagerNode : public juce::Component {
     void createMenuEntries();
     int paramVectorIndex = -1;
 
+    void mouseDown(const juce::MouseEvent &event) override;
+
+    void removeThisRelayParam();
+
     juce::ComboBox hostedPluginParamSelector;
     juce::ComboBox relaySelector;
 
@@ -53,6 +57,8 @@ class RelayManagerNodesWrapper : public juce::Component {
     std::vector<std::unique_ptr<RelayManagerNode>> relayNodes;
     void createRelayNodes();
     void setRelayNodesBounds();
+
+    void removeRelayNode(int index);
 };
 
 class RelayManagerViewport : public juce::Viewport {
