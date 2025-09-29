@@ -1131,6 +1131,8 @@ void track::Tracklist::copyNode(audioNode *dest, audioNode *src) {
         dest->plugins.back()->bypassed = p->bypassed;
 
         dest->plugins.back()->dryWetMix = p->dryWetMix;
+
+        dest->plugins.back()->relayParams = p->relayParams;
     }
 }
 
