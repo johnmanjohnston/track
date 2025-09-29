@@ -364,6 +364,7 @@ AudioPluginAudioProcessor::serializeNode(track::audioNode *node) {
         pluginInstance->plugin->getStateInformation(pluginData);
         pluginElement->setAttribute("data", pluginData.toBase64Encoding());
         pluginElement->setAttribute("bypass", pluginInstance->bypassed);
+        pluginElement->setAttribute("drywetmix", pluginInstance->dryWetMix);
 
         for (size_t j = 0; j < pluginInstance->relayParams.size(); ++j) {
             juce::XmlElement *relayParamElement =
@@ -439,9 +440,10 @@ void AudioPluginAudioProcessor::deserializeNode(juce::XmlElement *nodeElement,
         pluginInstance.plugin->setStateInformation(pluginData.getData(),
                                                    pluginData.getSize());
         bool bypassed = pluginElement->getBoolAttribute("bypass", false);
-
-        // addPlugin() already adds element to bypassedPlugins vector
         node->plugins[i]->bypassed = bypassed;
+
+        float dryWetMix = pluginElement->getDoubleAttribute("drywetmix", 1.f);
+        node->plugins[i]->dryWetMix = dryWetMix;
 
         juce::XmlElement *relayParamElement =
             pluginElement->getChildByName("relayparam");
