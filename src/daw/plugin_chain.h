@@ -7,6 +7,17 @@
 #include <JuceHeader.h>
 
 namespace track {
+
+class pluginClipboardData {
+  public:
+    juce::String identifier = "unset path";
+    juce::String data = "unset data";
+
+    std::vector<relayParam> relayParams;
+    bool bypassed = false;
+    float dryWetMix = -1.f;
+};
+
 class PluginNodeComponent : public juce::Component {
   public:
     PluginNodeComponent();
@@ -26,6 +37,7 @@ class PluginNodeComponent : public juce::Component {
 
     void mouseDrag(const juce::MouseEvent &event) override;
     void mouseUp(const juce::MouseEvent &event) override;
+    void mouseDown(const juce::MouseEvent &event) override;
 
     int pluginIndex = -1;
     std::unique_ptr<track::subplugin> *getPlugin();

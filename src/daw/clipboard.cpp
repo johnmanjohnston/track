@@ -1,4 +1,5 @@
 #include "clipboard.h"
+#include "plugin_chain.h"
 #include "track.h"
 
 namespace track::clipboard {
@@ -14,7 +15,8 @@ void *retrieveData() { return data; }
 void releaseResources() {
     if (typecode == TYPECODE_CLIP) {
         delete (track::clip *)data;
-    }
+    } else if (typecode == TYPECODE_PLUGIN)
+        delete (track::pluginClipboardData *)data;
 
     typecode = TYPECODE_NULL;
     data = nullptr;

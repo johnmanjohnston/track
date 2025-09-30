@@ -1,5 +1,7 @@
 #include "plugin_chain.h"
+#include "clipboard.h"
 #include "defs.h"
+#include "juce_opengl/opengl/juce_gl.h"
 #include "subwindow.h"
 #include "track.h"
 #include <cstddef>
@@ -87,6 +89,39 @@ track::PluginNodesWrapper::PluginNodesWrapper() : juce::Component() {}
 track::PluginNodesWrapper::~PluginNodesWrapper() {}
 track::PluginNodesViewport::PluginNodesViewport() : juce::Viewport() {}
 track::PluginNodesViewport::~PluginNodesViewport() {}
+
+void track::PluginNodeComponent::mouseDown(const juce::MouseEvent &event) {
+    if (event.mods.isRightButtonDown()) {
+        if (event.mods.isRightButtonDown()) {
+            juce::PopupMenu menu;
+
+            menu.addItem("Copy plugin", [this] {
+                // create clipboard data
+                pluginClipboardData *data = new pluginClipboardData;
+                std::unique_ptr<juce::AudioPluginInstance> *pluginInstance =
+                    &getPlugin()->get()->plugin;
+
+                // set trivial data
+                data->identifier = pluginInstance->get()
+                                       ->getPluginDescription()
+                                       .fileOrIdentifier;
+                data->bypassed = getPlugin()->get()->bypassed;
+                data->dryWetMix = getPlugin()->get()->dryWetMix;
+                data->relayParams = getPlugin()->get()->relayParams;
+
+                // set plugin data
+                juce::MemoryBlock pluginData;
+                pluginInstance->get()->getStateInformation(pluginData);
+                data->data = pluginData.toBase64Encoding();
+
+                clipboard::setData(data, TYPECODE_PLUGIN);
+            });
+
+            menu.setLookAndFeel(&getLookAndFeel());
+            menu.showMenuAsync(juce::PopupMenu::Options());
+        }
+    }
+}
 
 void track::PluginNodeComponent::mouseUp(const juce::MouseEvent &event) {
     if (event.mouseWasDraggedSinceMouseDown() &&
@@ -266,6 +301,48 @@ void track::PluginNodesWrapper::mouseDown(const juce::MouseEvent &event) {
         }
 
         pluginMenu.addSubMenu("Add plugin", pluginSelector);
+        pluginMenu.addItem(
+            "Paste plugin", clipboard::typecode == TYPECODE_PLUGIN, false,
+            [this, node] {
+                if (clipboard::typecode == TYPECODE_PLUGIN) {
+                    pluginClipboardData *clipboardData =
+                        (pluginClipboardData *)clipboard::retrieveData();
+
+                    std::unique_ptr<track::subplugin> &plugin =
+                        node->plugins.back();
+
+                    plugin->bypassed = clipboardData->bypassed;
+                    plugin->dryWetMix = clipboardData->dryWetMix;
+                    plugin->relayParams = clipboardData->relayParams;
+
+                    // copy actual plugin and its data
+
+                    juce::String cleanedIdentifier =
+                        clipboardData->identifier.upToLastOccurrenceOf(
+                            ".vst3", true, true);
+                    node->addPlugin(cleanedIdentifier);
+                    juce::MemoryBlock pluginData;
+
+                    pluginData.fromBase64Encoding(clipboardData->data);
+                    plugin->plugin->setStateInformation(pluginData.getData(),
+                                                        pluginData.getSize());
+
+                    // create node component
+                    this->pluginNodeComponents.emplace_back(
+                        new track::PluginNodeComponent);
+                    PluginNodeComponent &nc =
+                        *this->pluginNodeComponents.back();
+                    nc.pluginIndex = node->plugins.size() - 1;
+
+                    addAndMakeVisible(nc);
+                    nc.setBounds(
+                        getBoundsForPluginNodeComponent(nc.pluginIndex));
+
+                    pcc->resized();
+                    pcc->nodesViewport.setViewPosition(
+                        pcc->nodesWrapper.getWidth(), 0);
+                }
+            });
         pluginMenu.showMenuAsync(juce::PopupMenu::Options());
     }
 }
