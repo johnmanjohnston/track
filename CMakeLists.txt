@@ -54,7 +54,7 @@ target_compile_definitions(track PRIVATE
     JUCE_UNIT_TESTS=0
     JUCE_USE_CAMERA=0
     JUCE_USE_CURL=0
-    JUCE_USE_MP3AUDIOFORMAT=0
+    JUCE_USE_MP3AUDIOFORMAT=1
     JUCE_WEB_BROWSER=0
     # This is a temporary workaround to allow builds to complete on Xcode 15.
     # Add -Wl,-ld_classic to the OTHER_LDFLAGS build setting if you need to
