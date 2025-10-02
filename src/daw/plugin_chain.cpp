@@ -1,7 +1,6 @@
 #include "plugin_chain.h"
 #include "clipboard.h"
 #include "defs.h"
-#include "juce_opengl/opengl/juce_gl.h"
 #include "subwindow.h"
 #include "track.h"
 #include <cstddef>
@@ -284,19 +283,31 @@ void track::PluginNodesWrapper::mouseDown(const juce::MouseEvent &event) {
 
                     editor->openPluginEditorWindow(pcc->route, pluginIndex);
 
+                    // very lazy way but i couldn't be bothered now
+                    pluginNodeComponents.clear();
+                    createPluginNodeComponents();
+
+                    pcc->resized();
+                    pcc->nodesViewport.setViewPosition(
+                        pcc->nodesWrapper.getWidth(), 0);
+
+                    return;
+
+                    /*
                     // create node component
                     this->pluginNodeComponents.emplace_back(
                         new track::PluginNodeComponent);
                     PluginNodeComponent &nc =
-                        *this->pluginNodeComponents.back();
-                    nc.pluginIndex = pluginIndex;
+                    *this->pluginNodeComponents.back(); nc.pluginIndex =
+                    pluginIndex;
 
                     addAndMakeVisible(nc);
                     nc.setBounds(getBoundsForPluginNodeComponent(pluginIndex));
 
                     pcc->resized();
-                    pcc->nodesViewport.setViewPosition(
-                        pcc->nodesWrapper.getWidth(), 0);
+                    pcc->nodesViewport.setViewPosition(pcc->nodesWrapper.getWidth(),
+                                                       0);
+                                                       */
                 });
         }
 
@@ -305,8 +316,16 @@ void track::PluginNodesWrapper::mouseDown(const juce::MouseEvent &event) {
             "Paste plugin", clipboard::typecode == TYPECODE_PLUGIN, false,
             [this, node] {
                 if (clipboard::typecode == TYPECODE_PLUGIN) {
+                    DBG("fuck 1");
                     pluginClipboardData *clipboardData =
                         (pluginClipboardData *)clipboard::retrieveData();
+                    DBG("fuck 2");
+
+                    juce::String cleanedIdentifier =
+                        clipboardData->identifier.upToLastOccurrenceOf(
+                            ".vst3", true, true);
+                    node->addPlugin(cleanedIdentifier);
+                    juce::MemoryBlock pluginData;
 
                     std::unique_ptr<track::subplugin> &plugin =
                         node->plugins.back();
@@ -315,24 +334,36 @@ void track::PluginNodesWrapper::mouseDown(const juce::MouseEvent &event) {
                     plugin->dryWetMix = clipboardData->dryWetMix;
                     plugin->relayParams = clipboardData->relayParams;
 
-                    // copy actual plugin and its data
+                    DBG("fuck 3");
 
-                    juce::String cleanedIdentifier =
-                        clipboardData->identifier.upToLastOccurrenceOf(
-                            ".vst3", true, true);
-                    node->addPlugin(cleanedIdentifier);
-                    juce::MemoryBlock pluginData;
+                    bool dataRetrieved = pluginData.fromBase64Encoding(
+                        (juce::String)clipboardData->data);
 
-                    pluginData.fromBase64Encoding(clipboardData->data);
+                    DBG("dataRetrieved = " << (dataRetrieved ? "true"
+                                                             : "false"));
+
                     plugin->plugin->setStateInformation(pluginData.getData(),
                                                         pluginData.getSize());
+                    DBG("fuck 5");
 
+                    // very lazy way but i couldn't be bothered now
+                    pluginNodeComponents.clear();
+                    createPluginNodeComponents();
+
+                    pcc->resized();
+                    pcc->nodesViewport.setViewPosition(
+                        pcc->nodesWrapper.getWidth(), 0);
+
+                    return;
+
+                    /*
                     // create node component
                     this->pluginNodeComponents.emplace_back(
-                        new track::PluginNodeComponent);
+                        new track::PluginNodeComponent());
                     PluginNodeComponent &nc =
                         *this->pluginNodeComponents.back();
                     nc.pluginIndex = node->plugins.size() - 1;
+                    nc.setDryWetSliderValue();
 
                     addAndMakeVisible(nc);
                     nc.setBounds(
@@ -341,6 +372,8 @@ void track::PluginNodesWrapper::mouseDown(const juce::MouseEvent &event) {
                     pcc->resized();
                     pcc->nodesViewport.setViewPosition(
                         pcc->nodesWrapper.getWidth(), 0);
+
+                    */
                 }
             });
         pluginMenu.showMenuAsync(juce::PopupMenu::Options());
