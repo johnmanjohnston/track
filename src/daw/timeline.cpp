@@ -520,6 +520,7 @@ void track::TimelineComponent::filesDropped(const juce::StringArray &files,
                         originalFile.getFileExtension();
 
                     juce::File resampledFile = juce::File(resampledFilePath);
+                    resampledFile.create();
 
                     DBG("writing to " << resampledFilePath);
 
@@ -536,6 +537,9 @@ void track::TimelineComponent::filesDropped(const juce::StringArray &files,
                     DBG("writing...");
                     writer->writeFromAudioSampleBuffer(
                         resampledBuffer, 0, resampledBuffer.getNumSamples());
+                    writer->flush();
+                    writer.reset();
+
                     DBG("written succesfully to " << resampledFilePath);
 
                     addNewClipToTimeline(resampledFilePath, startSample,
