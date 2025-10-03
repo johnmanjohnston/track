@@ -409,9 +409,6 @@ void track::TimelineComponent::handleClipResampling(int modalResult) {
 
 void track::TimelineComponent::filesDropped(const juce::StringArray &files,
                                             int x, int y) {
-    // TODO: handle changing samplle rates of dragged file to match with
-    // sample rate of host
-
     if (viewport->tracklist->trackComponents.size() == 0)
         return;
 
@@ -439,8 +436,8 @@ void track::TimelineComponent::filesDropped(const juce::StringArray &files,
         return;
     }
 
-    DBG("host sample rate is " << track::SAMPLE_RATE);
-    DBG("file sample rate is " << reader->sampleRate);
+    int startSample = x * 32 * 40;
+    juce::String path = files[0];
 
     // look for sample rate mismatch
     if (!juce::approximatelyEqual(track::SAMPLE_RATE, reader->sampleRate)) {
@@ -456,27 +453,39 @@ void track::TimelineComponent::filesDropped(const juce::StringArray &files,
 
                 .withButton("Resample file to " +
                             juce::String(track::SAMPLE_RATE) + "Hz")
-                .withButton("Don't resample")
-                .withButton("Cancel"),
-            [this](int result) {
-                DBG("modal finished with result " << result);
-            });
-    }
 
+                .withButton("Don't resample")
+
+                .withButton("Cancel"),
+            [this, path, startSample, nodeDisplayIndex](int result) {
+                if (result == 0) {
+                    // TODO: resampling logic
+                } else if (result == 1) {
+                    addNewClipToTimeline(path, startSample, nodeDisplayIndex);
+                }
+            });
+    } else {
+        addNewClipToTimeline(path, startSample, nodeDisplayIndex);
+    }
+}
+
+void track::TimelineComponent::addNewClipToTimeline(juce::String path,
+                                                    int startSample,
+                                                    int nodeDisplayIndex) {
     std::unique_ptr<clip> c(new clip());
-    c->path = files[0];
+    c->path = path;
 
     // remove directories leading up to the actual file name we want, and
     // strip file extension
-    if (files[0].contains("/")) {
-        c->name = files[0].fromLastOccurrenceOf(
+    if (path.contains("/")) {
+        c->name = path.fromLastOccurrenceOf(
             "/", false, true); // for REAL operating systems.
     } else {
-        c->name = files[0].fromLastOccurrenceOf("\\", false, true);
+        c->name = path.fromLastOccurrenceOf("\\", false, true);
     }
     c->name = c->name.upToLastOccurrenceOf(".", false, true);
 
-    c->startPositionSample = x * 32 * 40;
+    c->startPositionSample = startSample;
     c->updateBuffer();
 
     DBG("nodeDisplayIndex is " << nodeDisplayIndex);

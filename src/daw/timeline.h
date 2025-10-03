@@ -27,6 +27,8 @@ class TimelineComponent : public juce::Component,
     void mouseDown(const juce::MouseEvent &event) override;
     void filesDropped(const juce::StringArray &files, int x, int y) override;
     void handleClipResampling(int modalResult);
+    void addNewClipToTimeline(juce::String path, int startSample,
+                              int nodeDisplayIndex);
 
     void paint(juce::Graphics &g) override;
     void resizeClipComponent(ClipComponent *clip);
