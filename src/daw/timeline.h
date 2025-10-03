@@ -24,8 +24,9 @@ class TimelineComponent : public juce::Component,
     ~TimelineComponent();
 
     bool isInterestedInFileDrag(const juce::StringArray &files) override;
-    void filesDropped(const juce::StringArray &files, int x, int y) override;
     void mouseDown(const juce::MouseEvent &event) override;
+    void filesDropped(const juce::StringArray &files, int x, int y) override;
+    void handleClipResampling(int modalResult);
 
     void paint(juce::Graphics &g) override;
     void resizeClipComponent(ClipComponent *clip);

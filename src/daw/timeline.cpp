@@ -1,6 +1,7 @@
 #include "timeline.h"
 #include "clipboard.h"
 #include "defs.h"
+#include "juce_gui_basics/juce_gui_basics.h"
 #include "track.h"
 
 // TODO: organize this file
@@ -402,6 +403,10 @@ bool track::TimelineComponent::isInterestedInFileDrag(
     return true;
 }
 
+void track::TimelineComponent::handleClipResampling(int modalResult) {
+    DBG("result is " << modalResult);
+}
+
 void track::TimelineComponent::filesDropped(const juce::StringArray &files,
                                             int x, int y) {
     // TODO: handle changing samplle rates of dragged file to match with
@@ -417,11 +422,8 @@ void track::TimelineComponent::filesDropped(const juce::StringArray &files,
 
     DBG("track index is " << nodeDisplayIndex);
 
-    std::unique_ptr<clip> c(new clip());
-    c->path = files[0];
-
     // check if file is valid audio
-    juce::File file(c->path);
+    juce::File file(files[0]);
     juce::AudioFormatManager afm;
     afm.registerBasicFormats();
 
@@ -436,6 +438,33 @@ void track::TimelineComponent::filesDropped(const juce::StringArray &files,
         DBG("INVALID AUDIO FILE DRAGGED");
         return;
     }
+
+    DBG("host sample rate is " << track::SAMPLE_RATE);
+    DBG("file sample rate is " << reader->sampleRate);
+
+    // look for sample rate mismatch
+    if (!juce::approximatelyEqual(track::SAMPLE_RATE, reader->sampleRate)) {
+        juce::NativeMessageBox::showAsync(
+            juce::MessageBoxOptions()
+                .withIconType(juce::MessageBoxIconType::QuestionIcon)
+                .withTitle("Sample rate mismatch")
+
+                .withMessage("Host's sample rate is " +
+                             juce::String(track::SAMPLE_RATE) +
+                             "Hz but the audio file's sample rate is " +
+                             juce::String(reader->sampleRate) + "Hz")
+
+                .withButton("Resample file to " +
+                            juce::String(track::SAMPLE_RATE) + "Hz")
+                .withButton("Don't resample")
+                .withButton("Cancel"),
+            [this](int result) {
+                DBG("modal finished with result " << result);
+            });
+    }
+
+    std::unique_ptr<clip> c(new clip());
+    c->path = files[0];
 
     // remove directories leading up to the actual file name we want, and
     // strip file extension
