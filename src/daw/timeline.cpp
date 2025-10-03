@@ -1,6 +1,8 @@
 #include "timeline.h"
 #include "clipboard.h"
 #include "defs.h"
+#include "juce_audio_basics/juce_audio_basics.h"
+#include "juce_audio_formats/juce_audio_formats.h"
 #include "juce_gui_basics/juce_gui_basics.h"
 #include "track.h"
 
@@ -459,7 +461,85 @@ void track::TimelineComponent::filesDropped(const juce::StringArray &files,
                 .withButton("Cancel"),
             [this, path, startSample, nodeDisplayIndex](int result) {
                 if (result == 0) {
-                    // TODO: resampling logic
+                    // init reader
+                    juce::AudioFormatManager afm;
+                    afm.registerBasicFormats();
+                    std::unique_ptr<juce::AudioFormatReader> reader(
+                        afm.createReaderFor(path));
+
+                    // read original buffer
+                    juce::AudioBuffer<float> originalBuffer =
+                        juce::AudioBuffer<float>((int)reader->numChannels,
+                                                 reader->lengthInSamples);
+
+                    reader->read(&originalBuffer, 0,
+                                 originalBuffer.getNumSamples(), 0, true, true);
+
+                    // le juice
+                    double ratio = reader->sampleRate / track::SAMPLE_RATE;
+                    juce::AudioBuffer<float> resampledBuffer =
+                        juce::AudioBuffer<float>(
+                            (int)reader->numChannels,
+                            (int)((double)reader->lengthInSamples / ratio));
+
+                    auto inputs = originalBuffer.getArrayOfReadPointers();
+                    auto outputs = resampledBuffer.getArrayOfWritePointers();
+
+                    DBG(reader->lengthInSamples
+                        << " samples became " << resampledBuffer.getNumSamples()
+                        << " samples with a ratio of " << ratio);
+
+                    for (int ch = 0; ch < (int)reader->numChannels; ++ch) {
+                        std::unique_ptr<juce::LagrangeInterpolator> resampler =
+                            std::make_unique<juce::LagrangeInterpolator>();
+                        resampler->reset();
+                        resampler->process(ratio, inputs[ch], outputs[ch],
+                                           resampledBuffer.getNumSamples());
+
+                        DBG("resampled channel " << ch);
+                    }
+
+                    DBG("resampling finished");
+
+                    // now write resampled file
+                    juce::File originalFile = juce::File(path);
+                    juce::File parentDir = originalFile.getParentDirectory();
+                    juce::String originalFileName = originalFile.getFileName();
+
+                    // because windows is stupid
+                    char dirSep = '/';
+#if JUCE_WINDOWS
+                    dirSep = '\\';
+#endif
+
+                    // ex., /home/johnston/j35-44100hz.wav
+                    juce::String resampledFilePath =
+                        parentDir.getFullPathName() + dirSep +
+                        originalFile.getFileNameWithoutExtension() + "-" +
+                        juce::String(track::SAMPLE_RATE) + "hz" +
+                        originalFile.getFileExtension();
+
+                    juce::File resampledFile = juce::File(resampledFilePath);
+
+                    DBG("writing to " << resampledFilePath);
+
+                    juce::WavAudioFormat wavFormat;
+                    std::unique_ptr<juce::AudioFormatWriter> writer;
+
+                    writer.reset(wavFormat.createWriterFor(
+                        new juce::FileOutputStream(resampledFilePath),
+                        track::SAMPLE_RATE, (unsigned int)reader->numChannels,
+                        (int)reader->bitsPerSample, reader->metadataValues, 0));
+
+                    jassert(writer != nullptr);
+
+                    DBG("writing...");
+                    writer->writeFromAudioSampleBuffer(
+                        resampledBuffer, 0, resampledBuffer.getNumSamples());
+                    DBG("written succesfully to " << resampledFilePath);
+
+                    addNewClipToTimeline(resampledFilePath, startSample,
+                                         nodeDisplayIndex);
                 } else if (result == 1) {
                     addNewClipToTimeline(path, startSample, nodeDisplayIndex);
                 }
@@ -474,6 +554,9 @@ void track::TimelineComponent::addNewClipToTimeline(juce::String path,
                                                     int nodeDisplayIndex) {
     std::unique_ptr<clip> c(new clip());
     c->path = path;
+
+    // TODO: see juce::File().getFileNameWithoutExtension() instead of doing all
+    // this annoying string manipulation thing
 
     // remove directories leading up to the actual file name we want, and
     // strip file extension
