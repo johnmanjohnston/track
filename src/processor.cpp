@@ -2,7 +2,6 @@
 #include "daw/automation_relay.h"
 #include "daw/defs.h"
 #include "editor.h"
-#include "juce_core/juce_core.h"
 
 AudioPluginAudioProcessor::AudioPluginAudioProcessor()
     : AudioProcessor(
@@ -17,7 +16,15 @@ AudioPluginAudioProcessor::AudioPluginAudioProcessor()
     addParameter(masterGain = new juce::AudioParameterFloat("master", "Master",
                                                             0.f, 6.f, 1.f));
 
-    DBG("track v" << VERSION_STRING << " " << BUILD_TYPE_STRING);
+    juce::String buildType = "stable";
+
+#if JUCE_DEBUG
+    buildType = "dev";
+#endif
+
+    DBG("track v" << VERSION_STRING << " ("
+                  << juce::String(GIT_COMMIT_HASH).getLastCharacters(7) + "/" +
+                         buildType + ")");
 
     updateLatencyAfterDelay();
 

@@ -9,6 +9,13 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_subdirectory(JUCE)
 
+execute_process(
+    COMMAND git rev-parse HEAD
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    OUTPUT_VARIABLE GIT_COMMIT_HASH
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+
 juce_add_plugin(track
     COMPANY_NAME johnmanjohnston
     IS_SYNTH FALSE
@@ -63,7 +70,8 @@ target_compile_definitions(track PRIVATE
 
     PUBLIC
     VERSION_STRING="${CMAKE_PROJECT_VERSION}"
-    BUILD_TYPE_STRING="${CMAKE_BUILD_TYPE}")
+    BUILD_TYPE_STRING="${CMAKE_BUILD_TYPE}"
+    GIT_COMMIT_HASH="${GIT_COMMIT_HASH}")
 
 target_link_libraries(track PRIVATE
     trackBinaryData
