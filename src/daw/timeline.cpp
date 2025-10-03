@@ -1,9 +1,6 @@
 #include "timeline.h"
 #include "clipboard.h"
 #include "defs.h"
-#include "juce_audio_basics/juce_audio_basics.h"
-#include "juce_audio_formats/juce_audio_formats.h"
-#include "juce_gui_basics/juce_gui_basics.h"
 #include "track.h"
 
 // TODO: organize this file
