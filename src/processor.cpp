@@ -22,9 +22,7 @@ AudioPluginAudioProcessor::AudioPluginAudioProcessor()
     buildType = "dev";
 #endif
 
-    DBG("track v" << VERSION_STRING << " ("
-                  << juce::String(GIT_COMMIT_HASH).getLastCharacters(7) + "/" +
-                         buildType + ")");
+    DBG("track v" << VERSION_STRING);
 
     updateLatencyAfterDelay();
 
