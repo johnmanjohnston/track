@@ -623,7 +623,8 @@ track::TrackComponent::TrackComponent(int trackIndex) : juce::Component() {
     };
 
     addAndMakeVisible(gainSlider);
-    gainSlider.setRange(0.0, 1.0);
+    gainSlider.setSkewFactorFromMidPoint(0.3f);
+    gainSlider.setRange(0.0, 6.0);
 
     muteBtn.onClick = [this] {
         getCorrespondingTrack()->m = !(getCorrespondingTrack()->m);
