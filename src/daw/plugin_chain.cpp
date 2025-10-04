@@ -1,9 +1,11 @@
 #include "plugin_chain.h"
 #include "clipboard.h"
 #include "defs.h"
+#include "juce_opengl/opengl/juce_gl.h"
 #include "subwindow.h"
 #include "track.h"
 #include <cstddef>
+#include <fcntl.h>
 
 track::PluginNodeComponent::PluginNodeComponent() : juce::Component() {
     this->openEditorBtn.setButtonText("EDITOR");
@@ -84,7 +86,9 @@ track::PluginNodeComponent::PluginNodeComponent() : juce::Component() {
     };
 }
 track::PluginNodeComponent::~PluginNodeComponent() {}
-track::PluginNodesWrapper::PluginNodesWrapper() : juce::Component() {}
+track::PluginNodesWrapper::PluginNodesWrapper() : juce::Component() {
+    addAndMakeVisible(insertIndicator);
+}
 track::PluginNodesWrapper::~PluginNodesWrapper() {}
 track::PluginNodesViewport::PluginNodesViewport() : juce::Viewport() {}
 track::PluginNodesViewport::~PluginNodesViewport() {}
@@ -416,7 +420,7 @@ track::PluginChainComponent::PluginChainComponent() : Subwindow() {
     nodesViewport.setViewedComponent(&nodesWrapper);
     addAndMakeVisible(nodesViewport);
 
-    addAndMakeVisible(insertIndicator);
+    // addAndMakeVisible(insertIndicator);
 }
 
 void track::PluginChainComponent::resized() {
@@ -526,27 +530,31 @@ void track::PluginChainComponent::updateInsertIndicator(int index) {
     DBG("pcc updateInsertIndicator() called");
 
     if (index > -1) {
-        this->insertIndicator.setVisible(true);
-        this->insertIndicator.toFront(false);
-        this->insertIndicator.setBounds(
+        this->nodesWrapper.insertIndicator.setVisible(true);
+        this->nodesWrapper.insertIndicator.toFront(false);
+        this->nodesWrapper.insertIndicator.setBounds(
             ((UI_PLUGIN_NODE_WIDTH + UI_PLUGIN_NODE_MARGIN) * index) +
                 (UI_PLUGIN_NODE_MARGIN / 2) - 2,
-            UI_SUBWINDOW_TITLEBAR_HEIGHT, 1, getHeight());
+            0, 1, getHeight());
         repaint();
         return;
     }
 
-    this->insertIndicator.setVisible(false);
+    this->nodesWrapper.insertIndicator.setVisible(false);
 }
 
 void track::PluginChainComponent::reorderPlugin(int srcIndex, int destIndex) {
     AudioPluginAudioProcessorEditor *editor =
         this->findParentComponentOfClass<AudioPluginAudioProcessorEditor>();
 
-    bool wasEditorOpen = editor->isPluginEditorWindowOpen(route, srcIndex);
+    std::vector<track::subplugin *> openedPlugins;
 
-    if (wasEditorOpen)
-        editor->closePluginEditorWindow(route, srcIndex);
+    for (size_t i = 0; i < getCorrespondingTrack()->plugins.size(); ++i) {
+        if (editor->isPluginEditorWindowOpen(route, i)) {
+            editor->closePluginEditorWindow(this->route, i);
+            openedPlugins.push_back(getCorrespondingTrack()->plugins[i].get());
+        }
+    }
 
     DBG("reorderPlugin() called with src,dest" << srcIndex << "," << destIndex);
 
@@ -569,8 +577,19 @@ void track::PluginChainComponent::reorderPlugin(int srcIndex, int destIndex) {
     nodesWrapper.pluginNodeComponents.clear();
     nodesWrapper.createPluginNodeComponents();
 
+    for (auto *p : openedPlugins) {
+        for (size_t i = 0; i < getCorrespondingTrack()->plugins.size(); ++i) {
+            if (getCorrespondingTrack()->plugins[i].get() == p) {
+                editor->openPluginEditorWindow(this->route, i);
+                break;
+            }
+        }
+    }
+
+    /*
     if (wasEditorOpen)
         editor->openPluginEditorWindow(route, destIndex);
+        */
 }
 
 // plugin editor window

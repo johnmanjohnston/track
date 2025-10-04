@@ -49,6 +49,8 @@ class PluginNodesWrapper : public juce::Component {
     PluginNodesWrapper();
     ~PluginNodesWrapper();
 
+    InsertIndicator insertIndicator;
+
     void createPluginNodeComponents();
     PluginChainComponent *pcc = nullptr;
 
@@ -91,7 +93,7 @@ class PluginChainComponent : public track::Subwindow {
 
     void removePlugin(int pluginIndex);
 
-    track::InsertIndicator insertIndicator;
+    // track::InsertIndicator insertIndicator;
     void updateInsertIndicator(int index);
     void reorderPlugin(int srcIndex, int destIndex);
 };
