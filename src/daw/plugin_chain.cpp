@@ -540,6 +540,14 @@ void track::PluginChainComponent::updateInsertIndicator(int index) {
 }
 
 void track::PluginChainComponent::reorderPlugin(int srcIndex, int destIndex) {
+    AudioPluginAudioProcessorEditor *editor =
+        this->findParentComponentOfClass<AudioPluginAudioProcessorEditor>();
+
+    bool wasEditorOpen = editor->isPluginEditorWindowOpen(route, srcIndex);
+
+    if (wasEditorOpen)
+        editor->closePluginEditorWindow(route, srcIndex);
+
     DBG("reorderPlugin() called with src,dest" << srcIndex << "," << destIndex);
 
     destIndex = juce::jlimit(
@@ -560,6 +568,9 @@ void track::PluginChainComponent::reorderPlugin(int srcIndex, int destIndex) {
 
     nodesWrapper.pluginNodeComponents.clear();
     nodesWrapper.createPluginNodeComponents();
+
+    if (wasEditorOpen)
+        editor->openPluginEditorWindow(route, destIndex);
 }
 
 // plugin editor window

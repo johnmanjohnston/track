@@ -289,6 +289,22 @@ void AudioPluginAudioProcessorEditor::closePluginEditorWindow(
     }
 }
 
+bool AudioPluginAudioProcessorEditor::isPluginEditorWindowOpen(
+    std::vector<int> route, int pluginIndex) {
+    bool retval = false;
+
+    for (size_t i = 0; i < this->pluginEditorWindows.size(); ++i) {
+        if (pluginEditorWindows[i]->route == route) {
+            if (pluginEditorWindows[i]->pluginIndex == pluginIndex) {
+                retval = true;
+                break;
+            }
+        }
+    }
+
+    return retval;
+}
+
 void AudioPluginAudioProcessorEditor::scan() {
     if (apfm.getNumFormats() < 1)
         apfm.addDefaultFormats();

@@ -77,6 +77,7 @@ class AudioPluginAudioProcessorEditor : public juce::AudioProcessorEditor,
     std::vector<std::unique_ptr<track::PluginEditorWindow>> pluginEditorWindows;
     void openPluginEditorWindow(std::vector<int> route, int pluginIndex);
     void closePluginEditorWindow(std::vector<int> route, int pluginIndex);
+    bool isPluginEditorWindowOpen(std::vector<int> route, int pluginIndex);
 
     AudioPluginAudioProcessor &processorRef;
 
