@@ -1,5 +1,6 @@
 #pragma once
 #include "BinaryData.h"
+#include "subwindow.h"
 #include <JuceHeader.h>
 
 namespace track {
@@ -79,6 +80,21 @@ class ClipComponent : public juce::Component, public juce::ChangeListener {
     }
 
     juce::Label clipNameLabel;
+};
+
+class ClipPropertiesWindow : public track::Subwindow {
+  public:
+    ClipPropertiesWindow();
+    ~ClipPropertiesWindow();
+
+    void paint(juce::Graphics &g) override;
+    void resized() override;
+
+    std::vector<int> route;
+    int clipIndex = -1;
+    void *p = nullptr;
+
+    track::clip *getClip();
 };
 
 class relayParam;

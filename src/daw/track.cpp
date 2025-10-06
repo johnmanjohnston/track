@@ -4,6 +4,7 @@
 #include "automation_relay.h"
 #include "clipboard.h"
 #include "defs.h"
+#include "subwindow.h"
 #include "timeline.h"
 
 track::ClipComponent::ClipComponent(clip *c)
@@ -198,6 +199,7 @@ void track::ClipComponent::mouseDown(const juce::MouseEvent &event) {
 #define MENU_SPLIT_CLIP 6
 #define MENU_RENAME_CLIP 7
 #define MENU_DUPLICATE_CLIP_IMMEDIATELY_AFTER 8
+#define MENU_EDIT_CLIP_PROPERTIES 9
 
         contextMenu.addItem(MENU_RENAME_CLIP, "Rename clip");
         contextMenu.addItem(MENU_DUPLICATE_CLIP_IMMEDIATELY_AFTER,
@@ -209,6 +211,7 @@ void track::ClipComponent::mouseDown(const juce::MouseEvent &event) {
         contextMenu.addItem(MENU_TOGGLE_CLIP_ACTIVATION,
                             "Toggle activate/deactive clip");
         contextMenu.addItem(MENU_SHOW_IN_EXPLORER, "Show in explorer");
+        contextMenu.addItem(MENU_EDIT_CLIP_PROPERTIES, "Edit clip properties");
 
         int splitSample = ((float)event.x / UI_ZOOM_MULTIPLIER) * SAMPLE_RATE;
         contextMenu.addItem(
@@ -312,6 +315,39 @@ void track::ClipComponent::mouseDown(const juce::MouseEvent &event) {
                     findParentComponentOfClass<TimelineComponent>();
                 tc->splitClip(this->correspondingClip, splitSample,
                               nodeDisplayIndex);
+            }
+
+            else if (result == MENU_EDIT_CLIP_PROPERTIES) {
+                TimelineComponent *tc =
+                    (TimelineComponent *)getParentComponent();
+                TimelineViewport *tv =
+                    (TimelineViewport *)
+                        tc->findParentComponentOfClass<TimelineViewport>();
+
+                AudioPluginAudioProcessorEditor *editor =
+                    tv->findParentComponentOfClass<
+                        AudioPluginAudioProcessorEditor>();
+
+                track::Tracklist *tracklist = tv->tracklist;
+
+                std::vector<int> nodeRoute =
+                    tracklist->trackComponents[(size_t)this->nodeDisplayIndex]
+                        ->route;
+                audioNode *node =
+                    tracklist->trackComponents[(size_t)this->nodeDisplayIndex]
+                        ->getCorrespondingTrack();
+
+                int clipIndex = -1;
+                for (size_t i = 0; i < node->clips.size(); ++i) {
+                    if (correspondingClip == &node->clips[i]) {
+                        clipIndex = i;
+                        break;
+                    }
+                }
+
+                jassert(clipIndex != -1);
+
+                editor->openClipPropertiesWindows(nodeRoute, clipIndex);
             }
         });
     }
@@ -549,6 +585,31 @@ bool track::ClipComponent::keyStateChanged(bool isKeyDown) {
     }
 
     return false;
+}
+
+track::ClipPropertiesWindow::ClipPropertiesWindow() : track::Subwindow() {}
+track::ClipPropertiesWindow::~ClipPropertiesWindow() {}
+void track::ClipPropertiesWindow::paint(juce::Graphics &g) {
+    Subwindow::paint(g);
+
+    g.setColour(juce::Colour(0xFF'A7A7A7));
+    g.setFont(getTitleBarFont());
+    g.drawText(getClip()->name, getTitleBarBounds().withLeft(10).withTop(2),
+               juce::Justification::left);
+}
+
+void track::ClipPropertiesWindow::resized() { Subwindow::resized(); }
+
+track::clip *track::ClipPropertiesWindow::getClip() {
+    AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
+
+    audioNode *head = &processor->tracks[(size_t)route[0]];
+
+    for (size_t i = 1; i < route.size(); ++i) {
+        head = &head->childNodes[(size_t)route[i]];
+    }
+
+    return &head->clips[(size_t)clipIndex];
 }
 
 track::audioNode *

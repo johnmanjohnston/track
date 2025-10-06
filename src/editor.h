@@ -79,6 +79,10 @@ class AudioPluginAudioProcessorEditor : public juce::AudioProcessorEditor,
     void closePluginEditorWindow(std::vector<int> route, int pluginIndex);
     bool isPluginEditorWindowOpen(std::vector<int> route, int pluginIndex);
 
+    std::vector<std::unique_ptr<track::ClipPropertiesWindow>>
+        clipPropertiesWindows;
+    void openClipPropertiesWindows(std::vector<int> route, int clipIndex);
+
     AudioPluginAudioProcessor &processorRef;
 
     track::TimelineViewport timelineViewport;

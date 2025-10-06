@@ -278,6 +278,21 @@ void AudioPluginAudioProcessorEditor::openPluginEditorWindow(
     repaint();
 }
 
+void AudioPluginAudioProcessorEditor::openClipPropertiesWindows(
+    std::vector<int> route, int clipIndex) {
+    clipPropertiesWindows.emplace_back(new track::ClipPropertiesWindow());
+
+    std::unique_ptr<track::ClipPropertiesWindow> &cpw =
+        clipPropertiesWindows.back();
+
+    cpw->setBounds(10, 10, 300, 100);
+    addAndMakeVisible(*cpw);
+
+    cpw->route = route;
+    cpw->clipIndex = clipIndex;
+    cpw->p = &processor;
+}
+
 void AudioPluginAudioProcessorEditor::closePluginEditorWindow(
     std::vector<int> route, int pluginIndex) {
     for (size_t i = 0; i < this->pluginEditorWindows.size(); ++i) {
