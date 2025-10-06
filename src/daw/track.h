@@ -1,5 +1,6 @@
 #pragma once
 #include "BinaryData.h"
+#include "juce_gui_basics/juce_gui_basics.h"
 #include "subwindow.h"
 #include <JuceHeader.h>
 
@@ -15,6 +16,8 @@ class clip {
     int endPositionSampleWithLooping; // absolute sample position within host
     bool isLooping;
     bool active = true;
+
+    float gain = 0.f;
 
     int trimLeft = -1;
     int trimRight = -1;
@@ -90,10 +93,14 @@ class ClipPropertiesWindow : public track::Subwindow {
     void paint(juce::Graphics &g) override;
     void resized() override;
 
+    void init();
+
+    juce::Label nameLabel;
+    juce::Slider gainSlider;
+
     std::vector<int> route;
     int clipIndex = -1;
     void *p = nullptr;
-
     track::clip *getClip();
 };
 

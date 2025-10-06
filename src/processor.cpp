@@ -1,6 +1,7 @@
 #include "processor.h"
 #include "daw/automation_relay.h"
 #include "daw/defs.h"
+#include "daw/track.h"
 #include "editor.h"
 
 AudioPluginAudioProcessor::AudioPluginAudioProcessor()
@@ -403,6 +404,7 @@ AudioPluginAudioProcessor::serializeNode(track::audioNode *node) {
             clipElement->setAttribute("path", c->path);
             clipElement->setAttribute("start", c->startPositionSample);
             clipElement->setAttribute("name", c->name);
+            clipElement->setAttribute("gain", c->gain);
 
             clipElement->setAttribute("trimleft", c->trimLeft);
             clipElement->setAttribute("trimright", c->trimRight);
@@ -483,6 +485,8 @@ void AudioPluginAudioProcessor::deserializeNode(juce::XmlElement *nodeElement,
             int trimLeft = clipElement->getIntAttribute("trimleft");
             int trimRight = clipElement->getIntAttribute("trimright");
 
+            float clipGain = clipElement->getDoubleAttribute("gain", 1.f);
+
             // create clip instance
             node->clips.emplace_back();
             track::clip *c = &node->clips.back();
@@ -492,6 +496,7 @@ void AudioPluginAudioProcessor::deserializeNode(juce::XmlElement *nodeElement,
             c->startPositionSample = start;
             c->trimLeft = trimLeft;
             c->trimRight = trimRight;
+            c->gain = clipGain;
             c->updateBuffer();
 
             clipElement = clipElement->getNextElementWithTagName("clip");

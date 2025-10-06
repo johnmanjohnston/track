@@ -291,6 +291,8 @@ void AudioPluginAudioProcessorEditor::openClipPropertiesWindows(
     cpw->route = route;
     cpw->clipIndex = clipIndex;
     cpw->p = &processor;
+
+    cpw->init();
 }
 
 void AudioPluginAudioProcessorEditor::closePluginEditorWindow(

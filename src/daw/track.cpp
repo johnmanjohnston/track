@@ -89,13 +89,14 @@ void track::ClipComponent::paint(juce::Graphics &g) {
                                       thumbnailTopMargin);
             thumbnailBounds.setY(thumbnailBounds.getY() + thumbnailTopMargin);
 
-            thumbnail.drawChannels(g, thumbnailBounds,
-                                   correspondingClip->trimLeft /
-                                       track::SAMPLE_RATE,
-                                   (correspondingClip->buffer.getNumSamples() -
-                                    correspondingClip->trimRight) /
-                                       track::SAMPLE_RATE,
-                                   1.f);
+            thumbnail.drawChannels(
+                g, thumbnailBounds,
+                correspondingClip->trimLeft / track::SAMPLE_RATE,
+                (correspondingClip->buffer.getNumSamples() -
+                 correspondingClip->trimRight) /
+                    track::SAMPLE_RATE,
+                correspondingClip->gain); // TODO: is just changing the vertical
+                                          // zoom factor actually accurate?
 
             if (thumbnail.getNumChannels() == 1) {
                 // mono
@@ -587,7 +588,39 @@ bool track::ClipComponent::keyStateChanged(bool isKeyDown) {
     return false;
 }
 
-track::ClipPropertiesWindow::ClipPropertiesWindow() : track::Subwindow() {}
+track::ClipPropertiesWindow::ClipPropertiesWindow() : track::Subwindow() {
+    addAndMakeVisible(nameLabel);
+    addAndMakeVisible(gainSlider);
+
+    gainSlider.setRange(0.f, 6.f);
+    gainSlider.setNumDecimalPlacesToDisplay(2);
+    nameLabel.setEditable(true, true, false);
+
+    nameLabel.onTextChange = [this] {
+        getClip()->name = nameLabel.getText();
+        repaint();
+
+        AudioPluginAudioProcessorEditor *editor =
+            findParentComponentOfClass<AudioPluginAudioProcessorEditor>();
+        editor->timelineComponent->updateClipComponents();
+    };
+
+    gainSlider.onValueChange = [this] {
+        // change clips gain
+        getClip()->gain = gainSlider.getValue();
+    };
+
+    gainSlider.onDragEnd = [this] {
+        // redraw clip
+        // TODO: optimize
+        AudioPluginAudioProcessorEditor *editor =
+            findParentComponentOfClass<AudioPluginAudioProcessorEditor>();
+        editor->timelineComponent->updateClipComponents();
+    };
+
+    nameLabel.setFont(getTitleBarFont());
+}
+
 track::ClipPropertiesWindow::~ClipPropertiesWindow() {}
 void track::ClipPropertiesWindow::paint(juce::Graphics &g) {
     Subwindow::paint(g);
@@ -598,7 +631,18 @@ void track::ClipPropertiesWindow::paint(juce::Graphics &g) {
                juce::Justification::left);
 }
 
-void track::ClipPropertiesWindow::resized() { Subwindow::resized(); }
+void track::ClipPropertiesWindow::resized() {
+    Subwindow::resized();
+    nameLabel.setBounds(8, 20, getWidth() - 8, 30);
+    gainSlider.setBounds(8, 70, getWidth() - 8, 30);
+}
+
+void track::ClipPropertiesWindow::init() {
+    nameLabel.setText(getClip()->name,
+                      juce::NotificationType::dontSendNotification);
+
+    gainSlider.setValue(getClip()->gain);
+}
 
 track::clip *track::ClipPropertiesWindow::getClip() {
     AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
@@ -1837,6 +1881,8 @@ void track::audioNode::process(int numSamples, int currentSample) {
                                        clipBufferStart, samplesToCopy);
                     }
                 }
+
+                buffer.applyGain(c.gain);
             }
         }
     } else {
