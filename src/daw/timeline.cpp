@@ -42,13 +42,19 @@ void track::TimelineViewport::mouseWheelMove(
         int mouseXCoordinates = ev.x + getViewPositionX();
         int oldZoom = UI_ZOOM_MULTIPLIER;
 
+        int zoomIncrement = 8;
+
         if (mouseWheelDetails.deltaY < 0 &&
             UI_ZOOM_MULTIPLIER > UI_MINIMUM_ZOOM_MULTIPLIER) {
-            UI_ZOOM_MULTIPLIER -= 2;
+            UI_ZOOM_MULTIPLIER -= zoomIncrement;
         } else if (mouseWheelDetails.deltaY > 0 &&
                    UI_ZOOM_MULTIPLIER < UI_MAXIMUM_ZOOM_MULTIPLIER) {
-            UI_ZOOM_MULTIPLIER += 2;
+            UI_ZOOM_MULTIPLIER += zoomIncrement;
         }
+
+        UI_ZOOM_MULTIPLIER =
+            juce::jlimit(UI_MINIMUM_ZOOM_MULTIPLIER, UI_MAXIMUM_ZOOM_MULTIPLIER,
+                         UI_ZOOM_MULTIPLIER);
 
         tc->resizeTimelineComponent();
 
