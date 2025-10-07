@@ -638,16 +638,28 @@ void track::ClipPropertiesWindow::paint(juce::Graphics &g) {
 
     // main
     g.setFont(nameLabel.getFont().italicised());
-    g.drawText("NAME ",
-               nameLabel.getBounds().withWidth(48).withX(
-                   nameLabel.getBounds().getX() - 44),
-               juce::Justification::left, false);
+    juce::Rectangle<int> attributeNameLabelBounds =
+        nameLabel.getBounds().withWidth(48).withX(nameLabel.getX() - 44);
+
+    g.drawText("NAME ", attributeNameLabelBounds, juce::Justification::left,
+               false);
+
+    attributeNameLabelBounds.setY(attributeNameLabelBounds.getY() +
+                                  attributeNameLabelBounds.getHeight() + 2);
+    g.drawText("GAIN ", attributeNameLabelBounds, juce::Justification::left,
+               false);
+
+    attributeNameLabelBounds.setY(attributeNameLabelBounds.getY() +
+                                  attributeNameLabelBounds.getHeight() + 2);
+    g.drawText("PATH  " + getClip()->path,
+               attributeNameLabelBounds.withWidth(getWidth() - 28),
+               juce::Justification::left, true);
 }
 
 void track::ClipPropertiesWindow::resized() {
     Subwindow::resized();
-    nameLabel.setBounds(54, 32, getWidth() - 54, 24);
-    gainSlider.setBounds(34 - 28, 56, getWidth() - 8, 30);
+    nameLabel.setBounds(54, 32, getWidth() - 54 - 8, 24);
+    gainSlider.setBounds(34 + 19, 55, getWidth() - 28 - 32, 30);
 }
 
 void track::ClipPropertiesWindow::init() {

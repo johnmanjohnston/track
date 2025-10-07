@@ -285,7 +285,7 @@ void AudioPluginAudioProcessorEditor::openClipPropertiesWindows(
     std::unique_ptr<track::ClipPropertiesWindow> &cpw =
         clipPropertiesWindows.back();
 
-    cpw->setBounds(10, 10, 300, 100);
+    cpw->setBounds(10, 10, 300, 140);
     addAndMakeVisible(*cpw);
 
     cpw->route = route;
