@@ -1,6 +1,5 @@
 #pragma once
 #include "BinaryData.h"
-#include "juce_gui_basics/juce_gui_basics.h"
 #include "subwindow.h"
 #include <JuceHeader.h>
 
@@ -17,7 +16,7 @@ class clip {
     bool isLooping;
     bool active = true;
 
-    float gain = 0.f;
+    float gain = 1.f;
 
     int trimLeft = -1;
     int trimRight = -1;
@@ -102,6 +101,15 @@ class ClipPropertiesWindow : public track::Subwindow {
     int clipIndex = -1;
     void *p = nullptr;
     track::clip *getClip();
+
+    // TODO: this function should not be in this class
+    juce::Font getInterSemiBold() {
+        static auto typeface = Typeface::createSystemTypefaceFor(
+            BinaryData::Inter_18ptSemiBold_ttf,
+            BinaryData::Inter_18ptSemiBold_ttfSize);
+
+        return Font(typeface);
+    }
 };
 
 class relayParam;

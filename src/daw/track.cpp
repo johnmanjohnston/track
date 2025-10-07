@@ -4,6 +4,7 @@
 #include "automation_relay.h"
 #include "clipboard.h"
 #include "defs.h"
+#include "juce_graphics/juce_graphics.h"
 #include "subwindow.h"
 #include "timeline.h"
 
@@ -618,7 +619,10 @@ track::ClipPropertiesWindow::ClipPropertiesWindow() : track::Subwindow() {
         editor->timelineComponent->updateClipComponents();
     };
 
-    nameLabel.setFont(getTitleBarFont());
+    nameLabel.setFont(getInterSemiBold().withHeight(17.f));
+
+    gainSlider.setTextBoxStyle(juce::Slider::TextEntryBoxPosition::TextBoxLeft,
+                               false, 52 - 12, 16);
 }
 
 track::ClipPropertiesWindow::~ClipPropertiesWindow() {}
@@ -627,14 +631,23 @@ void track::ClipPropertiesWindow::paint(juce::Graphics &g) {
 
     g.setColour(juce::Colour(0xFF'A7A7A7));
     g.setFont(getTitleBarFont());
-    g.drawText(getClip()->name, getTitleBarBounds().withLeft(10).withTop(2),
-               juce::Justification::left);
+    g.drawText(
+        getClip()->name,
+        getTitleBarBounds().withLeft(10).withTop(2).withWidth(getWidth() - 36),
+        juce::Justification::left);
+
+    // main
+    g.setFont(nameLabel.getFont().italicised());
+    g.drawText("NAME ",
+               nameLabel.getBounds().withWidth(48).withX(
+                   nameLabel.getBounds().getX() - 44),
+               juce::Justification::left, false);
 }
 
 void track::ClipPropertiesWindow::resized() {
     Subwindow::resized();
-    nameLabel.setBounds(8, 20, getWidth() - 8, 30);
-    gainSlider.setBounds(8, 70, getWidth() - 8, 30);
+    nameLabel.setBounds(54, 32, getWidth() - 54, 24);
+    gainSlider.setBounds(34 - 28, 56, getWidth() - 8, 30);
 }
 
 void track::ClipPropertiesWindow::init() {

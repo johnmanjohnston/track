@@ -71,6 +71,8 @@ class CustomLookAndFeel : public juce::LookAndFeel_V4 {
 
     Font getTextButtonFont(TextButton &button, int buttonHeight) override;
 
+    Font getLabelFont(Label &) override;
+
     PopupMenu::Options getOptionsForComboBoxPopupMenu(ComboBox &b,
                                                       Label &l) override;
 };

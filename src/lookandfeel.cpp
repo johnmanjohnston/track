@@ -356,7 +356,7 @@ void track::ui::CustomLookAndFeel::drawLabel(Graphics &g, Label &label) {
     }
 
     // text editor moves by 1px and is annoying, check if y is odd/even to
-    // make sure you move only y value onle once
+    // make sure you move only y value only once. idk why it works but it does.
     if (label.isBeingEdited()) {
         TextEditor *te = label.getCurrentTextEditor();
         te->setFont(label.getFont());
@@ -442,6 +442,14 @@ Font track::ui::CustomLookAndFeel::getTextButtonFont(TextButton &button,
     }
 
     return getInterSemiBold().withHeight((float)buttonHeight / 2.f);
+}
+
+Font track::ui::CustomLookAndFeel::getLabelFont(Label &label) {
+    if (dynamic_cast<Slider *>(label.getParentComponent())) {
+        return getInterRegularScaledForPlatforms();
+    }
+
+    return LookAndFeel_V2::getLabelFont(label);
 }
 
 PopupMenu::Options
