@@ -5,6 +5,8 @@
 #include "daw/plugin_chain.h"
 #include "daw/timeline.h"
 #include "daw/track.h"
+#include "juce_core/system/juce_StandardHeader.h"
+#include "juce_gui_basics/juce_gui_basics.h"
 #include "lookandfeel.h"
 #include "processor.h"
 #include <cmath>
@@ -78,6 +80,7 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
 #define MENU_CLEAR_SCANNED_PLUGINS 5
 #define MENU_ABOUT 2
 #define MENU_UPDATE_LATENCY 3
+#define MENU_BUILD_INFO 6
 
         contextMenu.addItem(MENU_PLUGIN_SCAN, "Scan plugins");
         contextMenu.addItem(MENU_PLUGIN_LAZY_SCAN, "Lazy scan for plugins");
@@ -87,6 +90,7 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
         contextMenu.addItem(MENU_UPDATE_LATENCY, "Update latency");
         contextMenu.addSeparator();
         contextMenu.addItem(MENU_ABOUT, "About");
+        contextMenu.addItem(MENU_BUILD_INFO, "Build info");
 
         juce::PopupMenu::Options popupmenuOptions;
         contextMenu.showMenuAsync(popupmenuOptions, [this](int result) {
@@ -111,6 +115,26 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
                 processorRef.updateLatency();
                 latencyPoller.updateLastKnownLatency();
                 repaint();
+            }
+
+            else if (result == MENU_BUILD_INFO) {
+                juce::String buildType = "Release";
+#if JUCE_DEBUG
+                buildType = "Debug";
+#endif
+
+                juce::String juceVersionString =
+                    juce::String(JUCE_MAJOR_VERSION) + "." +
+                    juce::String(JUCE_MINOR_VERSION) + "." +
+                    juce::String(JUCE_BUILDNUMBER);
+
+                juce::String buildInfoString =
+                    "track " + buildType + " " + juce::String(VERSION_STRING) +
+                    "\n" + "JUCE v" + juceVersionString;
+
+                juce::NativeMessageBox::showMessageBoxAsync(
+                    juce::MessageBoxIconType::InfoIcon, "track build info",
+                    buildInfoString);
             }
         });
     };
