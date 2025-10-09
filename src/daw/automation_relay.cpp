@@ -51,7 +51,8 @@ void track::RelayManagerComponent::resized() {
 
     rmViewport.setBounds(0, UI_SUBWINDOW_TITLEBAR_HEIGHT, getWidth(),
                          getHeight() - UI_SUBWINDOW_TITLEBAR_HEIGHT);
-    rmNodesWrapper.setBounds(0, 0, getWidth() - 8, 2000);
+    rmNodesWrapper.setBounds(0, 0, getWidth() - 8,
+                             (getPlugin()->get()->relayParams.size() + 1) * 64);
 }
 
 void track::RelayManagerNodesWrapper::createRelayNodes() {
@@ -100,12 +101,25 @@ void track::RelayManagerNodesWrapper::removeRelayNode(int index) {
 }
 
 void track::RelayManagerNodesWrapper::setRelayNodesBounds() {
+    RelayManagerComponent *rmc =
+        findParentComponentOfClass<RelayManagerComponent>();
+
+    float scrollRatio = (float)rmc->rmViewport.getViewPositionY() /
+                        (getHeight() - rmc->rmViewport.getHeight());
+
+    DBG("scrollRatio is " << scrollRatio);
+
+    rmc->resized();
+
     int nodeHeight = 64 - 1;
 
     for (size_t i = 0; i < relayNodes.size(); ++i) {
         relayNodes[i]->setBounds(8, 10 + ((int)i * nodeHeight), 270 - 6,
                                  nodeHeight - 10);
     }
+
+    rmc->rmViewport.setViewPosition(
+        0, scrollRatio * (getHeight() - rmc->rmViewport.getHeight()));
 }
 
 void track::RelayManagerNodesWrapper::mouseDown(const juce::MouseEvent &event) {

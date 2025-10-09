@@ -441,7 +441,10 @@ void track::TimelineComponent::filesDropped(const juce::StringArray &files,
         return;
     }
 
-    int startSample = x * 32 * 40;
+    DBG("drag x = " << x);
+    DBG("UI_ZOOM_MULTIPLIER = " << UI_ZOOM_MULTIPLIER);
+
+    int startSample = (x * SAMPLE_RATE) / UI_ZOOM_MULTIPLIER;
     juce::String path = files[0];
 
     // look for sample rate mismatch
