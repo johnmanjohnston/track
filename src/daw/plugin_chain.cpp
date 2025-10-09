@@ -1,6 +1,7 @@
 #include "plugin_chain.h"
 #include "clipboard.h"
 #include "defs.h"
+#include "juce_audio_processors/juce_audio_processors.h"
 #include "juce_opengl/opengl/juce_gl.h"
 #include "subwindow.h"
 #include "track.h"
@@ -320,10 +321,8 @@ void track::PluginNodesWrapper::mouseDown(const juce::MouseEvent &event) {
             "Paste plugin", clipboard::typecode == TYPECODE_PLUGIN, false,
             [this, node] {
                 if (clipboard::typecode == TYPECODE_PLUGIN) {
-                    DBG("fuck 1");
                     pluginClipboardData *clipboardData =
                         (pluginClipboardData *)clipboard::retrieveData();
-                    DBG("fuck 2");
 
                     juce::String cleanedIdentifier =
                         clipboardData->identifier.upToLastOccurrenceOf(
@@ -338,8 +337,6 @@ void track::PluginNodesWrapper::mouseDown(const juce::MouseEvent &event) {
                     plugin->dryWetMix = clipboardData->dryWetMix;
                     plugin->relayParams = clipboardData->relayParams;
 
-                    DBG("fuck 3");
-
                     bool dataRetrieved = pluginData.fromBase64Encoding(
                         (juce::String)clipboardData->data);
 
@@ -348,8 +345,6 @@ void track::PluginNodesWrapper::mouseDown(const juce::MouseEvent &event) {
 
                     plugin->plugin->setStateInformation(pluginData.getData(),
                                                         pluginData.getSize());
-                    DBG("fuck 5");
-
                     // very lazy way but i couldn't be bothered now
                     pluginNodeComponents.clear();
                     createPluginNodeComponents();
@@ -380,6 +375,88 @@ void track::PluginNodesWrapper::mouseDown(const juce::MouseEvent &event) {
                     */
                 }
             });
+
+        pluginMenu.addItem(
+            "Paste plugin chain", clipboard::typecode == TYPECODE_PLUGIN_CHAIN,
+            false, [this] {
+                DBG("paste plugin chain");
+
+                if (clipboard::typecode == TYPECODE_PLUGIN_CHAIN) {
+                    pluginChainClipboardData *data =
+                        (pluginChainClipboardData *)clipboard::retrieveData();
+                    audioNode *node = pcc->getCorrespondingTrack();
+
+                    for (pluginClipboardData &pluginClipboardData :
+                         data->plugins) {
+
+                        juce::String cleanedIdentifier =
+                            pluginClipboardData.identifier.upToLastOccurrenceOf(
+                                ".vst3", true, true);
+                        node->addPlugin(cleanedIdentifier);
+
+                        juce::MemoryBlock pluginData;
+
+                        std::unique_ptr<track::subplugin> &plugin =
+                            node->plugins.back();
+
+                        plugin->bypassed = pluginClipboardData.bypassed;
+                        plugin->dryWetMix = pluginClipboardData.dryWetMix;
+                        plugin->relayParams = pluginClipboardData.relayParams;
+
+                        bool dataRetrieved = pluginData.fromBase64Encoding(
+                            (juce::String)pluginClipboardData.data);
+
+                        DBG("dataRetrieved = " << (dataRetrieved ? "true"
+                                                                 : "false"));
+
+                        plugin->plugin->setStateInformation(
+                            pluginData.getData(), pluginData.getSize());
+                        // very lazy way but i couldn't be bothered now
+                        pluginNodeComponents.clear();
+                        createPluginNodeComponents();
+
+                        pcc->resized();
+                        pcc->nodesViewport.setViewPosition(
+                            pcc->nodesWrapper.getWidth(), 0);
+                    }
+                }
+            });
+
+        pluginMenu.addItem("Copy plugin chain", [this] {
+            DBG("copying plugin chain");
+
+            pluginChainClipboardData *chainClipboardData =
+                new pluginChainClipboardData;
+
+            chainClipboardData->plugins.reserve(
+                pcc->getCorrespondingTrack()->plugins.size());
+
+            for (auto &plugin : pcc->getCorrespondingTrack()->plugins) {
+                DBG("copying plugin into plugin chain...");
+                pluginClipboardData *data =
+                    &chainClipboardData->plugins.emplace_back();
+
+                std::unique_ptr<juce::AudioPluginInstance> *pluginInstance =
+                    &plugin->plugin;
+
+                // set trivial data
+                data->identifier = pluginInstance->get()
+                                       ->getPluginDescription()
+                                       .fileOrIdentifier;
+                data->bypassed = plugin->bypassed;
+                data->dryWetMix = plugin->dryWetMix;
+                data->relayParams = plugin->relayParams;
+
+                // set plugin data
+                juce::MemoryBlock pluginData;
+                pluginInstance->get()->getStateInformation(pluginData);
+                data->data = pluginData.toBase64Encoding();
+            }
+
+            clipboard::setData(chainClipboardData, TYPECODE_PLUGIN_CHAIN);
+            DBG("plugin chain copied");
+        });
+
         pluginMenu.showMenuAsync(juce::PopupMenu::Options());
     }
 }

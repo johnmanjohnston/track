@@ -13,10 +13,12 @@ void setData(void *item, int typehint) {
 
 void *retrieveData() { return data; }
 void releaseResources() {
-    if (typecode == TYPECODE_CLIP) {
+    if (typecode == TYPECODE_CLIP)
         delete (track::clip *)data;
-    } else if (typecode == TYPECODE_PLUGIN)
+    else if (typecode == TYPECODE_PLUGIN)
         delete (track::pluginClipboardData *)data;
+    else if (typecode == TYPECODE_PLUGIN_CHAIN)
+        delete (track::pluginChainClipboardData *)data;
 
     typecode = TYPECODE_NULL;
     data = nullptr;

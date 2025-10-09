@@ -18,6 +18,11 @@ class pluginClipboardData {
     float dryWetMix = -1.f;
 };
 
+class pluginChainClipboardData {
+  public:
+    std::vector<pluginClipboardData> plugins;
+};
+
 class PluginNodeComponent : public juce::Component {
   public:
     PluginNodeComponent();
