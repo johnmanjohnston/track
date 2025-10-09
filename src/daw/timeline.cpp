@@ -1,6 +1,7 @@
 #include "timeline.h"
 #include "clipboard.h"
 #include "defs.h"
+#include "juce_gui_basics/juce_gui_basics.h"
 #include "track.h"
 
 // TODO: organize this file
@@ -435,8 +436,23 @@ void track::TimelineComponent::filesDropped(const juce::StringArray &files,
     }
 
     std::unique_ptr<juce::AudioFormatReader> reader(afm.createReaderFor(file));
+    juce::String path = files[0];
 
     if (reader == nullptr) {
+        juce::String filename = juce::File(path).getFileName();
+
+        juce::NativeMessageBox::showMessageBoxAsync(
+            juce::MessageBoxIconType::WarningIcon, "Invalid file",
+            "Couldn't read data from \"" + filename +
+                juce::String("\"\n\nTroubleshooting:\n- Verify "
+                             "that you dragged the "
+                             "right file\n- Verify that the file really is an "
+                             "audio file\n- "
+                             "Check "
+                             "if the file is corrupted (try playing it back in "
+                             "a different "
+                             "audio player program)"));
+
         DBG("INVALID AUDIO FILE DRAGGED");
         return;
     }
@@ -445,7 +461,6 @@ void track::TimelineComponent::filesDropped(const juce::StringArray &files,
     DBG("UI_ZOOM_MULTIPLIER = " << UI_ZOOM_MULTIPLIER);
 
     int startSample = (x * SAMPLE_RATE) / UI_ZOOM_MULTIPLIER;
-    juce::String path = files[0];
 
     // look for sample rate mismatch
     if (!juce::approximatelyEqual(track::SAMPLE_RATE, reader->sampleRate)) {
