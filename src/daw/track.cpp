@@ -879,6 +879,18 @@ void track::TrackComponent::mouseDown(const juce::MouseEvent &event) {
                 DBG("ungrouping to parent named " << head->trackName);
             });
 
+        contextMenu.addItem("Reset volume", [this] {
+            getCorrespondingTrack()->gain = 1.f;
+            gainSlider.setValue(1.f);
+            repaint();
+        });
+
+        contextMenu.addItem("Reset pan", [this] {
+            getCorrespondingTrack()->pan = 0.f;
+            panSlider.setValue(0.f);
+            repaint();
+        });
+
         if (getCorrespondingTrack()->isTrack == false) {
             contextMenu.addSeparator();
 
