@@ -242,3 +242,35 @@ void track::RelayManagerNode::resized() {
     this->relaySelector.setBounds(10 + 30, 5, 220, 20);
     this->hostedPluginParamSelector.setBounds(10 + 30, 22 + 7, 220, 20);
 }
+
+track::RelayParamInspector::RelayParamInspector() : track::Subwindow() {};
+track::RelayParamInspector::~RelayParamInspector() {};
+
+void track::RelayParamInspector::paint(juce::Graphics& g) {
+    Subwindow::paint(g);
+}
+
+void track::RelayParamInspector::resized() {
+    Subwindow::resized(); 
+
+    /*
+    int params = 128;
+    
+    for (int i = 0; i < params; ++i) {
+        paramSliders[i].setBounds(2, i * 20, 100, 20);
+    }*/
+}
+
+void track::RelayParamInspector::initSliders() { 
+    int params = 128; 
+
+    /*
+    // rangedaudioparameter
+    juce::Array<juce::AudioProcessorParameter*> processorParams = processor->getParameters(); 
+
+    for (int i = 0; i < params; ++i) {
+    }
+
+    //juce::RangedAudioParameter* = processor->getParam
+    */
+}

@@ -5,8 +5,6 @@
 #include "daw/plugin_chain.h"
 #include "daw/timeline.h"
 #include "daw/track.h"
-#include "juce_core/system/juce_StandardHeader.h"
-#include "juce_gui_basics/juce_gui_basics.h"
 #include "lookandfeel.h"
 #include "processor.h"
 #include <cmath>
@@ -81,11 +79,13 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
 #define MENU_ABOUT 2
 #define MENU_UPDATE_LATENCY 3
 #define MENU_BUILD_INFO 6
+#define MENU_OPEN_RELAY_PARAMS_INSPECTOR 7
 
         contextMenu.addItem(MENU_PLUGIN_SCAN, "Scan plugins");
         contextMenu.addItem(MENU_PLUGIN_LAZY_SCAN, "Lazy scan for plugins");
         contextMenu.addItem(MENU_CLEAR_SCANNED_PLUGINS,
                             "Clear scanned plugins");
+        contextMenu.addItem(MENU_OPEN_RELAY_PARAMS_INSPECTOR, "Open relay params inspector");
         contextMenu.addSeparator();
         contextMenu.addItem(MENU_UPDATE_LATENCY, "Update latency");
         contextMenu.addSeparator();
@@ -115,6 +115,10 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
                 processorRef.updateLatency();
                 latencyPoller.updateLastKnownLatency();
                 repaint();
+            }
+
+            else if (result == MENU_OPEN_RELAY_PARAMS_INSPECTOR) {
+                openRelayParamInspector();
             }
 
             else if (result == MENU_BUILD_INFO) {
@@ -269,6 +273,15 @@ void AudioPluginAudioProcessorEditor::openRelayMenu(std::vector<int> route,
     addAndMakeVisible(*rmc);
     rmc->setBounds(10, 10, 280, 640);
     repaint();
+}
+
+void AudioPluginAudioProcessorEditor::openRelayParamInspector() {
+    relayParamInspector = std::make_unique<track::RelayParamInspector>();
+    relayParamInspector->processor = &processorRef;
+    relayParamInspector->initSliders();
+
+    addAndMakeVisible(*relayParamInspector);
+    relayParamInspector->setBounds(10, 10, 300, 640);
 }
 
 void AudioPluginAudioProcessorEditor::openFxChain(std::vector<int> route) {

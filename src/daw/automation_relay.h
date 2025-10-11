@@ -84,4 +84,20 @@ class RelayManagerComponent : public track::Subwindow {
     void paint(juce::Graphics &g) override;
     void resized() override;
 };
+
+class RelayParamInspector : public track::Subwindow {
+  public:
+    RelayParamInspector();
+    ~RelayParamInspector();
+
+    void paint(juce::Graphics &g) override;
+    void resized() override;
+
+    void initSliders();
+
+    AudioPluginAudioProcessor *processor = nullptr;
+
+    std::vector<juce::Slider> paramSliders;
+    std::vector<juce::SliderParameterAttachment> paramSliderAttachments;
+};
 } // namespace track

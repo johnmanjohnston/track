@@ -74,6 +74,9 @@ class AudioPluginAudioProcessorEditor : public juce::AudioProcessorEditor,
         relayManagerCompnoents;
     void openRelayMenu(std::vector<int>, int pluginIndex);
 
+    std::unique_ptr<track::RelayParamInspector> relayParamInspector;
+    void openRelayParamInspector();
+
     std::vector<std::unique_ptr<track::PluginEditorWindow>> pluginEditorWindows;
     void openPluginEditorWindow(std::vector<int> route, int pluginIndex);
     void closePluginEditorWindow(std::vector<int> route, int pluginIndex);
