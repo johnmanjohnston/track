@@ -156,6 +156,7 @@ class audioNode {
     std::vector<clip> clips;
     std::vector<audioNode> childNodes;
 
+    int latency = -1;
     int getLatencySamples();
     int getTotalLatencySamples();
 };

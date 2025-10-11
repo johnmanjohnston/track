@@ -1832,6 +1832,7 @@ int track::audioNode::getTotalLatencySamples() {
         retval += node.getTotalLatencySamples();
     }
 
+    this->latency = retval;
     return retval;
 }
 
@@ -1856,6 +1857,8 @@ void track::audioNode::process(int numSamples, int currentSample) {
 
     int outputBufferLength = numSamples;
     int totalNumInputChannels = 2;
+
+    currentSample -= p->getLatencySamples() - this->latency;
 
     if (isTrack) {
         // add sample data to buffer
