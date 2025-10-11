@@ -247,6 +247,7 @@ void track::ClipComponent::mouseDown(const juce::MouseEvent &event) {
                 newClip->name = correspondingClip->name;
                 newClip->trimLeft = correspondingClip->trimLeft;
                 newClip->trimRight = correspondingClip->trimRight;
+                newClip->gain = correspondingClip->gain;
 
                 int clipLength = correspondingClip->buffer.getNumSamples() -
                                  correspondingClip->trimLeft -
