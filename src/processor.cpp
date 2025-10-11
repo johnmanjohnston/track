@@ -356,6 +356,8 @@ AudioPluginAudioProcessor::serializeNode(track::audioNode *node) {
     nodeElement->setAttribute("name", node->trackName);
     nodeElement->setAttribute("gain", node->gain);
     nodeElement->setAttribute("pan", node->pan);
+    nodeElement->setAttribute("solo", node->s);
+    nodeElement->setAttribute("mute", node->m);
 
     for (size_t i = 0; i < node->plugins.size(); ++i) {
         auto &pluginInstance = node->plugins[i];
@@ -427,6 +429,8 @@ void AudioPluginAudioProcessor::deserializeNode(juce::XmlElement *nodeElement,
     node->trackName = nodeElement->getStringAttribute("name");
     node->gain = (float)nodeElement->getDoubleAttribute("gain", 1.0);
     node->pan = (float)nodeElement->getDoubleAttribute("pan", 0.0);
+    node->s = nodeElement->getBoolAttribute("solo");
+    node->m = nodeElement->getBoolAttribute("mute");
     node->processor = this;
 
     juce::XmlElement *pluginElement = nodeElement->getChildByName("plugin");
