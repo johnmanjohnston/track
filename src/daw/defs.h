@@ -31,6 +31,7 @@ constexpr int TRIM_REGION_WIDTH = 8;
 // set in prepareToPlay()
 extern double SAMPLE_RATE;
 extern int SAMPLES_PER_BLOCK;
+extern int MAX_LATENT_SAMPLES;
 
 // must align with internal JUCE modifications
 #define COMMAND_UPDATE_VST3_EMBEDDED_BOUNDS 420

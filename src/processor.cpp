@@ -646,6 +646,8 @@ void AudioPluginAudioProcessor::setStateInformation(const void *data,
 
 void AudioPluginAudioProcessor::updateLatency() {
     int totalLatency = 0;
+    track::MAX_LATENT_SAMPLES = -1;
+
     for (track::audioNode &node : this->tracks) {
         /*
         DBG("calculating latency for node "
