@@ -17,6 +17,22 @@ class TimelineViewport : public juce::Viewport {
     Tracklist *tracklist = nullptr;
 };
 
+class BarNumbersComponent : public juce::Component {
+  public:
+    BarNumbersComponent();
+    ~BarNumbersComponent();
+
+    void paint(juce::Graphics &g);
+
+    juce::Font getInterRegular() {
+        static auto typeface = Typeface::createSystemTypefaceFor(
+            BinaryData::Inter_18ptRegular_ttf,
+            BinaryData::Inter_18ptRegular_ttfSize);
+
+        return Font(typeface);
+    }
+};
+
 class TimelineComponent : public juce::Component,
                           public juce::FileDragAndDropTarget {
   public:
@@ -41,6 +57,8 @@ class TimelineComponent : public juce::Component,
     std::vector<std::unique_ptr<ClipComponent>> clipComponents;
     void updateClipComponents();
     void resizeTimelineComponent();
+
+    BarNumbersComponent barNumbers;
 
     bool clipComponentsUpdated = false;
     void deleteClip(clip *c, int trackIndex);

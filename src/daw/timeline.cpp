@@ -1,14 +1,54 @@
 #include "timeline.h"
 #include "clipboard.h"
 #include "defs.h"
-#include "juce_gui_basics/juce_gui_basics.h"
 #include "track.h"
 
-// TODO: organize this file
+track::BarNumbersComponent::BarNumbersComponent() : juce::Component() {}
+track::BarNumbersComponent::~BarNumbersComponent() {}
+void track::BarNumbersComponent::paint(juce::Graphics &g) {
+    // DBG("timelineComponent paint called");
+    g.fillAll(juce::Colour(0xDD'2E2E2E));
+
+    // bar markers
+    float secondsPerBeat = 60.f / BPM;
+    float pxPerSecond = UI_ZOOM_MULTIPLIER;
+    float pxPerBeat = secondsPerBeat * pxPerSecond;
+
+    int beats = this->getWidth() / pxPerBeat;
+
+    // TODO: make this work for other time signatures
+    // assuming 4/4 time signature
+    float pxPerBar = pxPerBeat * 4;
+    int bars = beats * 4;
+
+    // space out markers
+    float minSpace = 30.f;
+    int incrementAmount = std::ceil(minSpace / pxPerBar);
+    incrementAmount = std::max(1, incrementAmount);
+
+    g.setFont(getInterRegular().withHeight(16.f));
+    juce::Rectangle<int> bounds = getLocalBounds();
+    bounds.setY(bounds.getY() - (bounds.getHeight() / 2.f) + 8);
+
+    for (int i = 0; i < bars; i += incrementAmount) {
+        for (int k = 0; k < incrementAmount && i + k < bars; ++k) {
+            float x = (i + k) * pxPerBar;
+
+            if (k == 0) {
+                // draw numbers
+                bounds.setX((int)x + 4);
+                g.setColour(juce::Colour(0xFF'929292).withAlpha(.8f));
+                g.drawText(juce::String(i + 1), bounds,
+                           juce::Justification::left, false);
+            }
+        }
+    }
+}
 
 track::TimelineComponent::TimelineComponent() : juce::Component() {
     setMouseClickGrabsKeyboardFocus(true);
     setWantsKeyboardFocus(true);
+    addAndMakeVisible(barNumbers, 10);
 };
 track::TimelineComponent::~TimelineComponent(){};
 
@@ -24,6 +64,9 @@ void track::TimelineViewport::scrollBarMoved(juce::ScrollBar *bar,
         }
 
         setViewPosition(getViewPositionX(), newRangeStart);
+
+        TimelineComponent *tc = (TimelineComponent *)getViewedComponent();
+        tc->resized();
     } else {
         setViewPosition(newRangeStart, getViewPositionY());
     }
@@ -224,14 +267,6 @@ void track::TimelineComponent::paint(juce::Graphics &g) {
         for (int k = 0; k < incrementAmount && i + k < bars; ++k) {
             float x = (i + k) * pxPerBar;
 
-            if (k == 0) {
-                // draw numbers
-                bounds.setX((int)x + 4);
-                g.setColour(juce::Colour(0xFF'929292).withAlpha(.8f));
-                g.drawText(juce::String(i + 1), bounds,
-                           juce::Justification::left, false);
-            }
-
             // draw vertical lines for bar numbers
             g.setColour(juce::Colour(0xFF'444444).withAlpha(.5f));
             g.fillRect((int)x, 0, 1, 1280);
@@ -290,6 +325,10 @@ void track::TimelineComponent::resized() {
     for (auto &&clip : this->clipComponents) {
         resizeClipComponent(clip.get());
     }
+
+    TimelineViewport *tv = findParentComponentOfClass<TimelineViewport>();
+    barNumbers.setBounds(0, tv->getViewPositionY(), getWidth(), 16);
+    barNumbers.toFront(false);
 }
 
 void track::TimelineComponent::updateClipComponents() {

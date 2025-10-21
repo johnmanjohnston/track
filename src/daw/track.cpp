@@ -4,7 +4,6 @@
 #include "automation_relay.h"
 #include "clipboard.h"
 #include "defs.h"
-#include "juce_graphics/juce_graphics.h"
 #include "subwindow.h"
 #include "timeline.h"
 
