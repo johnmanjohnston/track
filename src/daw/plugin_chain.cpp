@@ -1,12 +1,9 @@
 #include "plugin_chain.h"
 #include "clipboard.h"
 #include "defs.h"
-#include "juce_audio_processors/juce_audio_processors.h"
-#include "juce_opengl/opengl/juce_gl.h"
 #include "subwindow.h"
 #include "track.h"
 #include <cstddef>
-#include <fcntl.h>
 
 track::PluginNodeComponent::PluginNodeComponent() : juce::Component() {
     this->openEditorBtn.setButtonText("EDITOR");

@@ -85,7 +85,8 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
         contextMenu.addItem(MENU_PLUGIN_LAZY_SCAN, "Lazy scan for plugins");
         contextMenu.addItem(MENU_CLEAR_SCANNED_PLUGINS,
                             "Clear scanned plugins");
-        contextMenu.addItem(MENU_OPEN_RELAY_PARAMS_INSPECTOR, "Open relay params inspector");
+        contextMenu.addItem(MENU_OPEN_RELAY_PARAMS_INSPECTOR,
+                            "Open relay params inspector");
         contextMenu.addSeparator();
         contextMenu.addItem(MENU_UPDATE_LATENCY, "Update latency");
         contextMenu.addSeparator();
@@ -277,7 +278,8 @@ void AudioPluginAudioProcessorEditor::openRelayMenu(std::vector<int> route,
 
 void AudioPluginAudioProcessorEditor::openRelayParamInspector() {
     relayParamInspector = std::make_unique<track::RelayParamInspector>();
-    relayParamInspector->processor = &processorRef;
+    relayParamInspector->rpiComponent.processor = &processorRef;
+
     relayParamInspector->initSliders();
 
     addAndMakeVisible(*relayParamInspector);

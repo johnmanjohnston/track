@@ -1,5 +1,6 @@
 #include "automation_relay.h"
 #include "defs.h"
+#include "juce_audio_processors/juce_audio_processors.h"
 #include "subwindow.h"
 #include "track.h"
 
@@ -243,34 +244,111 @@ void track::RelayManagerNode::resized() {
     this->hostedPluginParamSelector.setBounds(10 + 30, 22 + 7, 220, 20);
 }
 
-track::RelayParamInspector::RelayParamInspector() : track::Subwindow() {};
-track::RelayParamInspector::~RelayParamInspector() {};
+// WARN: this shitshow gets REAL messy with the confusing class names
 
-void track::RelayParamInspector::paint(juce::Graphics& g) {
+track::RelayParamInspector::RelayParamInspector() : track::Subwindow() {
+    addAndMakeVisible(rpiViewport);
+
+    rpiViewport.setViewedComponent(&rpiComponent);
+};
+track::RelayParamInspector::~RelayParamInspector(){};
+
+track::RelayParamInspectorComponent::RelayParamInspectorComponent()
+    : juce::Component(){};
+track::RelayParamInspectorComponent::~RelayParamInspectorComponent() {}
+
+void track::RelayParamInspectorComponent::initSliders() {
+    jassert(processor != nullptr);
+
+    int params = 128;
+    for (int i = 0; i < params; ++i) {
+        std::unique_ptr<juce::Slider> &slider =
+            this->paramSliders.emplace_back(new juce::Slider());
+
+        juce::Array<juce::AudioProcessorParameter *> processorParams =
+            processor->getParameters();
+
+        juce::AudioProcessorParameter *rawParam =
+            processorParams[processor->automatableParametersIndexOffset + i];
+
+        juce::RangedAudioParameter *rangedParam =
+            (juce::RangedAudioParameter *)rawParam;
+
+        auto &x = paramSliderAttachments.emplace_back(
+            new juce::SliderParameterAttachment(*rangedParam, *slider,
+                                                nullptr));
+
+        slider->setRange(0, 100);
+
+        slider->setNumDecimalPlacesToDisplay(3);
+        slider->setTextBoxStyle(juce::Slider::TextEntryBoxPosition::TextBoxLeft,
+                                false, 52 + 12, 16);
+
+        addAndMakeVisible(*slider);
+    }
+}
+
+void track::RelayParamInspectorComponent::paint(juce::Graphics &g) {
+    // needs to align with resized()
+
+    int w = 200;
+    int h = 24;
+
+    g.setFont(getInterSemiBold().withHeight(18.f));
+    g.setColour(juce::Colours::white);
+
+    for (size_t i = 0; i < paramSliders.size(); ++i) {
+        g.drawText("param_" + juce::String(i), 8, 4 + ((int)i * h), 90, h,
+                   juce::Justification::left, false);
+    }
+}
+
+void track::RelayParamInspectorComponent::resized() {
+    int h = 24;
+    int w = 200;
+    for (size_t i = 0; i < paramSliders.size(); ++i) {
+        paramSliders[i]->setBounds(100, 4 + ((int)i * h), w, h);
+    }
+}
+
+void track::RelayParamInspector::paint(juce::Graphics &g) {
     Subwindow::paint(g);
+
+    g.setFont(getTitleBarFont());
+    g.setColour(juce::Colour(0xFF'A7A7A7));
+    g.drawText("Relay Params Inspector",
+               getTitleBarBounds().withLeft(8).withTop(2),
+               juce::Justification::left);
 }
 
 void track::RelayParamInspector::resized() {
-    Subwindow::resized(); 
+    Subwindow::resized();
+
+    rpiViewport.setBounds(0, UI_SUBWINDOW_TITLEBAR_HEIGHT, getWidth(),
+                          getHeight() - UI_SUBWINDOW_TITLEBAR_HEIGHT);
+    rpiComponent.setBounds(0, 0, 2000, 3100);
 
     /*
     int params = 128;
-    
+
     for (int i = 0; i < params; ++i) {
         paramSliders[i].setBounds(2, i * 20, 100, 20);
     }*/
 }
 
-void track::RelayParamInspector::initSliders() { 
-    int params = 128; 
+void track::RelayParamInspector::initSliders() {
+    // int params = 128;
 
     /*
     // rangedaudioparameter
-    juce::Array<juce::AudioProcessorParameter*> processorParams = processor->getParameters(); 
+    juce::Array<juce::AudioProcessorParameter*> processorParams =
+    processor->getParameters();
 
     for (int i = 0; i < params; ++i) {
     }
 
     //juce::RangedAudioParameter* = processor->getParam
     */
+
+    rpiComponent.initSliders();
 }

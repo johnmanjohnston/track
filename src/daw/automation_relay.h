@@ -1,5 +1,6 @@
 #pragma once
 #include "../processor.h"
+#include "juce_gui_basics/juce_gui_basics.h"
 #include "subwindow.h"
 #include "track.h"
 #include <JuceHeader.h>
@@ -85,19 +86,47 @@ class RelayManagerComponent : public track::Subwindow {
     void resized() override;
 };
 
+class RelayParamInspectorViewport : public juce::Viewport {
+  public:
+    RelayParamInspectorViewport() {}
+    ~RelayParamInspectorViewport() {}
+};
+
+class RelayParamInspectorComponent : public juce::Component {
+  public:
+    RelayParamInspectorComponent();
+    ~RelayParamInspectorComponent();
+
+    std::vector<std::unique_ptr<juce::Slider>> paramSliders;
+    std::vector<std::unique_ptr<juce::SliderParameterAttachment>>
+        paramSliderAttachments;
+    AudioPluginAudioProcessor *processor = nullptr;
+
+    // void paint(juce::Graphics &g) { g.fillAll(juce::Colours::magenta); }
+    void paint(juce::Graphics &g);
+    void resized();
+    void initSliders();
+
+    juce::Font getInterSemiBold() {
+        static auto typeface = Typeface::createSystemTypefaceFor(
+            BinaryData::Inter_18ptSemiBold_ttf,
+            BinaryData::Inter_18ptSemiBold_ttfSize);
+
+        return Font(typeface);
+    }
+};
+
 class RelayParamInspector : public track::Subwindow {
   public:
     RelayParamInspector();
     ~RelayParamInspector();
 
+    RelayParamInspectorViewport rpiViewport;
+    RelayParamInspectorComponent rpiComponent;
+
     void paint(juce::Graphics &g) override;
     void resized() override;
 
     void initSliders();
-
-    AudioPluginAudioProcessor *processor = nullptr;
-
-    std::vector<juce::Slider> paramSliders;
-    std::vector<juce::SliderParameterAttachment> paramSliderAttachments;
 };
 } // namespace track
