@@ -1,6 +1,6 @@
 namespace track {
 extern int UI_ZOOM_MULTIPLIER;
-constexpr int UI_MINIMUM_ZOOM_MULTIPLIER = 2;
+constexpr int UI_MINIMUM_ZOOM_MULTIPLIER = 10;
 constexpr int UI_MAXIMUM_ZOOM_MULTIPLIER = 160;
 
 extern int UI_TRACK_HEIGHT;

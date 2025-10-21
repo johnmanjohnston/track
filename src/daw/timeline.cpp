@@ -99,6 +99,7 @@ void track::TimelineViewport::mouseWheelMove(
         UI_ZOOM_MULTIPLIER =
             juce::jlimit(UI_MINIMUM_ZOOM_MULTIPLIER, UI_MAXIMUM_ZOOM_MULTIPLIER,
                          UI_ZOOM_MULTIPLIER);
+        DBG(UI_ZOOM_MULTIPLIER);
 
         tc->resizeTimelineComponent();
 
