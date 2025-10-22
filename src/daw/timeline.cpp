@@ -1,6 +1,7 @@
 #include "timeline.h"
 #include "clipboard.h"
 #include "defs.h"
+#include "juce_gui_basics/juce_gui_basics.h"
 #include "track.h"
 #include <cmath>
 
@@ -164,40 +165,27 @@ void track::TimelineComponent::mouseDown(const juce::MouseEvent &event) {
 
         // to select grid size for snapping to grid
         juce::PopupMenu gridMenu;
-        gridMenu.addItem("1/1", true, SNAP_DIVISION == 1, [this] {
-            SNAP_DIVISION = 1;
-            repaint();
-        });
-        gridMenu.addItem("1/2", true, SNAP_DIVISION == 2, [this] {
-            SNAP_DIVISION = 2;
-            repaint();
-        });
-        gridMenu.addItem("1/4", true, SNAP_DIVISION == 4, [this] {
-            SNAP_DIVISION = 4;
-            repaint();
-        });
-        gridMenu.addItem("1/8", true, SNAP_DIVISION == 8, [this] {
-            SNAP_DIVISION = 8;
-            repaint();
-        });
-        gridMenu.addItem("1/16", true, SNAP_DIVISION == 16, [this] {
-            SNAP_DIVISION = 16;
-            repaint();
-        });
-        gridMenu.addItem("1/32", true, SNAP_DIVISION == 32, [this] {
-            SNAP_DIVISION = 32;
-            repaint();
-        });
-        gridMenu.addItem("1/64", true, SNAP_DIVISION == 64, [this] {
-            SNAP_DIVISION = 64;
-            repaint();
-        });
-
         juce::PopupMenu shiftUpMenu;
+        juce::PopupMenu shiftDownMenu;
+
+        // 2**5 = 32
         for (int i = 0; i <= 5; ++i) {
-            int bars = std::pow(2, i);
-            shiftUpMenu.addItem(juce::String(bars) + " bars",
-                                [this, bars] { shiftClipByBars(bars); });
+            int x = std::pow(2, i);
+
+            // snap grid
+            gridMenu.addItem("1/" + juce::String(x), true, SNAP_DIVISION == x,
+                             [this, x] {
+                                 SNAP_DIVISION = x;
+                                 repaint();
+                             });
+
+            // shift up
+            shiftUpMenu.addItem(juce::String(x) + " bars",
+                                [this, x] { shiftClipByBars(x); });
+
+            // shift down
+            shiftDownMenu.addItem(juce::String(x) + " bars",
+                                  [this, x] { shiftClipByBars(-x); });
         }
 
 #define MENU_PASTE_CLIP 1
@@ -206,7 +194,10 @@ void track::TimelineComponent::mouseDown(const juce::MouseEvent &event) {
                             clipboard::typecode == TYPECODE_CLIP);
         contextMenu.addSubMenu("Grid", gridMenu);
 
-        contextMenu.addSubMenu("Shift all clips up by ", shiftUpMenu);
+        contextMenu.addSeparator();
+
+        contextMenu.addSubMenu("Shift all clips ahead ", shiftUpMenu);
+        contextMenu.addSubMenu("Shift all clips back ", shiftDownMenu);
 
         contextMenu.showMenuAsync(juce::PopupMenu::Options(), [this, event](
                                                                   int result) {
@@ -459,8 +450,23 @@ void track::TimelineComponent::splitClip(clip *c, int splitSample,
 }
 
 void track::TimelineComponent::shiftClipByBars(int bars) {
-    // TODO: this
     DBG("shiftClipByBars() called with bars " << bars);
+
+    int beatsPerBar = 4;
+    double secondsPerBar = (60.0 / track::BPM) * beatsPerBar;
+    int samplesPerBar = secondsPerBar * track::SAMPLE_RATE;
+
+    Tracklist *tracklist = viewport->tracklist;
+
+    for (auto &tc : tracklist->trackComponents) {
+        if (tc->getCorrespondingTrack()->isTrack) {
+            for (auto &clip : tc->getCorrespondingTrack()->clips) {
+                clip.startPositionSample += samplesPerBar * bars;
+            }
+        }
+    }
+
+    updateClipComponents();
 }
 
 bool track::TimelineComponent::isInterestedInFileDrag(
