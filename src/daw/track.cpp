@@ -465,10 +465,11 @@ void track::ClipComponent::mouseDrag(const juce::MouseEvent &event) {
     int samplesPerSnap = samplesPerBar / SNAP_DIVISION;
 
     // if alt held, don't snap
+    int snappedSamplePos = -1;
     if (event.mods.isAltDown()) {
         newStartPos = rawSamplePos;
     } else {
-        int snappedSamplePos =
+        snappedSamplePos =
             ((rawSamplePos + samplesPerSnap / 2) / samplesPerSnap) *
             samplesPerSnap;
 
@@ -495,7 +496,7 @@ void track::ClipComponent::mouseDrag(const juce::MouseEvent &event) {
 
     // there's a strange bug where is you untrim left too quickly, the whole
     // clip shifts to the right a bit. this should shove the clip back in place
-    if (finalEndPos - endPosPostCorrection < 0) {
+    if (finalEndPos - endPosPostCorrection < 0 && trimMode == -1) {
         correspondingClip->startPositionSample +=
             finalEndPos - endPosPostCorrection;
     }
