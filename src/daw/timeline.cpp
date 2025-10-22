@@ -2,8 +2,12 @@
 #include "clipboard.h"
 #include "defs.h"
 #include "track.h"
+#include <cmath>
 
-track::BarNumbersComponent::BarNumbersComponent() : juce::Component() {}
+track::BarNumbersComponent::BarNumbersComponent() : juce::Component() {
+    setInterceptsMouseClicks(false, false);
+}
+
 track::BarNumbersComponent::~BarNumbersComponent() {}
 void track::BarNumbersComponent::paint(juce::Graphics &g) {
     // DBG("timelineComponent paint called");
@@ -189,11 +193,20 @@ void track::TimelineComponent::mouseDown(const juce::MouseEvent &event) {
             repaint();
         });
 
+        juce::PopupMenu shiftUpMenu;
+        for (int i = 0; i <= 5; ++i) {
+            int bars = std::pow(2, i);
+            shiftUpMenu.addItem(juce::String(bars) + " bars",
+                                [this, bars] { shiftClipByBars(bars); });
+        }
+
 #define MENU_PASTE_CLIP 1
 
         contextMenu.addItem(MENU_PASTE_CLIP, "Paste clip",
                             clipboard::typecode == TYPECODE_CLIP);
         contextMenu.addSubMenu("Grid", gridMenu);
+
+        contextMenu.addSubMenu("Shift all clips up by ", shiftUpMenu);
 
         contextMenu.showMenuAsync(juce::PopupMenu::Options(), [this, event](
                                                                   int result) {
@@ -443,6 +456,11 @@ void track::TimelineComponent::splitClip(clip *c, int splitSample,
 
     updateClipComponents();
     repaint();
+}
+
+void track::TimelineComponent::shiftClipByBars(int bars) {
+    // TODO: this
+    DBG("shiftClipByBars() called with bars " << bars);
 }
 
 bool track::TimelineComponent::isInterestedInFileDrag(
