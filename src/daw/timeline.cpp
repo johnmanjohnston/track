@@ -274,13 +274,13 @@ void track::TimelineComponent::paint(juce::Graphics &g) {
 
             // draw vertical lines for bar numbers
             g.setColour(juce::Colour(0xFF'444444).withAlpha(.5f));
-            g.fillRect((int)x, 0, 1, 1280);
+            g.fillRect((int)x, 0, 1, getHeight());
 
             // draw lines for grid snapping
             g.setColour(juce::Colour(0xFF'444444).withAlpha(.3f));
             for (int j = 0; j < SNAP_DIVISION; ++j) {
                 int divX = x + ((pxPerBar / SNAP_DIVISION) * j);
-                g.fillRect(divX, 0, 1, 1280);
+                g.fillRect(divX, 0, 1, getHeight());
             }
         }
     }
