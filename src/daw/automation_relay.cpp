@@ -1,6 +1,5 @@
 #include "automation_relay.h"
 #include "defs.h"
-#include "juce_audio_processors/juce_audio_processors.h"
 #include "subwindow.h"
 #include "track.h"
 

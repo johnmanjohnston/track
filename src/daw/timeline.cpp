@@ -1,7 +1,6 @@
 #include "timeline.h"
 #include "clipboard.h"
 #include "defs.h"
-#include "juce_gui_basics/juce_gui_basics.h"
 #include "track.h"
 #include <cmath>
 
@@ -33,7 +32,7 @@ void track::BarNumbersComponent::paint(juce::Graphics &g) {
 
     g.setFont(getInterRegular().withHeight(16.f));
     juce::Rectangle<int> bounds = getLocalBounds();
-    bounds.setY(bounds.getY() - (bounds.getHeight() / 2.f) + 8);
+    bounds.setY(bounds.getY() - (bounds.getHeight() / 2.f) + 9);
 
     for (int i = 0; i < bars; i += incrementAmount) {
         for (int k = 0; k < incrementAmount && i + k < bars; ++k) {
@@ -509,14 +508,15 @@ void track::TimelineComponent::filesDropped(const juce::StringArray &files,
         juce::NativeMessageBox::showMessageBoxAsync(
             juce::MessageBoxIconType::WarningIcon, "Invalid file",
             "Couldn't read data from \"" + filename +
-                juce::String("\"\n\nTroubleshooting:\n- Verify "
-                             "that you dragged the "
-                             "right file\n- Verify that the file really is an "
-                             "audio file\n- "
-                             "Check "
-                             "if the file is corrupted (try playing it back in "
-                             "a different "
-                             "audio player program)"));
+                juce::String(
+                    "\"\n\nTroubleshooting:\n- Verify "
+                    "that you dragged the "
+                    "right file\n- Verify that the file really is an "
+                    "audio file\n- "
+                    "Check if the file is corrupted (try playing it back in "
+                    "a different "
+                    "audio player program)\n- Verify that another program "
+                    "isn't using the file"));
 
         DBG("INVALID AUDIO FILE DRAGGED");
         return;
