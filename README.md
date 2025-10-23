@@ -1,8 +1,8 @@
 # track
-audio plugin which acts as a mini DAW, as a workaround to track count limits in major DAWs 
+audio plugin which acts as a mini DAW, as a workaround to track count limits in major DAWs
 
 ## About
-**track is a free plugin developed as a workaround to track count limits in DAWs (like in Ableton Live Lite)**
+**track is a free plugin developed as a workaround to track count limits in DAWs** (like Ableton Live Lite's 8 track limit)
 
 
 To start using track, add the plugin to any track within your host DAW—you now have a mini DAW in a plugin.
@@ -18,7 +18,7 @@ You can then create tracks to play audio clips, as well as hosting other plugins
 TODO
 
 ## Installation
-### Latest Release (0.0.1)
+### Latest Release (v0.0.1)
 Linux (compiled on Arch): TODO
 
 Windows (64-bit): TODO
