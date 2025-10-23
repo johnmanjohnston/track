@@ -2,19 +2,31 @@
 audio plugin which acts as a mini DAW, as a workaround to track count limits in major DAWs 
 
 ## About
-track is a free plugin developed as a workaround to track count limits in DAWs (like in Ableton Live Lite)
-to start using track, add the plugin to any track within your host DAW—you now have a mini DAW in a plugin
-you can then create tracks to play audio clips, as well as hosting other plugins with delay compensation
+**track is a free plugin developed as a workaround to track count limits in DAWs (like in Ableton Live Lite)**
 
-# Features
-- unlimited stereo audio tracks, which can be nested using groups
-- scanning and hosting plugins for individual tracks and/or groups
 
-# Usage
+To start using track, add the plugin to any track within your host DAW—you now have a mini DAW in a plugin.
+You can then create tracks to play audio clips, as well as hosting other plugins with delay compensation.
+
+## Features
+- **unlimited stereo audio tracks**, which can be nested using groups
+- **drag and drop audio clips** (with basic clip manipulation features like splitting and trimming)
+- **scanning and hosting plugins** for individual tracks and/or groups, with **delay compensation**
+- **automation medium** from host DAW to plugins hosted inside of track
+
+## Usage
 TODO
 
 ## Installation
-From the Releases section, download the appropriate file for your operating system
+### Latest Release (0.0.1)
+Linux (compiled on Arch): TODO
+
+Windows (64-bit): TODO
+
+macOS: TODO
+
+### Older Versions
+for older builds, from the Releases section, download the appropriate file for your platform
 
 ## Building
 ### Downloading Source and Dependencies
@@ -34,8 +46,15 @@ $ cmake .
 
 You should then see the required files to build for your platform
 
-### Temporary hack for track to run properly on Linux
-inside JUCE/modules/juce_audio_processors/format_types/juce_VST3PluginFormat.cpp, add the following code anywhere inside the `VST3PluginWindow` struct
+<details>
+    <summary>
+        <b>Temporary hack for track to run properly on Linux</b>
+    </summary>
+
+<br>
+
+inside `JUCE/modules/juce_audio_processors/format_types/juce_VST3PluginFormat.cpp`, add the following code anywhere inside the `VST3PluginWindow` struct
+
 ```cpp
 #if JUCE_LINUX
     void handleCommandMessage(int commandId) override {
@@ -44,7 +63,9 @@ inside JUCE/modules/juce_audio_processors/format_types/juce_VST3PluginFormat.cpp
         }
     }
 #endif
+
 ```
+</details>
 
 ### Compiling
 #### Linux-based
@@ -58,4 +79,9 @@ $ make
 - Under Build, click Build Solution (or just do Ctrl+Shift+B)
 
 ### Running
-move `track_artefacts/DEBUG/VST3/track.vst3` to the appropriate plugins folder for your DAW, then add the plugin to a track in your DAW
+**If you built a debug build**, move `track_artefacts/Debug/VST3/track.vst3` to the appropriate plugins folder for your DAW
+
+otherwise, move `track_artefacts/Release/VST3/track.vst3` to the appropriate plugins folder for your DAW
+
+then add track to any track in your DAW
+
