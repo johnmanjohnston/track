@@ -109,6 +109,8 @@ class AudioPluginAudioProcessorEditor : public juce::AudioProcessorEditor,
         playhead.updateBounds();
     }
 
+    juce::OpenGLContext openGlContext;
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(
         AudioPluginAudioProcessorEditor)
 };

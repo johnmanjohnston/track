@@ -16,6 +16,8 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
 
     juce::ignoreUnused(processorRef);
 
+    openGlContext.attachTo(*getTopLevelComponent());
+
     // sizing
     setResizable(true, true);
     setResizeLimits(540, 360, 1280, 720);
