@@ -85,3 +85,5 @@ otherwise, move `track_artefacts/Release/VST3/track.vst3` to the appropriate plu
 
 then add track to any track in your DAW
 
+## License
+track is licensed under AGPLv3, see [LICENSE](https://github.com/johnmanjohnston/track/blob/main/LICENSE) for details
