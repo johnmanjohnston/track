@@ -753,6 +753,10 @@ track::TrackComponent::TrackComponent(int trackIndex) : juce::Component() {
         getCorrespondingTrack()->gain = gainSlider.getValue();
     };
 
+    gainSlider.onValueChange = [this] {
+        getCorrespondingTrack()->gain = gainSlider.getValue();
+    };
+
     addAndMakeVisible(gainSlider);
     gainSlider.setSkewFactorFromMidPoint(0.3f);
     gainSlider.setRange(0.0, 6.0);
@@ -821,14 +825,12 @@ void track::TrackComponent::mouseDown(const juce::MouseEvent &event) {
         PopupMenu contextMenu;
         contextMenu.setLookAndFeel(&getLookAndFeel());
 
-        contextMenu.addItem(
-            "Delete " + getCorrespondingTrack()->trackName, [this] {
-                Tracklist *tracklist =
-                    (Tracklist *)findParentComponentOfClass<Tracklist>();
+        contextMenu.addItem("Rename", [this] {
+            juce::Timer::callAfterDelay(
+                50, [this] { trackNameLabel.showEditor(); });
+        });
 
-                // tracklist->deleteTrack(this->siblingIndex);
-                tracklist->deleteTrack(this->route);
-            });
+        contextMenu.addSeparator();
 
         contextMenu.addItem(
             "Ungroup",
@@ -891,6 +893,17 @@ void track::TrackComponent::mouseDown(const juce::MouseEvent &event) {
             panSlider.setValue(0.f);
             repaint();
         });
+
+        contextMenu.addSeparator();
+
+        contextMenu.addItem(
+            "Delete " + getCorrespondingTrack()->trackName, [this] {
+                Tracklist *tracklist =
+                    (Tracklist *)findParentComponentOfClass<Tracklist>();
+
+                // tracklist->deleteTrack(this->siblingIndex);
+                tracklist->deleteTrack(this->route);
+            });
 
         if (getCorrespondingTrack()->isTrack == false) {
             contextMenu.addSeparator();
