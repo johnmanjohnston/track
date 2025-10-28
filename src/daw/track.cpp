@@ -1187,7 +1187,15 @@ void track::TrackComponent::resized() {
         int sliderHeight = 20;
         int sliderWidth = 110;
 
-        gainSlider.setBounds(xOffset + UI_TRACK_INDEX_WIDTH + 4,
+        int sliderX = xOffset + UI_TRACK_INDEX_WIDTH + 4;
+
+        // if you're nesting ridiclously many tracks, the gain slider overlaps
+        // the mute button
+        if (sliderX + sliderWidth > muteBtn.getX() - 4) {
+            sliderWidth -= xOffset / 2;
+        }
+
+        gainSlider.setBounds(sliderX,
                              (UI_TRACK_HEIGHT / 2) - (sliderHeight / 2) +
                                  (int)(UI_TRACK_HEIGHT * .2f) + 2,
                              sliderWidth, sliderHeight);
