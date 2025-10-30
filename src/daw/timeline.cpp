@@ -154,6 +154,24 @@ void track::TimelineViewport::mouseWheelMove(
             Component::mouseWheelMove(ev, mouseWheelDetails);
 }
 
+bool track::TimelineComponent::keyStateChanged(bool isKeyDown) {
+    DBG("key state changed for timeline component");
+
+    if (isKeyDown) {
+        // ctrl+z
+        if (juce::KeyPress::isKeyCurrentlyDown(90)) {
+            processorRef->undoManager.undo();
+        }
+
+        // ctrl+y
+        else if (juce::KeyPress::isKeyCurrentlyDown(89)) {
+            processorRef->undoManager.redo();
+        }
+    }
+
+    return false;
+}
+
 void track::TimelineComponent::mouseDown(const juce::MouseEvent &event) {
     grabKeyboardFocus();
 

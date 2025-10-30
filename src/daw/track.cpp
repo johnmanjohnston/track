@@ -520,6 +520,34 @@ void track::ClipComponent::mouseUp(const juce::MouseEvent &event) {
         tc->resizeTimelineComponent();
 
         tc->grabKeyboardFocus();
+
+        Tracklist *tracklist = tc->viewport->tracklist;
+        ActionClipStartSampleChanged *action =
+            new ActionClipStartSampleChanged();
+
+        action->tc = tc;
+        action->cc = this;
+
+        action->newStartSample = correspondingClip->startPositionSample;
+        action->oldStartSample =
+            correspondingClip->startPositionSample -
+            (distanceMovedHorizontally * track::SAMPLE_RATE) /
+                UI_ZOOM_MULTIPLIER;
+        action->p = tc->processorRef;
+        action->route =
+            tracklist->trackComponents[(size_t)nodeDisplayIndex]->route;
+        audioNode *node = tracklist->trackComponents[(size_t)nodeDisplayIndex]
+                              ->getCorrespondingTrack();
+        for (size_t i = 0; i < node->clips.size(); ++i) {
+            if (&node->clips[i] == correspondingClip) {
+                DBG("using index " << i << " for undo action");
+                action->clipIndex = i;
+                break;
+            }
+        }
+
+        tc->processorRef->undoManager.perform(action);
+        tc->resizeClipComponent(this);
     }
 
     if (!event.mods.isLeftButtonDown()) {
@@ -552,13 +580,11 @@ void track::ClipComponent::mouseMove(const juce::MouseEvent &event) {
 }
 
 bool track::ClipComponent::keyStateChanged(bool isKeyDown) {
-    /*
-    juce::KeyPress curCombo =
-    juce::KeyPress::createFromDescription("ctr+r"); if
-    (curCombo.isCurrentlyDown()) { DBG("curCombo is down");
+    juce::KeyPress curCombo = juce::KeyPress::createFromDescription("ctrl+y");
+    if (curCombo.isCurrentlyDown()) {
+        DBG("curCombo is down");
         DBG(curCombo.getKeyCode());
     }
-    */
 
     if (isKeyDown) {
         // r
@@ -585,9 +611,82 @@ bool track::ClipComponent::keyStateChanged(bool isKeyDown) {
             TimelineComponent *tc = (TimelineComponent *)getParentComponent();
             tc->deleteClip(correspondingClip, nodeDisplayIndex);
         }
+
+        // ctrl+z
+        else if (juce::KeyPress::isKeyCurrentlyDown(90)) {
+            TimelineComponent *tc = (TimelineComponent *)getParentComponent();
+            // if (tc->processorRef->undoManager.canUndo()) {
+            DBG("calling processor's undoManager.undo()");
+
+            // ActionClipComponentMove x{};
+            // tc->processorRef->undoManager.perform(&x);
+
+            if (!tc->processorRef->undoManager.canUndo()) {
+                DBG("CANNOT UNDO :(");
+            } else {
+
+                tc->processorRef->undoManager.undo();
+                // tc->resizeClipComponent(this);
+            }
+
+            repaint();
+        }
+
+        // ctrl+y
+        else if (juce::KeyPress::isKeyCurrentlyDown(89)) {
+            DBG("calling redo()");
+            TimelineComponent *tc = (TimelineComponent *)getParentComponent();
+            tc->processorRef->undoManager.redo();
+
+            // tc->resizeClipComponent(this);
+            repaint();
+        }
     }
 
     return false;
+}
+
+track::ActionClipStartSampleChanged::ActionClipStartSampleChanged()
+    : juce::UndoableAction(){};
+track::ActionClipStartSampleChanged::~ActionClipStartSampleChanged() {}
+
+bool track::ActionClipStartSampleChanged::perform() {
+    DBG("PERFORM() CALLED");
+
+    AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
+    audioNode *head = &processor->tracks[(size_t)route[0]];
+    for (size_t i = 1; i < route.size(); ++i) {
+        head = &head->childNodes[(size_t)route[i]];
+    }
+    clip *c = &head->clips[(size_t)clipIndex];
+    c->startPositionSample = newStartSample;
+
+    updateGUI();
+
+    return true;
+}
+
+bool track::ActionClipStartSampleChanged::undo() {
+    AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
+    audioNode *head = &processor->tracks[(size_t)route[0]];
+    for (size_t i = 1; i < route.size(); ++i) {
+        head = &head->childNodes[(size_t)route[i]];
+    }
+    clip *c = &head->clips[(size_t)clipIndex];
+    c->startPositionSample = oldStartSample;
+
+    updateGUI();
+
+    return true;
+}
+
+void track::ActionClipStartSampleChanged::updateGUI() {
+    jassert(tc != nullptr);
+    jassert(cc != nullptr);
+    TimelineComponent *timelineComponent = (TimelineComponent *)tc;
+    ClipComponent *clipComponent = (ClipComponent *)cc;
+    timelineComponent->resizeClipComponent(clipComponent);
+    clipComponent->repaint();
 }
 
 track::ClipPropertiesWindow::ClipPropertiesWindow() : track::Subwindow() {

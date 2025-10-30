@@ -1,5 +1,6 @@
 #pragma once
 #include "daw/track.h"
+#include "juce_data_structures/juce_data_structures.h"
 #include <JuceHeader.h>
 
 class AudioPluginAudioProcessor : public juce::AudioProcessor {
@@ -54,6 +55,8 @@ class AudioPluginAudioProcessor : public juce::AudioProcessor {
     juce::AudioParameterFloat *johnFloat;
 
     int automatableParametersIndexOffset = -1;
+
+    juce::UndoManager undoManager;
 
   private:
     juce::Random random;

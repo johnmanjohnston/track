@@ -84,6 +84,26 @@ class ClipComponent : public juce::Component, public juce::ChangeListener {
     juce::Label clipNameLabel;
 };
 
+class ActionClipStartSampleChanged : public juce::UndoableAction {
+  public:
+    void *p = nullptr;
+    std::vector<int> route;
+    int clipIndex;
+
+    int oldStartSample;
+    int newStartSample;
+
+    void *tc = nullptr;
+    void *cc = nullptr;
+
+    ActionClipStartSampleChanged();
+    ~ActionClipStartSampleChanged();
+
+    bool perform() override;
+    bool undo() override;
+    void updateGUI();
+};
+
 class ClipPropertiesWindow : public track::Subwindow {
   public:
     ClipPropertiesWindow();
