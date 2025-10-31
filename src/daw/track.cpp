@@ -4,6 +4,7 @@
 #include "automation_relay.h"
 #include "clipboard.h"
 #include "defs.h"
+#include "juce_events/juce_events.h"
 #include "subwindow.h"
 #include "timeline.h"
 #include "utility.h"
@@ -33,11 +34,35 @@ track::ClipComponent::ClipComponent(clip *c)
     // 300, 20);
     addAndMakeVisible(clipNameLabel);
 
-    clipNameLabel.onTextChange = [this] {
-        correspondingClip->name = clipNameLabel.getText(true);
-    };
+    // clipNameLabel.onTextChange = [this] {};
 
-    clipNameLabel.onEditorHide = [this] { repaint(); };
+    clipNameLabel.onEditorHide = [this] {
+        TimelineComponent *tc = (TimelineComponent *)getParentComponent();
+        Tracklist *tracklist = tc->viewport->tracklist;
+
+        audioNode *node = tracklist->trackComponents[(size_t)nodeDisplayIndex]
+                              ->getCorrespondingTrack();
+        int index = track::utility::getIndexOfClip(node, correspondingClip);
+
+        ActionClipModified *action = new ActionClipModified(
+            tc->processorRef,
+            tracklist->trackComponents[(size_t)nodeDisplayIndex]->route, index,
+            *this->correspondingClip);
+
+        action->tc = tc;
+        action->cc = this;
+
+        correspondingClip->name = clipNameLabel.getText(true);
+
+        action->newClip.name = correspondingClip->name;
+        action->oldClip.name = "beans lmao";
+
+        DBG("calling perform()");
+
+        tc->processorRef->undoManager.perform(action);
+
+        repaint();
+    };
 
     setBufferedToImage(true);
     setOpaque(false);
@@ -501,8 +526,14 @@ void track::ClipComponent::mouseDrag(const juce::MouseEvent &event) {
     // there's a strange bug where is you untrim left too quickly, the whole
     // clip shifts to the right a bit. this should shove the clip back in place
     if (finalEndPos - endPosPostCorrection < 0 && trimMode == -1) {
-        correspondingClip->startPositionSample +=
-            finalEndPos - endPosPostCorrection;
+        DBG(finalEndPos - endPosPostCorrection);
+        DBG(event.getDistanceFromDragStartX());
+        DBG("-");
+
+        // if distance from drag start is 1, the whole clip flies away?????
+        if (event.getDistanceFromDragStartX() != 1)
+            correspondingClip->startPositionSample +=
+                finalEndPos - endPosPostCorrection;
     }
     finalEndPos = endPosPostCorrection;
 
@@ -654,15 +685,20 @@ track::ActionClipModified::ActionClipModified(void *processor,
 };
 track::ActionClipModified::~ActionClipModified() {}
 
-bool track::ActionClipModified::perform() {
-    DBG("PERFORM() CALLED");
-
+track::clip *track::ActionClipModified::getClip() {
     AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
     audioNode *head = &processor->tracks[(size_t)route[0]];
     for (size_t i = 1; i < route.size(); ++i) {
         head = &head->childNodes[(size_t)route[i]];
     }
     clip *c = &head->clips[(size_t)clipIndex];
+    return c;
+}
+
+bool track::ActionClipModified::perform() {
+    DBG("PERFORM() CALLED");
+
+    clip *c = getClip();
     *c = newClip;
 
     updateGUI();
@@ -671,12 +707,7 @@ bool track::ActionClipModified::perform() {
 }
 
 bool track::ActionClipModified::undo() {
-    AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
-    audioNode *head = &processor->tracks[(size_t)route[0]];
-    for (size_t i = 1; i < route.size(); ++i) {
-        head = &head->childNodes[(size_t)route[i]];
-    }
-    clip *c = &head->clips[(size_t)clipIndex];
+    clip *c = getClip();
     *c = oldClip;
 
     updateGUI();
@@ -687,9 +718,15 @@ bool track::ActionClipModified::undo() {
 void track::ActionClipModified::updateGUI() {
     jassert(tc != nullptr);
     jassert(cc != nullptr);
+
     TimelineComponent *timelineComponent = (TimelineComponent *)tc;
     ClipComponent *clipComponent = (ClipComponent *)cc;
+
     timelineComponent->resizeClipComponent(clipComponent);
+
+    clipComponent->clipNameLabel.setText(
+        getClip()->name, juce::NotificationType::dontSendNotification);
+
     clipComponent->repaint();
 }
 

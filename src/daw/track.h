@@ -93,6 +93,7 @@ class ActionClipModified : public juce::UndoableAction {
     // int oldStartSample;
     // int newStartSample;
 
+    clip *getClip();
     clip newClip;
     clip oldClip;
 
