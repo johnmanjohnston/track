@@ -4,9 +4,9 @@
 #include "automation_relay.h"
 #include "clipboard.h"
 #include "defs.h"
-#include "juce_events/juce_events.h"
 #include "subwindow.h"
 #include "timeline.h"
+#include "utility.h"
 
 track::ClipComponent::ClipComponent(clip *c)
     : juce::Component(), thumbnailCache(5),
@@ -293,14 +293,17 @@ void track::ClipComponent::mouseDown(const juce::MouseEvent &event) {
                 // also, by creating a copy of the clip we allow the user to
                 // delete the orginal clip from timeline, and still paste it
                 track::clip *newClip = new track::clip;
-                newClip->buffer = correspondingClip->buffer;
+
+                /*newClip->buffer = correspondingClip->buffer;
                 newClip->startPositionSample =
                     correspondingClip->startPositionSample;
                 newClip->name = correspondingClip->name;
                 newClip->path = correspondingClip->path;
                 newClip->active = correspondingClip->active;
                 newClip->trimLeft = correspondingClip->trimLeft;
-                newClip->trimRight = correspondingClip->trimRight;
+                newClip->trimRight = correspondingClip->trimRight;*/
+
+                *newClip = *correspondingClip;
 
                 clipboard::setData(newClip, TYPECODE_CLIP);
             }
@@ -524,29 +527,23 @@ void track::ClipComponent::mouseUp(const juce::MouseEvent &event) {
 
         // dispatch to undomanager
         Tracklist *tracklist = tc->viewport->tracklist;
-        ActionClipStartSampleChanged *action =
-            new ActionClipStartSampleChanged();
+        audioNode *node = tracklist->trackComponents[(size_t)nodeDisplayIndex]
+                              ->getCorrespondingTrack();
+        int index = track::utility::getIndexOfClip(node, correspondingClip);
+
+        ActionClipModified *action = new ActionClipModified(
+            tc->processorRef,
+            tracklist->trackComponents[(size_t)nodeDisplayIndex]->route, index,
+            *this->correspondingClip);
 
         action->tc = tc;
         action->cc = this;
 
-        action->newStartSample = correspondingClip->startPositionSample;
-        action->oldStartSample = startDragStartPositionSample;
-        action->p = tc->processorRef;
-        action->route =
-            tracklist->trackComponents[(size_t)nodeDisplayIndex]->route;
-        audioNode *node = tracklist->trackComponents[(size_t)nodeDisplayIndex]
-                              ->getCorrespondingTrack();
-        for (size_t i = 0; i < node->clips.size(); ++i) {
-            if (&node->clips[i] == correspondingClip) {
-                DBG("using index " << i << " for undo action");
-                action->clipIndex = i;
-                break;
-            }
-        }
+        action->oldClip.startPositionSample = startDragStartPositionSample;
+        action->oldClip.trimLeft = startTrimLeftPositionSample;
+        action->oldClip.trimRight = startTrimRightPositionSample;
 
         tc->processorRef->undoManager.perform(action);
-        tc->resizeClipComponent(this);
     }
 
     if (!event.mods.isLeftButtonDown()) {
@@ -645,11 +642,19 @@ bool track::ClipComponent::keyStateChanged(bool isKeyDown) {
     return false;
 }
 
-track::ActionClipStartSampleChanged::ActionClipStartSampleChanged()
-    : juce::UndoableAction(){};
-track::ActionClipStartSampleChanged::~ActionClipStartSampleChanged() {}
+track::ActionClipModified::ActionClipModified(void *processor,
+                                              std::vector<int> nodeRoute,
+                                              int indexOfClip, clip c)
+    : juce::UndoableAction() {
+    this->p = processor;
+    this->route = nodeRoute;
+    this->clipIndex = indexOfClip;
+    this->newClip = c;
+    this->oldClip = c;
+};
+track::ActionClipModified::~ActionClipModified() {}
 
-bool track::ActionClipStartSampleChanged::perform() {
+bool track::ActionClipModified::perform() {
     DBG("PERFORM() CALLED");
 
     AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
@@ -658,28 +663,28 @@ bool track::ActionClipStartSampleChanged::perform() {
         head = &head->childNodes[(size_t)route[i]];
     }
     clip *c = &head->clips[(size_t)clipIndex];
-    c->startPositionSample = newStartSample;
+    *c = newClip;
 
     updateGUI();
 
     return true;
 }
 
-bool track::ActionClipStartSampleChanged::undo() {
+bool track::ActionClipModified::undo() {
     AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
     audioNode *head = &processor->tracks[(size_t)route[0]];
     for (size_t i = 1; i < route.size(); ++i) {
         head = &head->childNodes[(size_t)route[i]];
     }
     clip *c = &head->clips[(size_t)clipIndex];
-    c->startPositionSample = oldStartSample;
+    *c = oldClip;
 
     updateGUI();
 
     return true;
 }
 
-void track::ActionClipStartSampleChanged::updateGUI() {
+void track::ActionClipModified::updateGUI() {
     jassert(tc != nullptr);
     jassert(cc != nullptr);
     TimelineComponent *timelineComponent = (TimelineComponent *)tc;

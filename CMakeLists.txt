@@ -40,6 +40,7 @@ target_sources(track PRIVATE
     src/daw/plugin_chain.cpp
     src/daw/automation_relay.cpp
     src/daw/clipboard.cpp
+    src/daw/utility.cpp
     src/lookandfeel.cpp)
 
 target_compile_definitions(track PRIVATE

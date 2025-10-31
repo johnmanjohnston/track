@@ -84,14 +84,17 @@ class ClipComponent : public juce::Component, public juce::ChangeListener {
     juce::Label clipNameLabel;
 };
 
-class ActionClipStartSampleChanged : public juce::UndoableAction {
+class ActionClipModified : public juce::UndoableAction {
   public:
     void *p = nullptr;
     std::vector<int> route;
     int clipIndex;
 
-    int oldStartSample;
-    int newStartSample;
+    // int oldStartSample;
+    // int newStartSample;
+
+    clip newClip;
+    clip oldClip;
 
     // ui
     // FIXME: if you're storing pointers to UI components, they might be
@@ -104,8 +107,9 @@ class ActionClipStartSampleChanged : public juce::UndoableAction {
     void *tc = nullptr;
     void *cc = nullptr;
 
-    ActionClipStartSampleChanged();
-    ~ActionClipStartSampleChanged();
+    ActionClipModified(void *processor, std::vector<int> nodeRoute,
+                       int indexOfClip, clip c);
+    ~ActionClipModified();
 
     bool perform() override;
     bool undo() override;
