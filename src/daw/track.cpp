@@ -55,7 +55,7 @@ track::ClipComponent::ClipComponent(clip *c)
         correspondingClip->name = clipNameLabel.getText(true);
 
         action->newClip.name = correspondingClip->name;
-        action->oldClip.name = "beans lmao";
+        // action->oldClip.name = "beans lmao";
 
         DBG("calling perform()");
 
