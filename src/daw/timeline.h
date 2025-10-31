@@ -1,5 +1,6 @@
 #pragma once
 #include "../processor.h"
+#include "juce_data_structures/juce_data_structures.h"
 #include "track.h"
 #include <JuceHeader.h>
 
@@ -31,6 +32,20 @@ class BarNumbersComponent : public juce::Component {
 
         return Font(typeface);
     }
+};
+
+class ActionAddClip : public juce::UndoableAction {
+  public:
+    clip addedClip;
+    audioNode *track = nullptr;
+    void *tc = nullptr;
+
+    ActionAddClip(clip c, audioNode *node, void *timelineComponent);
+    ~ActionAddClip();
+
+    bool perform() override;
+    bool undo() override;
+    void updateGUI();
 };
 
 class TimelineComponent : public juce::Component,

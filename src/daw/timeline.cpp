@@ -1,6 +1,7 @@
 #include "timeline.h"
 #include "clipboard.h"
 #include "defs.h"
+#include "juce_data_structures/juce_data_structures.h"
 #include "track.h"
 #include <cmath>
 
@@ -47,6 +48,34 @@ void track::BarNumbersComponent::paint(juce::Graphics &g) {
             }
         }
     }
+}
+
+track::ActionAddClip::ActionAddClip(clip c, audioNode *node,
+                                    void *timelineComponent)
+    : juce::UndoableAction() {
+    this->addedClip = c;
+    this->track = node;
+    this->tc = timelineComponent;
+};
+track::ActionAddClip::~ActionAddClip() {}
+
+bool track::ActionAddClip::perform() {
+    track->clips.push_back(addedClip);
+    updateGUI();
+
+    return true;
+}
+
+bool track::ActionAddClip::undo() {
+    track->clips.erase(track->clips.begin() + (long)track->clips.size() - 1);
+    updateGUI();
+
+    return true;
+}
+
+void track::ActionAddClip::updateGUI() {
+    TimelineComponent *timelineComponent = (TimelineComponent *)tc;
+    timelineComponent->updateClipComponents();
 }
 
 track::TimelineComponent::TimelineComponent() : juce::Component() {
@@ -687,7 +716,14 @@ void track::TimelineComponent::addNewClipToTimeline(juce::String path,
     if (!node->isTrack) {
         DBG("Rejecting file drop onto group");
     } else {
-        node->clips.push_back(*c);
+
+        ActionAddClip *action = new ActionAddClip(*c, node, this);
+
+        // node->clips.push_back(*c);
+
+        DBG("adding clip using action");
+        processorRef->undoManager.perform(action);
+
         DBG("inserted clip into node");
     }
 
