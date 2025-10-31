@@ -4,6 +4,7 @@
 #include "automation_relay.h"
 #include "clipboard.h"
 #include "defs.h"
+#include "juce_events/juce_events.h"
 #include "subwindow.h"
 #include "timeline.h"
 
@@ -521,6 +522,7 @@ void track::ClipComponent::mouseUp(const juce::MouseEvent &event) {
 
         tc->grabKeyboardFocus();
 
+        // dispatch to undomanager
         Tracklist *tracklist = tc->viewport->tracklist;
         ActionClipStartSampleChanged *action =
             new ActionClipStartSampleChanged();
@@ -529,10 +531,7 @@ void track::ClipComponent::mouseUp(const juce::MouseEvent &event) {
         action->cc = this;
 
         action->newStartSample = correspondingClip->startPositionSample;
-        action->oldStartSample =
-            correspondingClip->startPositionSample -
-            (distanceMovedHorizontally * track::SAMPLE_RATE) /
-                UI_ZOOM_MULTIPLIER;
+        action->oldStartSample = startDragStartPositionSample;
         action->p = tc->processorRef;
         action->route =
             tracklist->trackComponents[(size_t)nodeDisplayIndex]->route;

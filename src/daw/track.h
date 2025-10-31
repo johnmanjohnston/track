@@ -93,6 +93,14 @@ class ActionClipStartSampleChanged : public juce::UndoableAction {
     int oldStartSample;
     int newStartSample;
 
+    // ui
+    // FIXME: if you're storing pointers to UI components, they might be
+    // invalidated if:
+    // - you move a clip
+    // - you close the editor
+    // - open the editor again
+    // - try to undo the moving of that clip
+    // so make sure to check that and fix it you moron
     void *tc = nullptr;
     void *cc = nullptr;
 
@@ -101,7 +109,7 @@ class ActionClipStartSampleChanged : public juce::UndoableAction {
 
     bool perform() override;
     bool undo() override;
-    void updateGUI();
+    void updateGUI(); // GUI sounds cooler than UI here, idk man
 };
 
 class ClipPropertiesWindow : public track::Subwindow {
