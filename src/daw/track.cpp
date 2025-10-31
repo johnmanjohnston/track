@@ -4,6 +4,7 @@
 #include "automation_relay.h"
 #include "clipboard.h"
 #include "defs.h"
+#include "juce_data_structures/juce_data_structures.h"
 #include "juce_events/juce_events.h"
 #include "subwindow.h"
 #include "timeline.h"
@@ -1359,6 +1360,59 @@ void track::TrackViewport::scrollBarMoved(juce::ScrollBar *bar,
     }
 }
 
+track::ActionCreateNode::ActionCreateNode(audioNode *parentNode, bool isATrack,
+                                          void *tlist, void *processor)
+    : juce::UndoableAction() {
+    this->parent = parentNode;
+    this->isTrack = isATrack;
+    this->tl = tlist;
+    this->p = processor;
+}
+track::ActionCreateNode::~ActionCreateNode() {}
+bool track::ActionCreateNode::perform() {
+    AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
+    audioNode *x = nullptr;
+    if (parent == nullptr) {
+        x = &processor->tracks.emplace_back();
+    } else {
+        x = &parent->childNodes.emplace_back();
+    }
+
+    x->isTrack = isTrack;
+    x->processor = p;
+
+    Tracklist *tracklist = (Tracklist *)tl;
+    x->trackName = isTrack ? "Track" : "Group";
+    x->trackName += " " + juce::String(tracklist->trackComponents.size() + 1);
+
+    updateGUI();
+
+    return true;
+}
+
+bool track::ActionCreateNode::undo() {
+    // parent->childNodes.pop_back(); // wow pop_back() exists?
+    AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
+
+    if (parent == nullptr) {
+        processor->tracks.pop_back();
+    } else {
+        parent->childNodes.pop_back();
+    }
+
+    updateGUI();
+
+    return true;
+}
+
+void track::ActionCreateNode::updateGUI() {
+    Tracklist *tracklist = (Tracklist *)tl;
+    tracklist->trackComponents.clear();
+    tracklist->createTrackComponents();
+    tracklist->setTrackComponentBounds();
+    tracklist->repaint();
+}
+
 track::Tracklist::Tracklist() : juce::Component() {
     addAndMakeVisible(newTrackBtn);
     newTrackBtn.setButtonText("ADD TRACK");
@@ -1441,6 +1495,7 @@ void track::Tracklist::copyNode(audioNode *dest, audioNode *src) {
 
 void track::Tracklist::addNewNode(bool isTrack, audioNode *parent) {
     AudioPluginAudioProcessor *p = (AudioPluginAudioProcessor *)this->processor;
+    /*
     audioNode *newNode = nullptr;
     if (parent == nullptr) {
         newNode = &p->tracks.emplace_back();
@@ -1452,11 +1507,10 @@ void track::Tracklist::addNewNode(bool isTrack, audioNode *parent) {
     newNode->isTrack = isTrack;
     newNode->trackName = isTrack ? "Track" : "Group";
     newNode->trackName += " " + juce::String(trackComponents.size() + 1);
+    */
 
-    trackComponents.clear();
-    createTrackComponents();
-    setTrackComponentBounds();
-    repaint();
+    ActionCreateNode *action = new ActionCreateNode(parent, isTrack, this, p);
+    p->undoManager.perform(action);
 }
 
 bool track::Tracklist::isDescendant(audioNode *parent, audioNode *possibleChild,

@@ -1,5 +1,6 @@
 #pragma once
 #include "BinaryData.h"
+#include "juce_data_structures/juce_data_structures.h"
 #include "subwindow.h"
 #include <JuceHeader.h>
 
@@ -250,6 +251,23 @@ class InsertIndicator : public juce::Component {
     InsertIndicator() {}
     ~InsertIndicator() {}
     void paint(juce::Graphics &g) { g.fillAll(juce::Colours::silver); }
+};
+
+class ActionCreateNode : public juce::UndoableAction {
+  public:
+    audioNode *parent;
+    bool isTrack = true;
+
+    void *tl = nullptr;
+    void *p = nullptr;
+
+    ActionCreateNode(audioNode *parentNode, bool isATrack, void *tlist,
+                     void *processor);
+    ~ActionCreateNode();
+
+    bool perform() override;
+    bool undo() override;
+    void updateGUI();
 };
 
 class Tracklist : public juce::Component {
