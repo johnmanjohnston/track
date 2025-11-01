@@ -1051,12 +1051,12 @@ void track::TrackComponent::mouseDown(const juce::MouseEvent &event) {
 
             contextMenu.addItem("Add child track", [this] {
                 Tracklist *tracklist = findParentComponentOfClass<Tracklist>();
-                tracklist->addNewNode(true, getCorrespondingTrack());
+                tracklist->addNewNode(true, route);
             });
 
             contextMenu.addItem("Add child group", [this] {
                 Tracklist *tracklist = findParentComponentOfClass<Tracklist>();
-                tracklist->addNewNode(false, getCorrespondingTrack());
+                tracklist->addNewNode(false, route);
             });
         }
 
@@ -1360,10 +1360,11 @@ void track::TrackViewport::scrollBarMoved(juce::ScrollBar *bar,
     }
 }
 
-track::ActionCreateNode::ActionCreateNode(audioNode *parentNode, bool isATrack,
-                                          void *tlist, void *processor)
+track::ActionCreateNode::ActionCreateNode(std::vector<int> pRoute,
+                                          bool isATrack, void *tlist,
+                                          void *processor)
     : juce::UndoableAction() {
-    this->parent = parentNode;
+    this->parentRoute = pRoute;
     this->isTrack = isATrack;
     this->tl = tlist;
     this->p = processor;
@@ -1371,6 +1372,7 @@ track::ActionCreateNode::ActionCreateNode(audioNode *parentNode, bool isATrack,
 track::ActionCreateNode::~ActionCreateNode() {}
 bool track::ActionCreateNode::perform() {
     AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
+    audioNode *parent = track::utility::getNodeFromRoute(parentRoute, p);
     audioNode *x = nullptr;
     if (parent == nullptr) {
         x = &processor->tracks.emplace_back();
@@ -1393,6 +1395,7 @@ bool track::ActionCreateNode::perform() {
 bool track::ActionCreateNode::undo() {
     // parent->childNodes.pop_back(); // wow pop_back() exists?
     AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
+    audioNode *parent = track::utility::getNodeFromRoute(parentRoute, p);
 
     if (parent == nullptr) {
         processor->tracks.pop_back();
@@ -1412,6 +1415,26 @@ void track::ActionCreateNode::updateGUI() {
     tracklist->setTrackComponentBounds();
     tracklist->repaint();
 }
+
+/*
+track::ActionDeleteNode::ActionDeleteNode(audioNode *parentNode, int i,
+                                          void *processor)
+    : juce::UndoableAction() {
+    this->parent = parentNode;
+    this->index = i;
+    this->p = processor;
+};
+track::ActionDeleteNode::~ActionDeleteNode(){};
+
+bool track::ActionDeleteNode::perform() {
+    // TODO: this
+    return true;
+}
+
+bool track::ActionDeleteNode::undo() {
+    // TODO: This
+    return true;
+}*/
 
 track::Tracklist::Tracklist() : juce::Component() {
     addAndMakeVisible(newTrackBtn);
@@ -1444,8 +1467,8 @@ track::Tracklist::Tracklist() : juce::Component() {
         repaint();
     };
 
-    newTrackBtn.onClick = [this] { addNewNode(); };
-    newGroupBtn.onClick = [this] { addNewNode(false); };
+    newTrackBtn.onClick = [this] { addNewNode(true, std::vector<int>()); };
+    newGroupBtn.onClick = [this] { addNewNode(false, std::vector<int>()); };
 
     addAndMakeVisible(insertIndicator);
 }
@@ -1493,7 +1516,7 @@ void track::Tracklist::copyNode(audioNode *dest, audioNode *src) {
     }
 }
 
-void track::Tracklist::addNewNode(bool isTrack, audioNode *parent) {
+void track::Tracklist::addNewNode(bool isTrack, std::vector<int> parentRoute) {
     AudioPluginAudioProcessor *p = (AudioPluginAudioProcessor *)this->processor;
     /*
     audioNode *newNode = nullptr;
@@ -1509,7 +1532,8 @@ void track::Tracklist::addNewNode(bool isTrack, audioNode *parent) {
     newNode->trackName += " " + juce::String(trackComponents.size() + 1);
     */
 
-    ActionCreateNode *action = new ActionCreateNode(parent, isTrack, this, p);
+    ActionCreateNode *action =
+        new ActionCreateNode(parentRoute, isTrack, this, p);
     p->undoManager.perform(action);
 }
 

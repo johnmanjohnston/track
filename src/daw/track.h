@@ -1,6 +1,5 @@
 #pragma once
 #include "BinaryData.h"
-#include "juce_data_structures/juce_data_structures.h"
 #include "subwindow.h"
 #include <JuceHeader.h>
 
@@ -255,13 +254,14 @@ class InsertIndicator : public juce::Component {
 
 class ActionCreateNode : public juce::UndoableAction {
   public:
-    audioNode *parent;
+    // audioNode *parent;
     bool isTrack = true;
+    std::vector<int> parentRoute;
 
     void *tl = nullptr;
     void *p = nullptr;
 
-    ActionCreateNode(audioNode *parentNode, bool isATrack, void *tlist,
+    ActionCreateNode(std::vector<int> pRoute, bool isATrack, void *tlist,
                      void *processor);
     ~ActionCreateNode();
 
@@ -269,6 +269,20 @@ class ActionCreateNode : public juce::UndoableAction {
     bool undo() override;
     void updateGUI();
 };
+
+/*
+class ActionDeleteNode : public juce::UndoableAction {
+  public:
+    ActionDeleteNode(audioNode *parentNode, int i, void *processor);
+    ~ActionDeleteNode();
+
+    void *p = nullptr;
+    audioNode *parent = nullptr;
+    int index = -1;
+
+    bool perform() override;
+    bool undo() override;
+};*/
 
 class Tracklist : public juce::Component {
   public:
@@ -301,7 +315,8 @@ class Tracklist : public juce::Component {
     void mouseDown(const juce::MouseEvent &event) override;
 
     void copyNode(audioNode *dest, audioNode *src);
-    void addNewNode(bool isTrack = true, audioNode *parent = nullptr);
+    void addNewNode(bool isTrack = true,
+                    std::vector<int> parentRoute = std::vector<int>());
     void deleteTrack(std::vector<int> route);
     void recursivelyDeleteNodePlugins(audioNode *node);
     bool isDescendant(audioNode *parent, audioNode *possibleChild,
