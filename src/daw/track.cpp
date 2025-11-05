@@ -1430,18 +1430,56 @@ track::ActionDeleteNode::~ActionDeleteNode() {}
 bool track::ActionDeleteNode::perform() {
     DBG("ActionDeleteNode::perform() called");
 
+    AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
+    if (route.size() == 1) {
+
+        // recursivelyDeleteNodePlugins(&processor->tracks[(size_t)route[0]]);
+
+        utility::copyNode(&this->nodeCopy, &processor->tracks[(size_t)route[0]],
+                          p);
+        processor->tracks.erase(processor->tracks.begin() + route[0]);
+
+    } else {
+        audioNode *head = &processor->tracks[(size_t)route[0]];
+        for (size_t i = 1; i < route.size() - 1; ++i) {
+            head = &head->childNodes[(size_t)route[i]];
+        }
+
+        // recursivelyDeleteNodePlugins(
+        //&head->childNodes[route[route.size() - 1]]);
+
+        utility::copyNode(&this->nodeCopy,
+                          &head->childNodes[(size_t)route[route.size() - 1]],
+                          p);
+
+        head->childNodes.erase(head->childNodes.begin() +
+                               route[route.size() - 1]);
+    }
+
+    updateGUI();
+
     return true;
 }
 
 bool track::ActionDeleteNode::undo() {
     DBG("ActionDeleteNode::undo() called");
 
+    updateGUI();
+
     return true;
 }
 
 void track::ActionDeleteNode::updateGUI() {
-    // TODO: this
-    // eee
+    TimelineComponent *timelineComponent = (TimelineComponent *)tc;
+    Tracklist *tracklist = (Tracklist *)tl;
+
+    timelineComponent->clipComponents.clear();
+    tracklist->trackComponents.clear();
+
+    tracklist->createTrackComponents();
+    tracklist->setTrackComponentBounds();
+
+    timelineComponent->updateClipComponents();
 }
 
 track::Tracklist::Tracklist() : juce::Component() {
@@ -1551,6 +1589,13 @@ void track::Tracklist::recursivelyDeleteNodePlugins(audioNode *node) {
 
 // vokd track::Tracklist::deleteTrack(int trackIndex) {
 void track::Tracklist::deleteTrack(std::vector<int> route) {
+    AudioPluginAudioProcessor *p = (AudioPluginAudioProcessor *)processor;
+    ActionDeleteNode *action =
+        new ActionDeleteNode(route, p, this, timelineComponent);
+    DBG("perform()ing node deletion");
+    p->undoManager.perform(action);
+
+    /*
     TimelineComponent *tc = (TimelineComponent *)this->timelineComponent;
     tc->clipComponents.clear();
 
@@ -1583,7 +1628,7 @@ void track::Tracklist::deleteTrack(std::vector<int> route) {
     this->trackComponents.clear();
     this->createTrackComponents();
     this->setTrackComponentBounds();
-    tc->updateClipComponents();
+    tc->updateClipComponents();*/
 }
 
 void track::Tracklist::deepCopyGroupInsideGroup(audioNode *childNode,
@@ -2094,7 +2139,8 @@ void track::audioNode::process(int numSamples, int currentSample) {
                 /*
                 DBG("clip in bounds: "
                     << c.name << "; clipstart: " << c.startPositionSample
-                    << "; trimleft=" << c.trimLeft << "; clipstart+trimleft="
+                    << "; trimleft=" << c.trimLeft << ";
+                clipstart+trimleft="
                     << c.startPositionSample + c.trimLeft
                     << "; cursample=" << currentSample
                     << "; clipUsableNumSamples=" << clipUsableNumSamples);

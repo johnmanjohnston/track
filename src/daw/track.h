@@ -282,6 +282,8 @@ class ActionDeleteNode : public juce::UndoableAction {
                      void *tracklist, void *timelineComponent);
     ~ActionDeleteNode();
 
+    audioNode nodeCopy;
+
     bool perform() override;
     bool undo() override;
     void updateGUI();
