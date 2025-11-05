@@ -1416,25 +1416,33 @@ void track::ActionCreateNode::updateGUI() {
     tracklist->repaint();
 }
 
-/*
-track::ActionDeleteNode::ActionDeleteNode(audioNode *parentNode, int i,
-                                          void *processor)
+track::ActionDeleteNode::ActionDeleteNode(std::vector<int> nodeRoute,
+                                          void *processor, void *tracklist,
+                                          void *timelineComponent)
     : juce::UndoableAction() {
-    this->parent = parentNode;
-    this->index = i;
+    this->route = nodeRoute;
     this->p = processor;
-};
-track::ActionDeleteNode::~ActionDeleteNode(){};
+    this->tl = tracklist;
+    this->tc = timelineComponent;
+}
+track::ActionDeleteNode::~ActionDeleteNode() {}
 
 bool track::ActionDeleteNode::perform() {
-    // TODO: this
+    DBG("ActionDeleteNode::perform() called");
+
     return true;
 }
 
 bool track::ActionDeleteNode::undo() {
-    // TODO: This
+    DBG("ActionDeleteNode::undo() called");
+
     return true;
-}*/
+}
+
+void track::ActionDeleteNode::updateGUI() {
+    // TODO: this
+    // eee
+}
 
 track::Tracklist::Tracklist() : juce::Component() {
     addAndMakeVisible(newTrackBtn);
@@ -1475,45 +1483,7 @@ track::Tracklist::Tracklist() : juce::Component() {
 track::Tracklist::~Tracklist() {}
 
 void track::Tracklist::copyNode(audioNode *dest, audioNode *src) {
-    dest->isTrack = src->isTrack;
-    dest->trackName = src->trackName;
-    dest->gain = src->gain;
-    dest->processor = processor;
-    dest->s = src->s;
-    dest->m = src->m;
-    dest->pan = src->pan;
-
-    if (src->isTrack) {
-        dest->clips = src->clips;
-    } else {
-        for (auto &child : src->childNodes) {
-            auto &newChild = dest->childNodes.emplace_back();
-            copyNode(&newChild, &child);
-        }
-    }
-
-    for (auto &p : src->plugins) {
-        auto &pluginInstance = p->plugin;
-        juce::MemoryBlock pluginData;
-        pluginInstance->getStateInformation(pluginData);
-        pluginInstance->releaseResources();
-
-        juce::String identifier =
-            pluginInstance->getPluginDescription().fileOrIdentifier;
-
-        identifier = identifier.upToLastOccurrenceOf(".vst3", true, true);
-
-        // add plugin to new node and copy data
-        DBG("adding plugin to new node, using identifier " << identifier);
-        dest->addPlugin(identifier);
-        dest->plugins.back()->plugin->setStateInformation(pluginData.getData(),
-                                                          pluginData.getSize());
-        dest->plugins.back()->bypassed = p->bypassed;
-
-        dest->plugins.back()->dryWetMix = p->dryWetMix;
-
-        dest->plugins.back()->relayParams = p->relayParams;
-    }
+    utility::copyNode(dest, src, processor);
 }
 
 void track::Tracklist::addNewNode(bool isTrack, std::vector<int> parentRoute) {

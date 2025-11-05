@@ -1,5 +1,6 @@
 #pragma once
 #include "BinaryData.h"
+#include "juce_data_structures/juce_data_structures.h"
 #include "subwindow.h"
 #include <JuceHeader.h>
 
@@ -270,19 +271,21 @@ class ActionCreateNode : public juce::UndoableAction {
     void updateGUI();
 };
 
-/*
 class ActionDeleteNode : public juce::UndoableAction {
   public:
-    ActionDeleteNode(audioNode *parentNode, int i, void *processor);
-    ~ActionDeleteNode();
-
+    std::vector<int> route;
     void *p = nullptr;
-    audioNode *parent = nullptr;
-    int index = -1;
+    void *tl = nullptr;
+    void *tc = nullptr;
+
+    ActionDeleteNode(std::vector<int> nodeRoute, void *processor,
+                     void *tracklist, void *timelineComponent);
+    ~ActionDeleteNode();
 
     bool perform() override;
     bool undo() override;
-};*/
+    void updateGUI();
+};
 
 class Tracklist : public juce::Component {
   public:
