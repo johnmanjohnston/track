@@ -289,6 +289,28 @@ class ActionDeleteNode : public juce::UndoableAction {
     void updateGUI();
 };
 
+class ActionReorderNode : public juce::UndoableAction {
+  public:
+    std::vector<int> r1;
+    std::vector<int> r2;
+    int r1End = -1;
+    int displayNodes = -1;
+
+    ActionReorderNode(std::vector<int> route1, std::vector<int> route2,
+                      int originalRoute1End, int tracklistDisplayNodes,
+                      void *processor, void *tracklist,
+                      void *timelineComponent);
+    ~ActionReorderNode();
+
+    void *p = nullptr;
+    void *tl = nullptr;
+    void *tc = nullptr;
+
+    bool perform() override;
+    bool undo() override;
+    void updateGUI();
+};
+
 class ActionMoveNodeToGroup : public juce::UndoableAction {
   public:
     std::vector<int> nodeToMoveRoute;

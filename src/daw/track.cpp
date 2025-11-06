@@ -1112,64 +1112,8 @@ void track::TrackComponent::mouseUp(const juce::MouseEvent &event) {
 
             if (r1 == r2) {
                 DBG("BOTH ARE SIBLINGS");
-                if (this->route.size() == 1) {
-                    // trivially move node
 
-                    int insertionNode = displayNodes;
-                    int sourceNode = route[0];
-
-                    bool movingUp = insertionNode < sourceNode;
-                    if (movingUp) {
-                        sourceNode++;
-                    }
-
-                    insertionNode = juce::jmin((size_t)insertionNode, p->tracks.size() - 1);
-
-                    audioNode& newNode = *p->tracks.emplace(p->tracks.begin() + insertionNode);
-                    audioNode& originalNode = p->tracks[(size_t)sourceNode]; // don't use getCorrespondingTrack() because route is invalid due to emplacing a node
-                    
-                    tracklist->copyNode(&newNode, &originalNode);
-
-                    /*
-                    if (!originalNode.isTrack) {
-                        for (auto& child : originalNode.childNodes) {
-
-                            auto& newChild = newNode.childNodes.emplace_back();
-                            tracklist->copyNode(&newChild, &child);
-
-                            if (!child.isTrack) {
-                                // copy its child nodes
-                                tracklist->deepCopyGroupInsideGroup(&child, &newChild); 
-                            }
-                        }
-                    }
-                    */
-
-                    p->tracks.erase(p->tracks.begin() + sourceNode);
-                }
-                else {
-                    audioNode* head = &p->tracks[(size_t)route[0]];
-                    for (size_t i = 1; i < route.size()-1; ++i) {
-                        head = &head->childNodes[(size_t)route[i]];
-                    }
-
-                    int sourceNode = route.back();
-                    int insertionNode = r1End;
-
-                    bool movingUp = insertionNode < sourceNode;
-                    if (movingUp) {
-                        sourceNode++;
-                    }
-
-                    insertionNode = juce::jmin((size_t)insertionNode, head->childNodes.size()-1);
-                    
-                    audioNode& newNode = *head->childNodes.emplace(head->childNodes.begin() + insertionNode);
-                    audioNode& originalNode = head->childNodes[(size_t)sourceNode];
-
-                    tracklist->copyNode(&newNode, &originalNode);
-
-                    head->childNodes.erase(head->childNodes.begin() + sourceNode);
-                }
+                utility::reorderNode(r1, r2, route, r1End, displayNodes, processor);
 
                 tracklist->trackComponents.clear();
                 tracklist->createTrackComponents();
@@ -1572,6 +1516,47 @@ bool track::ActionMoveNodeToGroup::undo() {
 }
 
 void track::ActionMoveNodeToGroup::updateGUI() {
+    TimelineComponent *timelineComponent = (TimelineComponent *)tc;
+    Tracklist *tracklist = (Tracklist *)tl;
+
+    timelineComponent->clipComponents.clear();
+    tracklist->trackComponents.clear();
+
+    tracklist->createTrackComponents();
+    tracklist->setTrackComponentBounds();
+
+    timelineComponent->updateClipComponents();
+}
+
+track::ActionReorderNode::ActionReorderNode(std::vector<int> route1,
+                                            std::vector<int> route2,
+                                            int originalRoute1End,
+                                            int tracklistDisplayNodes,
+                                            void *processor, void *tracklist,
+                                            void *timelineComponent) {
+    this->r1 = route1;
+    this->r2 = route2;
+    this->r1End = originalRoute1End;
+    this->displayNodes = tracklistDisplayNodes;
+
+    this->p = processor;
+    this->tl = tracklist;
+    this->tc = timelineComponent;
+}
+track::ActionReorderNode::~ActionReorderNode() {}
+
+bool track::ActionReorderNode::perform() {
+    // TODO: this
+    return true;
+}
+
+bool track::ActionReorderNode::undo() {
+    // TODO: this
+
+    return true;
+}
+
+void track::ActionReorderNode::updateGUI() {
     TimelineComponent *timelineComponent = (TimelineComponent *)tc;
     Tracklist *tracklist = (Tracklist *)tl;
 

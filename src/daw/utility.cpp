@@ -144,3 +144,58 @@ void track::utility::moveNodeToGroup(std::vector<int> moveRoute,
                                routeCopy[routeCopy.size() - 1]);
     }
 }
+
+void track::utility::reorderNode(std::vector<int> r1, std::vector<int> r2,
+                                 std::vector<int> route, int r1End,
+                                 int displayNodes, void *p) {
+    AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
+
+    if (route.size() == 1) {
+        // trivially move node
+
+        int insertionNode = displayNodes;
+        int sourceNode = route[0];
+
+        bool movingUp = insertionNode < sourceNode;
+        if (movingUp) {
+            sourceNode++;
+        }
+
+        insertionNode =
+            juce::jmin((size_t)insertionNode, processor->tracks.size() - 1);
+
+        audioNode &newNode = *processor->tracks.emplace(
+            processor->tracks.begin() + insertionNode);
+        audioNode &originalNode = processor->tracks[(
+            size_t)sourceNode]; // don't use getCorrespondingTrack() because
+                                // route is invalid due to emplacing a node
+
+        copyNode(&newNode, &originalNode, p);
+
+        processor->tracks.erase(processor->tracks.begin() + sourceNode);
+    } else {
+        audioNode *head = &processor->tracks[(size_t)route[0]];
+        for (size_t i = 1; i < route.size() - 1; ++i) {
+            head = &head->childNodes[(size_t)route[i]];
+        }
+
+        int sourceNode = route.back();
+        int insertionNode = r1End;
+
+        bool movingUp = insertionNode < sourceNode;
+        if (movingUp) {
+            sourceNode++;
+        }
+
+        insertionNode =
+            juce::jmin((size_t)insertionNode, head->childNodes.size() - 1);
+
+        audioNode &newNode =
+            *head->childNodes.emplace(head->childNodes.begin() + insertionNode);
+        audioNode &originalNode = head->childNodes[(size_t)sourceNode];
+
+        copyNode(&newNode, &originalNode, p);
+
+        head->childNodes.erase(head->childNodes.begin() + sourceNode);
+    }
+}
