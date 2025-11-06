@@ -289,6 +289,24 @@ class ActionDeleteNode : public juce::UndoableAction {
     void updateGUI();
 };
 
+class ActionMoveNodeToGroup : public juce::UndoableAction {
+  public:
+    std::vector<int> nodeToMoveRoute;
+    std::vector<int> groupRoute;
+    void *p = nullptr;
+    void *tl = nullptr;
+    void *tc = nullptr;
+
+    ActionMoveNodeToGroup(std::vector<int> toMove, std::vector<int> group,
+                          void *processor, void *tracklist,
+                          void *timelineComponent);
+    ~ActionMoveNodeToGroup();
+
+    bool perform() override;
+    bool undo() override;
+    void updateGUI();
+};
+
 class Tracklist : public juce::Component {
   public:
     Tracklist();

@@ -4,8 +4,6 @@
 #include "automation_relay.h"
 #include "clipboard.h"
 #include "defs.h"
-#include "juce_data_structures/juce_data_structures.h"
-#include "juce_events/juce_events.h"
 #include "subwindow.h"
 #include "timeline.h"
 #include "utility.h"
@@ -724,6 +722,8 @@ void track::ActionClipModified::updateGUI() {
     jassert(tc != nullptr);
     jassert(cc != nullptr);
 
+    // TODO: some funky stuff happening here when you have a longer undo
+    // history. this->cc probably doesn't point to a valid clip component ptr
     TimelineComponent *timelineComponent = (TimelineComponent *)tc;
     /*
     ClipComponent *clipComponent = (ClipComponent *)cc;
@@ -1512,6 +1512,78 @@ void track::ActionDeleteNode::updateGUI() {
     timelineComponent->updateClipComponents();
 }
 
+track::ActionMoveNodeToGroup::ActionMoveNodeToGroup(std::vector<int> toMove,
+                                                    std::vector<int> group,
+                                                    void *processor,
+                                                    void *tracklist,
+                                                    void *timelineComponent) {
+    this->nodeToMoveRoute = toMove;
+    this->groupRoute = group;
+    this->p = processor;
+    this->tl = tracklist;
+    this->tc = timelineComponent;
+}
+track::ActionMoveNodeToGroup::~ActionMoveNodeToGroup() {}
+
+bool track::ActionMoveNodeToGroup::perform() {
+    utility::moveNodeToGroup(nodeToMoveRoute, groupRoute, (Tracklist *)tl, p);
+
+    updateGUI();
+
+    return true;
+}
+
+bool track::ActionMoveNodeToGroup::undo() {
+    AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
+    audioNode *parent = utility::getNodeFromRoute(groupRoute, p);
+
+    if (nodeToMoveRoute.size() == 1) {
+        processor->tracks.emplace(processor->tracks.begin() +
+                                  nodeToMoveRoute[0]);
+
+        utility::copyNode(&processor->tracks[(size_t)nodeToMoveRoute[0]],
+                          &parent->childNodes.back(), p);
+
+        parent->childNodes.erase(parent->childNodes.begin() +
+                                 (long)parent->childNodes.size() - 1);
+    } else {
+        std::vector<int> originalParentRoute = nodeToMoveRoute;
+        originalParentRoute.resize(nodeToMoveRoute.size() - 1);
+
+        // insert slot for node in its old position
+        audioNode *originalParent =
+            utility::getNodeFromRoute(originalParentRoute, p);
+
+        originalParent->childNodes.emplace(originalParent->childNodes.begin() +
+                                           nodeToMoveRoute.back());
+
+        // copy data and remove node from new group
+        utility::copyNode(
+            &originalParent->childNodes[(size_t)nodeToMoveRoute.back()],
+            &parent->childNodes.back(), p);
+
+        parent->childNodes.erase(parent->childNodes.begin() +
+                                 (long)parent->childNodes.size() - 1);
+    }
+
+    updateGUI();
+
+    return true;
+}
+
+void track::ActionMoveNodeToGroup::updateGUI() {
+    TimelineComponent *timelineComponent = (TimelineComponent *)tc;
+    Tracklist *tracklist = (Tracklist *)tl;
+
+    timelineComponent->clipComponents.clear();
+    tracklist->trackComponents.clear();
+
+    tracklist->createTrackComponents();
+    tracklist->setTrackComponentBounds();
+
+    timelineComponent->updateClipComponents();
+}
+
 track::Tracklist::Tracklist() : juce::Component() {
     addAndMakeVisible(newTrackBtn);
     newTrackBtn.setButtonText("ADD TRACK");
@@ -1727,6 +1799,28 @@ void track::Tracklist::deepCopyGroupInsideGroup(audioNode *childNode,
 
 void track::Tracklist::moveNodeToGroup(track::TrackComponent *caller,
                                        int targetIndex) {
+
+    if (targetIndex < 0 || (size_t)targetIndex > trackComponents.size() - 1 ||
+        caller->displayIndex == targetIndex) {
+        DBG("rejecting node movement");
+        return;
+    }
+
+    std::vector<int> toMove = caller->route;
+    std::vector<int> group = trackComponents[(size_t)targetIndex]->route;
+
+    ActionMoveNodeToGroup *action = new ActionMoveNodeToGroup(
+        toMove, group, processor, this, timelineComponent);
+
+    AudioPluginAudioProcessor *p = (AudioPluginAudioProcessor *)processor;
+    p->undoManager.beginNewTransaction("action move node to group");
+    p->undoManager.perform(action);
+
+    // utility::moveNodeToGroup(caller, targetIndex, this, processor);
+
+    return;
+
+    /*
     if (targetIndex < 0 || (size_t)targetIndex > trackComponents.size() - 1 ||
         caller->displayIndex == targetIndex)
         return;
@@ -1757,7 +1851,7 @@ void track::Tracklist::moveNodeToGroup(track::TrackComponent *caller,
 
     // calling copyNode() should take care of all the gobbledygook below
     copyNode(newNode, trackNode);
-
+*/
     /*
     newNode->trackName = trackNode->trackName;
     newNode->gain = trackNode->gain;
@@ -1792,7 +1886,6 @@ void track::Tracklist::moveNodeToGroup(track::TrackComponent *caller,
         newNode->plugins[newNode->plugins.size() - 1]->setStateInformation(
             pluginData.getData(), pluginData.getSize());
     }
-    */
 
     // node is copied. now delete orginal node
     AudioPluginAudioProcessor *p = (AudioPluginAudioProcessor *)processor;
@@ -1822,6 +1915,7 @@ void track::Tracklist::moveNodeToGroup(track::TrackComponent *caller,
     trackComponents.clear();
     createTrackComponents();
     setTrackComponentBounds();
+*/
 }
 
 void track::Tracklist::mouseDown(const juce::MouseEvent &event) {
