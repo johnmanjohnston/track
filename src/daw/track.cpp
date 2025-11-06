@@ -725,6 +725,7 @@ void track::ActionClipModified::updateGUI() {
     jassert(cc != nullptr);
 
     TimelineComponent *timelineComponent = (TimelineComponent *)tc;
+    /*
     ClipComponent *clipComponent = (ClipComponent *)cc;
 
     timelineComponent->resizeClipComponent(clipComponent);
@@ -732,7 +733,9 @@ void track::ActionClipModified::updateGUI() {
     clipComponent->clipNameLabel.setText(
         getClip()->name, juce::NotificationType::dontSendNotification);
 
-    clipComponent->repaint();
+    clipComponent->repaint();*/
+
+    timelineComponent->updateClipComponents();
 }
 
 track::ClipPropertiesWindow::ClipPropertiesWindow() : track::Subwindow() {
@@ -1439,9 +1442,14 @@ bool track::ActionDeleteNode::perform() {
 
         // recursivelyDeleteNodePlugins(&processor->tracks[(size_t)route[0]]);
 
-        utility::copyNode(&this->nodeCopy, &processor->tracks[(size_t)route[0]],
-                          p);
-        processor->tracks.erase(processor->tracks.begin() + route[0]);
+        if ((size_t)route[0] - 1 > processor->tracks.size()) {
+            DBG("refusla to perform() action delete node");
+        } else {
+
+            utility::copyNode(&this->nodeCopy,
+                              &processor->tracks[(size_t)route[0]], p);
+            processor->tracks.erase(processor->tracks.begin() + route[0]);
+        }
 
     } else {
         audioNode *head = &processor->tracks[(size_t)route[0]];
@@ -1452,12 +1460,17 @@ bool track::ActionDeleteNode::perform() {
         // recursivelyDeleteNodePlugins(
         //&head->childNodes[route[route.size() - 1]]);
 
-        utility::copyNode(&this->nodeCopy,
-                          &head->childNodes[(size_t)route[route.size() - 1]],
-                          p);
+        if ((size_t)route.back() + 1 > head->childNodes.size()) {
+            DBG("refusl to perform() action delete node");
+        } else {
 
-        head->childNodes.erase(head->childNodes.begin() +
-                               route[route.size() - 1]);
+            utility::copyNode(
+                &this->nodeCopy,
+                &head->childNodes[(size_t)route[route.size() - 1]], p);
+
+            head->childNodes.erase(head->childNodes.begin() +
+                                   route[route.size() - 1]);
+        }
     }
 
     updateGUI();
@@ -1470,6 +1483,15 @@ bool track::ActionDeleteNode::undo() {
 
     AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
     if (route.size() == 1) {
+        processor->tracks.insert(processor->tracks.begin() + route[0],
+                                 std::move(nodeCopy));
+    } else {
+        std::vector<int> parentRoute = route;
+        parentRoute.resize(route.size() - 1);
+
+        audioNode *parent = utility::getNodeFromRoute(parentRoute, processor);
+        parent->childNodes.insert(parent->childNodes.begin() + route.back(),
+                                  std::move(nodeCopy));
     }
 
     updateGUI();
