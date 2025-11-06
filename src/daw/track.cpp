@@ -60,6 +60,8 @@ track::ClipComponent::ClipComponent(clip *c)
 
         DBG("calling perform()");
 
+        tc->processorRef->undoManager.beginNewTransaction(
+            "action clip modified");
         tc->processorRef->undoManager.perform(action);
 
         repaint();
@@ -575,6 +577,8 @@ void track::ClipComponent::mouseUp(const juce::MouseEvent &event) {
         action->oldClip.trimLeft = startTrimLeftPositionSample;
         action->oldClip.trimRight = startTrimRightPositionSample;
 
+        tc->processorRef->undoManager.beginNewTransaction(
+            "action clip modified");
         tc->processorRef->undoManager.perform(action);
     }
 
@@ -1464,6 +1468,10 @@ bool track::ActionDeleteNode::perform() {
 bool track::ActionDeleteNode::undo() {
     DBG("ActionDeleteNode::undo() called");
 
+    AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
+    if (route.size() == 1) {
+    }
+
     updateGUI();
 
     return true;
@@ -1542,6 +1550,7 @@ void track::Tracklist::addNewNode(bool isTrack, std::vector<int> parentRoute) {
 
     ActionCreateNode *action =
         new ActionCreateNode(parentRoute, isTrack, this, p);
+    p->undoManager.beginNewTransaction("action create node");
     p->undoManager.perform(action);
 }
 
@@ -1591,8 +1600,11 @@ void track::Tracklist::recursivelyDeleteNodePlugins(audioNode *node) {
 void track::Tracklist::deleteTrack(std::vector<int> route) {
     AudioPluginAudioProcessor *p = (AudioPluginAudioProcessor *)processor;
     ActionDeleteNode *action =
-        new ActionDeleteNode(route, p, this, timelineComponent);
+        new ActionDeleteNode(route, processor, this, timelineComponent);
+
     DBG("perform()ing node deletion");
+
+    p->undoManager.beginNewTransaction("action delete node");
     p->undoManager.perform(action);
 
     /*
@@ -1856,7 +1868,6 @@ void track::Tracklist::createTrackComponents() {
 
     int j = 0;
     int foundItems = 0;
-    DBG("");
     for (audioNode &t : p->tracks) {
         std::vector<int> route;
         route.push_back(j);
@@ -1874,14 +1885,14 @@ void track::Tracklist::createTrackComponents() {
 
         trackComponents.back().get()->displayIndex = foundItems;
 
-        DBG("");
-
         j++;
     }
 
     setDisplayIndexes();
     setTrackComponentBounds();
     repaint();
+
+    // ee
 }
 
 void track::Tracklist::setTrackComponentBounds() {

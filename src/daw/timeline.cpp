@@ -189,7 +189,16 @@ bool track::TimelineComponent::keyStateChanged(bool isKeyDown) {
     if (isKeyDown) {
         // ctrl+z
         if (juce::KeyPress::isKeyCurrentlyDown(90)) {
+            DBG("");
+
+            int x =
+                processorRef->undoManager.getNumActionsInCurrentTransaction();
+            DBG("x=" << x);
+
             processorRef->undoManager.undo();
+
+            DBG("calling undo() due to ctrl+z");
+            DBG("");
         }
 
         // ctrl+y
@@ -718,6 +727,7 @@ void track::TimelineComponent::addNewClipToTimeline(juce::String path,
     } else {
 
         ActionAddClip *action = new ActionAddClip(*c, node, this);
+        processorRef->undoManager.beginNewTransaction("action add clip");
 
         // node->clips.push_back(*c);
 
