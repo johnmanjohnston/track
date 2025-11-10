@@ -1118,7 +1118,11 @@ void track::TrackComponent::mouseUp(const juce::MouseEvent &event) {
 
                 //utility::reorderNode(r1, r2, route, r1End, displayNodes, processor);
 
-                utility::reorderNodeAlt(sourceRoute, movementRoute, processor);
+                ActionReorderNode *action = new ActionReorderNode(sourceRoute, movementRoute, processor, tracklist, tracklist->timelineComponent);
+                p->undoManager.beginNewTransaction("action reorder node");
+                p->undoManager.perform(action);
+
+                // utility::reorderNodeAlt(sourceRoute, movementRoute, processor);
 
                 tracklist->trackComponents.clear();
                 tracklist->createTrackComponents();
@@ -1535,14 +1539,10 @@ void track::ActionMoveNodeToGroup::updateGUI() {
 
 track::ActionReorderNode::ActionReorderNode(std::vector<int> route1,
                                             std::vector<int> route2,
-                                            int originalRoute1End,
-                                            int tracklistDisplayNodes,
                                             void *processor, void *tracklist,
                                             void *timelineComponent) {
     this->r1 = route1;
     this->r2 = route2;
-    this->r1End = originalRoute1End;
-    this->displayNodes = tracklistDisplayNodes;
 
     this->p = processor;
     this->tl = tracklist;
@@ -1551,13 +1551,14 @@ track::ActionReorderNode::ActionReorderNode(std::vector<int> route1,
 track::ActionReorderNode::~ActionReorderNode() {}
 
 bool track::ActionReorderNode::perform() {
-    // TODO: this
+    utility::reorderNodeAlt(r1, r2, p);
+    updateGUI();
     return true;
 }
 
 bool track::ActionReorderNode::undo() {
-    // TODO: this
-
+    utility::reorderNodeAlt(r1, r2, p);
+    updateGUI();
     return true;
 }
 
