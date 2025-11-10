@@ -1110,10 +1110,15 @@ void track::TrackComponent::mouseUp(const juce::MouseEvent &event) {
             std::vector<int> r2 = this->route;
             r2.pop_back();
 
+            std::vector<int> sourceRoute = this->route;
+            std::vector<int> movementRoute = tracklist->trackComponents[(size_t)displayNodes]->route;
+
             if (r1 == r2) {
                 DBG("BOTH ARE SIBLINGS");
 
-                utility::reorderNode(r1, r2, route, r1End, displayNodes, processor);
+                //utility::reorderNode(r1, r2, route, r1End, displayNodes, processor);
+
+                utility::reorderNodeAlt(sourceRoute, movementRoute, processor);
 
                 tracklist->trackComponents.clear();
                 tracklist->createTrackComponents();
@@ -1386,7 +1391,7 @@ bool track::ActionDeleteNode::perform() {
 
         // recursivelyDeleteNodePlugins(&processor->tracks[(size_t)route[0]]);
 
-        if ((size_t)route[0] - 1 > processor->tracks.size()) {
+        if ((size_t)route[0] > processor->tracks.size()) {
             DBG("refusla to perform() action delete node");
         } else {
 

@@ -1,6 +1,7 @@
 #include "utility.h"
 #include "../processor.h"
 #include "automation_relay.h"
+#include "track.h"
 
 int track::utility::getIndexOfClip(audioNode *node, clip *clip) {
     int retval = -1;
@@ -197,5 +198,34 @@ void track::utility::reorderNode(std::vector<int> r1, std::vector<int> r2,
         copyNode(&newNode, &originalNode, p);
 
         head->childNodes.erase(head->childNodes.begin() + sourceNode);
+    }
+}
+
+void track::utility::reorderNodeAlt(std::vector<int> r1, std::vector<int> r2,
+                                    void *p) {
+
+    AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
+    audioNode *src = utility::getNodeFromRoute(r1, p);
+    audioNode *adj = utility::getNodeFromRoute(r2, p);
+
+    audioNode tmp;
+    utility::copyNode(&tmp, src, p);
+
+    DBG("src name is " << src->trackName);
+    DBG("adj name is " << adj->trackName);
+
+    if (r2.size() == 1) {
+        audioNode &newNode =
+            *processor->tracks.emplace(processor->tracks.begin() + r2.back());
+
+        utility::copyNode(&newNode, &tmp, p);
+
+        // delete node
+        int deletionIndex = r1.back();
+
+        if (deletionIndex > r2.back())
+            ++deletionIndex;
+
+        processor->tracks.erase(processor->tracks.begin() + deletionIndex);
     }
 }

@@ -14,4 +14,6 @@ void moveNodeToGroup(std::vector<int> moveRoute, std::vector<int> groupRoute,
 
 void reorderNode(std::vector<int> r1, std::vector<int> r2,
                  std::vector<int> route, int r1End, int displayNodes, void *p);
+
+void reorderNodeAlt(std::vector<int> r1, std::vector<int> r2, void *p);
 } // namespace track::utility
