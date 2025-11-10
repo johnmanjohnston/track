@@ -208,13 +208,19 @@ void track::utility::reorderNodeAlt(std::vector<int> r1, std::vector<int> r2,
     audioNode *src = utility::getNodeFromRoute(r1, p);
     audioNode *adj = utility::getNodeFromRoute(r2, p);
 
+    jassert(src != nullptr);
+    jassert(adj != nullptr);
+
     audioNode tmp;
     utility::copyNode(&tmp, src, p);
 
-    DBG("src name is " << src->trackName);
-    DBG("adj name is " << adj->trackName);
+    // DBG("src name is " << src->trackName);
+    // DBG("adj name is " << adj->trackName);
 
     if (r2.size() == 1) {
+        // invalid bounds check
+        jassert((size_t)r2.back() < processor->tracks.size());
+
         audioNode &newNode =
             *processor->tracks.emplace(processor->tracks.begin() + r2.back());
 
@@ -227,5 +233,29 @@ void track::utility::reorderNodeAlt(std::vector<int> r1, std::vector<int> r2,
             ++deletionIndex;
 
         processor->tracks.erase(processor->tracks.begin() + deletionIndex);
+    }
+
+    // if nested and siblings
+    if (r1.size() == r2.size() && r2.size() > 1) {
+        std::vector<int> insertionParentRoute = r2;
+        insertionParentRoute.resize(r2.size() - 1);
+
+        audioNode *parent = utility::getNodeFromRoute(insertionParentRoute, p);
+
+        // invalid bounds check
+        jassert((size_t)r2.back() < parent->childNodes.size());
+
+        audioNode &newNode =
+            *parent->childNodes.emplace(parent->childNodes.begin() + r2.back());
+
+        utility::copyNode(&newNode, &tmp, p);
+
+        // delete node
+        int deletionIndex = r1.back();
+
+        if (deletionIndex > r2.back())
+            ++deletionIndex;
+
+        parent->childNodes.erase(parent->childNodes.begin() + deletionIndex);
     }
 }
