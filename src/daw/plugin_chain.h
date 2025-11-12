@@ -23,6 +23,22 @@ class pluginChainClipboardData {
     std::vector<pluginClipboardData> plugins;
 };
 
+class ActionAddPlugin : public juce::UndoableAction {
+  public:
+    std::vector<int> nodeRoute;
+    juce::String pluginIdentifier = "unset identifier";
+    void *p = nullptr;
+    void *e = nullptr;
+
+    ActionAddPlugin(std::vector<int> route, juce::String identifier,
+                    void *processor, void *editor);
+    ~ActionAddPlugin();
+
+    bool perform() override;
+    bool undo() override;
+    void updateGUI();
+};
+
 class PluginNodeComponent : public juce::Component {
   public:
     PluginNodeComponent();

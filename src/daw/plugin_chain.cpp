@@ -3,7 +3,59 @@
 #include "defs.h"
 #include "subwindow.h"
 #include "track.h"
+#include "utility.h"
 #include <cstddef>
+
+track::ActionAddPlugin::ActionAddPlugin(std::vector<int> route,
+                                        juce::String identifier,
+                                        void *processor, void *editor)
+    : juce::UndoableAction() {
+    this->nodeRoute = route;
+    this->pluginIdentifier = identifier;
+    this->p = processor;
+    this->e = editor;
+}
+track::ActionAddPlugin::~ActionAddPlugin() {}
+
+bool track::ActionAddPlugin::perform() {
+    audioNode *node = utility::getNodeFromRoute(nodeRoute, p);
+    node->addPlugin(pluginIdentifier);
+
+    updateGUI();
+
+    return true;
+}
+
+bool track::ActionAddPlugin::undo() {
+    // close editor, then remove plugin
+    AudioPluginAudioProcessorEditor *editor =
+        (AudioPluginAudioProcessorEditor *)e;
+
+    audioNode *node = utility::getNodeFromRoute(nodeRoute, p);
+    editor->closePluginEditorWindow(nodeRoute, node->plugins.size() - 1);
+
+    node->removePlugin(node->plugins.size() - 1);
+
+    updateGUI();
+
+    return true;
+}
+
+void track::ActionAddPlugin::updateGUI() {
+    AudioPluginAudioProcessorEditor *editor =
+        (AudioPluginAudioProcessorEditor *)e;
+
+    for (size_t i = 0; i < editor->pluginChainComponents.size(); ++i) {
+        if (editor->pluginChainComponents[i]->route == nodeRoute) {
+            // recreate plugin node components
+
+            editor->pluginChainComponents[i]
+                ->nodesWrapper.pluginNodeComponents.clear();
+            editor->pluginChainComponents[i]
+                ->nodesWrapper.createPluginNodeComponents();
+        }
+    }
+}
 
 track::PluginNodeComponent::PluginNodeComponent() : juce::Component() {
     this->openEditorBtn.setButtonText("EDITOR");
@@ -272,22 +324,28 @@ void track::PluginNodesWrapper::mouseDown(const juce::MouseEvent &event) {
                 pluginDescription.name, [this, pluginDescription, node] {
                     // add plugin
                     DBG("adding " << pluginDescription.name);
-                    node->addPlugin(pluginDescription.fileOrIdentifier);
 
-                    // open its editor
                     AudioPluginAudioProcessorEditor *editor =
                         this->findParentComponentOfClass<
                             AudioPluginAudioProcessorEditor>();
 
-                    int pluginIndex = node->plugins.size() - 1;
+                    // add plugin using action
+                    ActionAddPlugin *action = new ActionAddPlugin(
+                        pcc->route, pluginDescription.fileOrIdentifier,
+                        pcc->processor, editor);
+                    pcc->processor->undoManager.beginNewTransaction(
+                        "action add plugin");
+                    pcc->processor->undoManager.perform(action);
 
-                    DBG("pluginIndex = " << pluginIndex);
+                    int pluginIndex = node->plugins.size() - 1;
 
                     editor->openPluginEditorWindow(pcc->route, pluginIndex);
 
+                    /*
                     // very lazy way but i couldn't be bothered now
                     pluginNodeComponents.clear();
                     createPluginNodeComponents();
+                    */
 
                     pcc->resized();
                     pcc->nodesViewport.setViewPosition(
