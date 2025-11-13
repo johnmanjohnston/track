@@ -16,4 +16,6 @@ void reorderNode(std::vector<int> r1, std::vector<int> r2,
                  std::vector<int> route, int r1End, int displayNodes, void *p);
 
 void reorderNodeAlt(std::vector<int> r1, std::vector<int> r2, void *p);
+
+void reorderPlugin(int srcIndex, int destIndex, audioNode *node);
 } // namespace track::utility

@@ -39,6 +39,23 @@ class ActionAddPlugin : public juce::UndoableAction {
     void updateGUI();
 };
 
+class ActionRemovePlugin : public juce::UndoableAction {
+  public:
+    ActionRemovePlugin(pluginClipboardData data, std::vector<int> route,
+                       int index, void *processor, void *editor);
+    ~ActionRemovePlugin();
+
+    pluginClipboardData subpluginData;
+    std::vector<int> nodeRoute;
+    void *p = nullptr;
+    void *e = nullptr;
+    int pluginIndex = -1;
+
+    bool perform() override;
+    bool undo() override;
+    void updateGUI();
+};
+
 class PluginNodeComponent : public juce::Component {
   public:
     PluginNodeComponent();

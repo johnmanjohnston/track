@@ -259,3 +259,16 @@ void track::utility::reorderNodeAlt(std::vector<int> r1, std::vector<int> r2,
         parent->childNodes.erase(parent->childNodes.begin() + deletionIndex);
     }
 }
+
+void track::utility::reorderPlugin(int srcIndex, int destIndex,
+                                   audioNode *node) {
+    // std::move is absolute magic how have i not known of this sooner
+    std::unique_ptr<track::subplugin> plugin =
+        std::move(node->plugins[(size_t)srcIndex]);
+
+    // remove plugin
+    node->plugins.erase(node->plugins.begin() + srcIndex);
+
+    // insert plugin and bypassed entry at intended indices
+    node->plugins.insert(node->plugins.begin() + destIndex, std::move(plugin));
+}

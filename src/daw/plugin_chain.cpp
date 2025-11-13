@@ -1,6 +1,7 @@
 #include "plugin_chain.h"
 #include "clipboard.h"
 #include "defs.h"
+#include "juce_core/juce_core.h"
 #include "subwindow.h"
 #include "track.h"
 #include "utility.h"
@@ -49,6 +50,75 @@ void track::ActionAddPlugin::updateGUI() {
         if (editor->pluginChainComponents[i]->route == nodeRoute) {
             // recreate plugin node components
 
+            editor->pluginChainComponents[i]
+                ->nodesWrapper.pluginNodeComponents.clear();
+            editor->pluginChainComponents[i]
+                ->nodesWrapper.createPluginNodeComponents();
+        }
+    }
+}
+
+track::ActionRemovePlugin::ActionRemovePlugin(track::pluginClipboardData data,
+                                              std::vector<int> route, int index,
+                                              void *processor, void *editor)
+    : juce::UndoableAction() {
+    this->subpluginData = data;
+    this->nodeRoute = route;
+    this->p = processor;
+    this->e = editor;
+    this->pluginIndex = index;
+};
+track::ActionRemovePlugin::~ActionRemovePlugin(){};
+
+bool track::ActionRemovePlugin::perform() {
+    // TODO: close plugin editor if it's opened
+
+    audioNode *node = utility::getNodeFromRoute(nodeRoute, p);
+    node->removePlugin(pluginIndex);
+
+    updateGUI();
+
+    return true;
+}
+
+bool track::ActionRemovePlugin::undo() {
+    // TODO: by inserting plugins, you fuck up any indexes of plugins, placed
+    // after this plugin. fix that
+
+    // lmfao good luck future john
+    audioNode *node = utility::getNodeFromRoute(nodeRoute, p);
+    node->addPlugin(this->subpluginData.identifier.upToLastOccurrenceOf(
+        ".vst3", true, true));
+    utility::reorderPlugin(node->plugins.size() - 1, pluginIndex, node);
+
+    // copy subplugin data back
+    std::unique_ptr<track::subplugin> &plugin =
+        node->plugins[(size_t)pluginIndex];
+
+    plugin->bypassed = subpluginData.bypassed;
+    plugin->dryWetMix = subpluginData.dryWetMix;
+    plugin->relayParams = subpluginData.relayParams;
+
+    juce::MemoryBlock pluginStateData;
+    bool dataRetrieved =
+        pluginStateData.fromBase64Encoding((juce::String)subpluginData.data);
+
+    jassert(dataRetrieved);
+
+    plugin->plugin->setStateInformation(pluginStateData.getData(),
+                                        pluginStateData.getSize());
+
+    updateGUI();
+
+    return true;
+}
+
+void track::ActionRemovePlugin::updateGUI() {
+    AudioPluginAudioProcessorEditor *editor =
+        (AudioPluginAudioProcessorEditor *)e;
+
+    for (size_t i = 0; i < editor->pluginChainComponents.size(); ++i) {
+        if (editor->pluginChainComponents[i]->route == nodeRoute) {
             editor->pluginChainComponents[i]
                 ->nodesWrapper.pluginNodeComponents.clear();
             editor->pluginChainComponents[i]
@@ -651,7 +721,34 @@ track::audioNode *track::PluginChainComponent::getCorrespondingTrack() {
 }
 
 void track::PluginChainComponent::removePlugin(int pluginIndex) {
-    getCorrespondingTrack()->removePlugin(pluginIndex);
+    // getCorrespondingTrack()->removePlugin(pluginIndex);
+
+    // pccremoveplugin
+    // samosa
+
+    pluginClipboardData data;
+
+    std::unique_ptr<track::subplugin> *plugin =
+        &getCorrespondingTrack()->plugins[(size_t)pluginIndex];
+
+    // set trivial data
+    data.identifier =
+        plugin->get()->plugin->getPluginDescription().fileOrIdentifier;
+    data.dryWetMix = plugin->get()->dryWetMix;
+    data.relayParams = plugin->get()->relayParams;
+
+    // set plugin data
+    juce::MemoryBlock pluginData;
+    plugin->get()->plugin->getStateInformation(pluginData);
+    data.data = pluginData.toBase64Encoding();
+
+    // now remove with action
+    ActionRemovePlugin *action = new ActionRemovePlugin(
+        data, route, pluginIndex, processor,
+        findParentComponentOfClass<AudioPluginAudioProcessorEditor>());
+    processor->undoManager.beginNewTransaction("action remove plugin");
+    processor->undoManager.perform(action);
+    DBG("sex");
 
     // TODO: optimize this instead of using lazy where to recreate all p
     nodesWrapper.pluginNodeComponents.clear();
@@ -693,18 +790,7 @@ void track::PluginChainComponent::reorderPlugin(int srcIndex, int destIndex) {
     destIndex = juce::jlimit(
         0, (int)getCorrespondingTrack()->plugins.size() - 1, destIndex);
 
-    // std::move is absolute magic how have i not known of this sooner
-    std::unique_ptr<track::subplugin> plugin =
-        std::move(getCorrespondingTrack()->plugins[(size_t)srcIndex]);
-
-    // remove plugin
-    getCorrespondingTrack()->plugins.erase(
-        getCorrespondingTrack()->plugins.begin() + srcIndex);
-
-    // insert plugin and bypassed entry at intended indices
-    getCorrespondingTrack()->plugins.insert(
-        getCorrespondingTrack()->plugins.begin() + destIndex,
-        std::move(plugin));
+    utility::reorderPlugin(srcIndex, destIndex, getCorrespondingTrack());
 
     nodesWrapper.pluginNodeComponents.clear();
     nodesWrapper.createPluginNodeComponents();
