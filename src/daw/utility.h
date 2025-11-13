@@ -2,7 +2,7 @@
 #include "track.h"
 
 namespace track::utility {
-
+// nodes
 bool isDescendant(audioNode *parent, audioNode *possibleChild,
                   bool directDescandant);
 
@@ -17,5 +17,13 @@ void reorderNode(std::vector<int> r1, std::vector<int> r2,
 
 void reorderNodeAlt(std::vector<int> r1, std::vector<int> r2, void *p);
 
+// plugins
 void reorderPlugin(int srcIndex, int destIndex, audioNode *node);
+void closeOpenedEditors(std::vector<int> nodeRoute,
+                        std::vector<track::subplugin *> *openedPlugins, void *p,
+                        void *e);
+void openEditors(std::vector<int> nodeRoute,
+                 std::vector<track::subplugin *> openedPlugins, void *p,
+                 void *e);
+
 } // namespace track::utility

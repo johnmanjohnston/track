@@ -55,8 +55,8 @@ class ActionRemovePlugin : public juce::UndoableAction {
     bool undo() override;
     void updateGUI();
 
-    void closeAlreadyOpenedEditors();
-    void reopenEditors();
+    // void closeAlreadyOpenedEditors();
+    // void reopenEditors();
     std::vector<track::subplugin *> openedPlugins;
 };
 

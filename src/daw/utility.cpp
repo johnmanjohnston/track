@@ -1,4 +1,5 @@
 #include "utility.h"
+#include "../editor.h"
 #include "../processor.h"
 #include "automation_relay.h"
 #include "track.h"
@@ -271,4 +272,37 @@ void track::utility::reorderPlugin(int srcIndex, int destIndex,
 
     // insert plugin and bypassed entry at intended indices
     node->plugins.insert(node->plugins.begin() + destIndex, std::move(plugin));
+}
+
+void track::utility::closeOpenedEditors(
+    std::vector<int> nodeRoute, std::vector<track::subplugin *> *openedPlugins,
+    void *p, void *e) {
+    audioNode *node = utility::getNodeFromRoute(nodeRoute, p);
+    AudioPluginAudioProcessorEditor *editor =
+        (AudioPluginAudioProcessorEditor *)e;
+
+    for (size_t i = 0; i < node->plugins.size(); ++i) {
+        if (editor->isPluginEditorWindowOpen(nodeRoute, i)) {
+            editor->closePluginEditorWindow(nodeRoute, i);
+            openedPlugins->push_back(node->plugins[i].get());
+        }
+    }
+}
+
+void track::utility::openEditors(std::vector<int> nodeRoute,
+                                 std::vector<track::subplugin *> openedPlugins,
+                                 void *p, void *e) {
+    audioNode *node = utility::getNodeFromRoute(nodeRoute, p);
+    AudioPluginAudioProcessorEditor *editor =
+        (AudioPluginAudioProcessorEditor *)e;
+
+    // reopen closed ediors
+    for (auto *pl : openedPlugins) {
+        for (size_t i = 0; i < node->plugins.size(); ++i) {
+            if (node->plugins[i].get() == pl) {
+                editor->openPluginEditorWindow(nodeRoute, i);
+                break;
+            }
+        }
+    }
 }

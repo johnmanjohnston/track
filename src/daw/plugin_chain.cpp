@@ -70,19 +70,19 @@ track::ActionRemovePlugin::ActionRemovePlugin(track::pluginClipboardData data,
 track::ActionRemovePlugin::~ActionRemovePlugin(){};
 
 bool track::ActionRemovePlugin::perform() {
-    closeAlreadyOpenedEditors();
+    utility::closeOpenedEditors(nodeRoute, &openedPlugins, p, e);
 
     audioNode *node = utility::getNodeFromRoute(nodeRoute, p);
     node->removePlugin(pluginIndex);
 
     updateGUI();
-    reopenEditors();
+    utility::openEditors(nodeRoute, openedPlugins, p, e);
 
     return true;
 }
 
 bool track::ActionRemovePlugin::undo() {
-    closeAlreadyOpenedEditors();
+    utility::closeOpenedEditors(nodeRoute, &openedPlugins, p, e);
 
     audioNode *node = utility::getNodeFromRoute(nodeRoute, p);
 
@@ -110,7 +110,7 @@ bool track::ActionRemovePlugin::undo() {
 
     // plugin is readded, how handle UI stuff
     updateGUI();
-    reopenEditors();
+    utility::openEditors(nodeRoute, openedPlugins, p, e);
 
     return true;
 }
@@ -125,34 +125,6 @@ void track::ActionRemovePlugin::updateGUI() {
                 ->nodesWrapper.pluginNodeComponents.clear();
             editor->pluginChainComponents[i]
                 ->nodesWrapper.createPluginNodeComponents();
-        }
-    }
-}
-
-void track::ActionRemovePlugin::closeAlreadyOpenedEditors() {
-    audioNode *node = utility::getNodeFromRoute(nodeRoute, p);
-    AudioPluginAudioProcessorEditor *editor =
-        (AudioPluginAudioProcessorEditor *)e;
-
-    for (size_t i = 0; i < node->plugins.size(); ++i) {
-        if (editor->isPluginEditorWindowOpen(nodeRoute, i)) {
-            editor->closePluginEditorWindow(nodeRoute, i);
-            openedPlugins.push_back(node->plugins[i].get());
-        }
-    }
-}
-void track::ActionRemovePlugin::reopenEditors() {
-    audioNode *node = utility::getNodeFromRoute(nodeRoute, p);
-    AudioPluginAudioProcessorEditor *editor =
-        (AudioPluginAudioProcessorEditor *)e;
-
-    // reopen closed ediors
-    for (auto *pl : openedPlugins) {
-        for (size_t i = 0; i < node->plugins.size(); ++i) {
-            if (node->plugins[i].get() == pl) {
-                editor->openPluginEditorWindow(nodeRoute, i);
-                break;
-            }
         }
     }
 }
@@ -802,17 +774,9 @@ void track::PluginChainComponent::updateInsertIndicator(int index) {
 void track::PluginChainComponent::reorderPlugin(int srcIndex, int destIndex) {
     AudioPluginAudioProcessorEditor *editor =
         this->findParentComponentOfClass<AudioPluginAudioProcessorEditor>();
-
     std::vector<track::subplugin *> openedPlugins;
 
-    for (size_t i = 0; i < getCorrespondingTrack()->plugins.size(); ++i) {
-        if (editor->isPluginEditorWindowOpen(route, i)) {
-            editor->closePluginEditorWindow(this->route, i);
-            openedPlugins.push_back(getCorrespondingTrack()->plugins[i].get());
-        }
-    }
-
-    DBG("reorderPlugin() called with src,dest" << srcIndex << "," << destIndex);
+    utility::closeOpenedEditors(route, &openedPlugins, processor, editor);
 
     destIndex = juce::jlimit(
         0, (int)getCorrespondingTrack()->plugins.size() - 1, destIndex);
@@ -822,19 +786,7 @@ void track::PluginChainComponent::reorderPlugin(int srcIndex, int destIndex) {
     nodesWrapper.pluginNodeComponents.clear();
     nodesWrapper.createPluginNodeComponents();
 
-    for (auto *p : openedPlugins) {
-        for (size_t i = 0; i < getCorrespondingTrack()->plugins.size(); ++i) {
-            if (getCorrespondingTrack()->plugins[i].get() == p) {
-                editor->openPluginEditorWindow(this->route, i);
-                break;
-            }
-        }
-    }
-
-    /*
-    if (wasEditorOpen)
-        editor->openPluginEditorWindow(route, destIndex);
-        */
+    utility::openEditors(route, openedPlugins, processor, editor);
 }
 
 // plugin editor window
