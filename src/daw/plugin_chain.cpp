@@ -1,7 +1,6 @@
 #include "plugin_chain.h"
 #include "clipboard.h"
 #include "defs.h"
-#include "juce_core/juce_core.h"
 #include "subwindow.h"
 #include "track.h"
 #include "utility.h"
@@ -71,22 +70,23 @@ track::ActionRemovePlugin::ActionRemovePlugin(track::pluginClipboardData data,
 track::ActionRemovePlugin::~ActionRemovePlugin(){};
 
 bool track::ActionRemovePlugin::perform() {
-    // TODO: close plugin editor if it's opened
+    closeAlreadyOpenedEditors();
 
     audioNode *node = utility::getNodeFromRoute(nodeRoute, p);
     node->removePlugin(pluginIndex);
 
     updateGUI();
+    reopenEditors();
 
     return true;
 }
 
 bool track::ActionRemovePlugin::undo() {
-    // TODO: by inserting plugins, you fuck up any indexes of plugins, placed
-    // after this plugin. fix that
+    closeAlreadyOpenedEditors();
 
-    // lmfao good luck future john
     audioNode *node = utility::getNodeFromRoute(nodeRoute, p);
+
+    // readd plugin
     node->addPlugin(this->subpluginData.identifier.upToLastOccurrenceOf(
         ".vst3", true, true));
     utility::reorderPlugin(node->plugins.size() - 1, pluginIndex, node);
@@ -108,7 +108,9 @@ bool track::ActionRemovePlugin::undo() {
     plugin->plugin->setStateInformation(pluginStateData.getData(),
                                         pluginStateData.getSize());
 
+    // plugin is readded, how handle UI stuff
     updateGUI();
+    reopenEditors();
 
     return true;
 }
@@ -123,6 +125,34 @@ void track::ActionRemovePlugin::updateGUI() {
                 ->nodesWrapper.pluginNodeComponents.clear();
             editor->pluginChainComponents[i]
                 ->nodesWrapper.createPluginNodeComponents();
+        }
+    }
+}
+
+void track::ActionRemovePlugin::closeAlreadyOpenedEditors() {
+    audioNode *node = utility::getNodeFromRoute(nodeRoute, p);
+    AudioPluginAudioProcessorEditor *editor =
+        (AudioPluginAudioProcessorEditor *)e;
+
+    for (size_t i = 0; i < node->plugins.size(); ++i) {
+        if (editor->isPluginEditorWindowOpen(nodeRoute, i)) {
+            editor->closePluginEditorWindow(nodeRoute, i);
+            openedPlugins.push_back(node->plugins[i].get());
+        }
+    }
+}
+void track::ActionRemovePlugin::reopenEditors() {
+    audioNode *node = utility::getNodeFromRoute(nodeRoute, p);
+    AudioPluginAudioProcessorEditor *editor =
+        (AudioPluginAudioProcessorEditor *)e;
+
+    // reopen closed ediors
+    for (auto *pl : openedPlugins) {
+        for (size_t i = 0; i < node->plugins.size(); ++i) {
+            if (node->plugins[i].get() == pl) {
+                editor->openPluginEditorWindow(nodeRoute, i);
+                break;
+            }
         }
     }
 }
@@ -723,9 +753,6 @@ track::audioNode *track::PluginChainComponent::getCorrespondingTrack() {
 void track::PluginChainComponent::removePlugin(int pluginIndex) {
     // getCorrespondingTrack()->removePlugin(pluginIndex);
 
-    // pccremoveplugin
-    // samosa
-
     pluginClipboardData data;
 
     std::unique_ptr<track::subplugin> *plugin =
@@ -748,7 +775,6 @@ void track::PluginChainComponent::removePlugin(int pluginIndex) {
         findParentComponentOfClass<AudioPluginAudioProcessorEditor>());
     processor->undoManager.beginNewTransaction("action remove plugin");
     processor->undoManager.perform(action);
-    DBG("sex");
 
     // TODO: optimize this instead of using lazy where to recreate all p
     nodesWrapper.pluginNodeComponents.clear();
@@ -772,6 +798,7 @@ void track::PluginChainComponent::updateInsertIndicator(int index) {
     this->nodesWrapper.insertIndicator.setVisible(false);
 }
 
+// esex
 void track::PluginChainComponent::reorderPlugin(int srcIndex, int destIndex) {
     AudioPluginAudioProcessorEditor *editor =
         this->findParentComponentOfClass<AudioPluginAudioProcessorEditor>();
