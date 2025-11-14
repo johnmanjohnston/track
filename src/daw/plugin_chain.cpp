@@ -129,6 +129,60 @@ void track::ActionRemovePlugin::updateGUI() {
     }
 }
 
+track::ActionReorderPlugin::ActionReorderPlugin(std::vector<int> nodeRoute,
+                                                int sourceIndex,
+                                                int destinationIndex,
+                                                void *processor, void *editor)
+    : juce::UndoableAction() {
+    this->route = nodeRoute;
+    this->srcIndex = sourceIndex;
+    this->destIndex = destinationIndex;
+    this->p = processor;
+    this->e = editor;
+}
+track::ActionReorderPlugin::~ActionReorderPlugin(){};
+
+// esex1
+bool track::ActionReorderPlugin::perform() {
+    utility::closeOpenedEditors(route, &openedPlugins, p, e);
+
+    audioNode *node = utility::getNodeFromRoute(route, p);
+    utility::reorderPlugin(srcIndex, destIndex, node);
+
+    updateGUI();
+
+    utility::openEditors(route, openedPlugins, p, e);
+
+    return true;
+}
+
+bool track::ActionReorderPlugin::undo() {
+    utility::closeOpenedEditors(route, &openedPlugins, p, e);
+
+    audioNode *node = utility::getNodeFromRoute(route, p);
+    utility::reorderPlugin(srcIndex, destIndex, node);
+
+    updateGUI();
+
+    utility::openEditors(route, openedPlugins, p, e);
+
+    return true;
+}
+
+void track::ActionReorderPlugin::updateGUI() {
+    AudioPluginAudioProcessorEditor *editor =
+        (AudioPluginAudioProcessorEditor *)e;
+
+    for (size_t i = 0; i < editor->pluginChainComponents.size(); ++i) {
+        if (editor->pluginChainComponents[i]->route == route) {
+            editor->pluginChainComponents[i]
+                ->nodesWrapper.pluginNodeComponents.clear();
+            editor->pluginChainComponents[i]
+                ->nodesWrapper.createPluginNodeComponents();
+        }
+    }
+}
+
 track::PluginNodeComponent::PluginNodeComponent() : juce::Component() {
     this->openEditorBtn.setButtonText("EDITOR");
     addAndMakeVisible(openEditorBtn);
@@ -770,23 +824,18 @@ void track::PluginChainComponent::updateInsertIndicator(int index) {
     this->nodesWrapper.insertIndicator.setVisible(false);
 }
 
-// esex
+// esex0
 void track::PluginChainComponent::reorderPlugin(int srcIndex, int destIndex) {
     AudioPluginAudioProcessorEditor *editor =
         this->findParentComponentOfClass<AudioPluginAudioProcessorEditor>();
-    std::vector<track::subplugin *> openedPlugins;
-
-    utility::closeOpenedEditors(route, &openedPlugins, processor, editor);
 
     destIndex = juce::jlimit(
         0, (int)getCorrespondingTrack()->plugins.size() - 1, destIndex);
 
-    utility::reorderPlugin(srcIndex, destIndex, getCorrespondingTrack());
-
-    nodesWrapper.pluginNodeComponents.clear();
-    nodesWrapper.createPluginNodeComponents();
-
-    utility::openEditors(route, openedPlugins, processor, editor);
+    ActionReorderPlugin *action =
+        new ActionReorderPlugin(route, srcIndex, destIndex, processor, editor);
+    processor->undoManager.beginNewTransaction("action reorder plugin");
+    processor->undoManager.perform(action);
 }
 
 // plugin editor window

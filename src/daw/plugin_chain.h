@@ -2,6 +2,7 @@
 #include "../editor.h"
 #include "../processor.h"
 #include "BinaryData.h"
+#include "juce_data_structures/juce_data_structures.h"
 #include "subwindow.h"
 #include "track.h"
 #include <JuceHeader.h>
@@ -58,6 +59,25 @@ class ActionRemovePlugin : public juce::UndoableAction {
     // void closeAlreadyOpenedEditors();
     // void reopenEditors();
     std::vector<track::subplugin *> openedPlugins;
+};
+
+class ActionReorderPlugin : public juce::UndoableAction {
+  public:
+    ActionReorderPlugin(std::vector<int> nodeRoute, int sourceIndex,
+                        int destinationIndex, void *processor, void *editor);
+    ~ActionReorderPlugin();
+
+    int srcIndex = -1;
+    int destIndex = -1;
+    std::vector<int> route;
+    void *p = nullptr;
+    void *e = nullptr;
+
+    std::vector<track::subplugin *> openedPlugins;
+
+    bool perform() override;
+    bool undo() override;
+    void updateGUI();
 };
 
 class PluginNodeComponent : public juce::Component {
