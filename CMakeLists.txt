@@ -56,6 +56,7 @@ target_compile_definitions(track PRIVATE
     JUCE_USE_CURL=0
     JUCE_USE_MP3AUDIOFORMAT=1
     JUCE_WEB_BROWSER=0
+    JUCE_VST3_CAN_REPLACE_VST2=0
     # This is a temporary workaround to allow builds to complete on Xcode 15.
     # Add -Wl,-ld_classic to the OTHER_LDFLAGS build setting if you need to
     # deploy to older versions of macOS/iOS.
