@@ -10,6 +10,7 @@ juce_vst3_helper
 .vs/
 Debug/
 juce_vst_helper.dir/
+track_vst3_helper
 out/
 track.dir/
 track_rc_lib.dir/
