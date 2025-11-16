@@ -80,6 +80,26 @@ class ActionReorderPlugin : public juce::UndoableAction {
     void updateGUI();
 };
 
+class ActionChangeTrivialPluginData : public juce::UndoableAction {
+  public:
+    ActionChangeTrivialPluginData(pluginClipboardData oldData,
+                                  pluginClipboardData newData,
+                                  std::vector<int> nodeRoute, int pluginIndex,
+                                  void *processor, void *editor);
+    ~ActionChangeTrivialPluginData();
+
+    pluginClipboardData oldPluginData;
+    pluginClipboardData newPluginData;
+    std::vector<int> route;
+    int index = -1;
+    void *p = nullptr;
+    void *e = nullptr;
+
+    bool perform() override;
+    bool undo() override;
+    void updateGUI();
+};
+
 class PluginNodeComponent : public juce::Component {
   public:
     PluginNodeComponent();
@@ -104,6 +124,8 @@ class PluginNodeComponent : public juce::Component {
     int pluginIndex = -1;
     std::unique_ptr<track::subplugin> *getPlugin();
     bool getPluginBypassedStatus();
+
+    float dryWetMixAtDragStart = -1.f;
 };
 
 class PluginNodesWrapper : public juce::Component {

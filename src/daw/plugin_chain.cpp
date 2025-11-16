@@ -1,6 +1,7 @@
 #include "plugin_chain.h"
 #include "clipboard.h"
 #include "defs.h"
+#include "juce_data_structures/juce_data_structures.h"
 #include "subwindow.h"
 #include "track.h"
 #include "utility.h"
@@ -142,7 +143,6 @@ track::ActionReorderPlugin::ActionReorderPlugin(std::vector<int> nodeRoute,
 }
 track::ActionReorderPlugin::~ActionReorderPlugin(){};
 
-// esex1
 bool track::ActionReorderPlugin::perform() {
     utility::closeOpenedEditors(route, &openedPlugins, p, e);
 
@@ -183,6 +183,58 @@ void track::ActionReorderPlugin::updateGUI() {
     }
 }
 
+track::ActionChangeTrivialPluginData::ActionChangeTrivialPluginData(
+    pluginClipboardData oldData, pluginClipboardData newData,
+    std::vector<int> nodeRoute, int pluginIndex, void *processor, void *editor)
+    : juce::UndoableAction() {
+    this->oldPluginData = oldData;
+    this->newPluginData = newData;
+    this->route = nodeRoute;
+    this->index = pluginIndex;
+    this->p = processor;
+    this->e = editor;
+}
+track::ActionChangeTrivialPluginData::~ActionChangeTrivialPluginData() {}
+
+bool track::ActionChangeTrivialPluginData::perform() {
+    audioNode *node = utility::getNodeFromRoute(route, p);
+    subplugin *plugin = node->plugins[(size_t)index].get();
+
+    plugin->bypassed = newPluginData.bypassed;
+    plugin->dryWetMix = newPluginData.dryWetMix;
+    plugin->relayParams = newPluginData.relayParams;
+
+    updateGUI();
+
+    return true;
+}
+bool track::ActionChangeTrivialPluginData::undo() {
+    audioNode *node = utility::getNodeFromRoute(route, p);
+    subplugin *plugin = node->plugins[(size_t)index].get();
+
+    plugin->bypassed = oldPluginData.bypassed;
+    plugin->dryWetMix = oldPluginData.dryWetMix;
+    plugin->relayParams = oldPluginData.relayParams;
+
+    updateGUI();
+
+    return true;
+}
+void track::ActionChangeTrivialPluginData::updateGUI() {
+    AudioPluginAudioProcessorEditor *editor =
+        (AudioPluginAudioProcessorEditor *)e;
+
+    for (size_t i = 0; i < editor->pluginChainComponents.size(); ++i) {
+        if (editor->pluginChainComponents[i]->route == route) {
+            editor->pluginChainComponents[i]
+                ->nodesWrapper.pluginNodeComponents.clear();
+
+            editor->pluginChainComponents[i]
+                ->nodesWrapper.createPluginNodeComponents();
+        }
+    }
+};
+
 track::PluginNodeComponent::PluginNodeComponent() : juce::Component() {
     this->openEditorBtn.setButtonText("EDITOR");
     addAndMakeVisible(openEditorBtn);
@@ -205,6 +257,35 @@ track::PluginNodeComponent::PluginNodeComponent() : juce::Component() {
         juce::Slider::SliderStyle::RotaryHorizontalDrag);
     dryWetSlider.onValueChange = [this] {
         getPlugin()->get()->dryWetMix = dryWetSlider.getValue();
+    };
+
+    // for un/redoing dry/wet mix changes
+    dryWetSlider.onDragStart = [this] {
+        this->dryWetMixAtDragStart = dryWetSlider.getValue();
+    };
+    dryWetSlider.onDragEnd = [this] {
+        // prepare all this shit man idfk
+        pluginClipboardData pluginData;
+        pluginData.bypassed = getPlugin()->get()->bypassed;
+        pluginData.dryWetMix = getPlugin()->get()->dryWetMix;
+        pluginData.relayParams = getPlugin()->get()->relayParams;
+
+        pluginClipboardData oldPluginData = pluginData;
+        oldPluginData.dryWetMix = dryWetMixAtDragStart;
+
+        // finally, execute action
+        PluginChainComponent *pcc =
+            findParentComponentOfClass<PluginChainComponent>();
+        AudioPluginAudioProcessorEditor *editor =
+            pcc->findParentComponentOfClass<AudioPluginAudioProcessorEditor>();
+
+        ActionChangeTrivialPluginData *action =
+            new ActionChangeTrivialPluginData(oldPluginData, pluginData,
+                                              pcc->route, pluginIndex,
+                                              pcc->processor, editor);
+        pcc->processor->undoManager.beginNewTransaction(
+            "action change trivial plugin data");
+        pcc->processor->undoManager.perform(action);
     };
 
     openEditorBtn.onClick = [this] {
@@ -246,6 +327,29 @@ track::PluginNodeComponent::PluginNodeComponent() : juce::Component() {
             */
 
         getPlugin()->get()->bypassed = !getPlugin()->get()->bypassed;
+
+        // prepare all this shit man idfk
+        pluginClipboardData pluginData;
+        pluginData.bypassed = getPlugin()->get()->bypassed;
+        pluginData.dryWetMix = getPlugin()->get()->dryWetMix;
+        pluginData.relayParams = getPlugin()->get()->relayParams;
+
+        pluginClipboardData oldPluginData = pluginData;
+        oldPluginData.bypassed = !oldPluginData.bypassed;
+
+        // finally, execute action
+        PluginChainComponent *pcc =
+            findParentComponentOfClass<PluginChainComponent>();
+        AudioPluginAudioProcessorEditor *editor =
+            pcc->findParentComponentOfClass<AudioPluginAudioProcessorEditor>();
+
+        ActionChangeTrivialPluginData *action =
+            new ActionChangeTrivialPluginData(oldPluginData, pluginData,
+                                              pcc->route, pluginIndex,
+                                              pcc->processor, editor);
+        pcc->processor->undoManager.beginNewTransaction(
+            "action change trivial plugin data");
+        pcc->processor->undoManager.perform(action);
 
         repaint();
     };
@@ -824,7 +928,6 @@ void track::PluginChainComponent::updateInsertIndicator(int index) {
     this->nodesWrapper.insertIndicator.setVisible(false);
 }
 
-// esex0
 void track::PluginChainComponent::reorderPlugin(int srcIndex, int destIndex) {
     AudioPluginAudioProcessorEditor *editor =
         this->findParentComponentOfClass<AudioPluginAudioProcessorEditor>();
