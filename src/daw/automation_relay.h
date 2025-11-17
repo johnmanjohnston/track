@@ -1,5 +1,6 @@
 #pragma once
 #include "../processor.h"
+#include "juce_gui_basics/juce_gui_basics.h"
 #include "subwindow.h"
 #include "track.h"
 #include <JuceHeader.h>
@@ -17,7 +18,8 @@ class relayParam {
 };
 
 class RelayManagerComponent;
-class RelayManagerNode : public juce::Component {
+class RelayManagerNode : public juce::Component,
+                         public juce::ComboBox::Listener {
   public:
     RelayManagerNode();
     ~RelayManagerNode();
@@ -26,6 +28,8 @@ class RelayManagerNode : public juce::Component {
     void resized() override;
     void createMenuEntries();
     int paramVectorIndex = -1;
+
+    void comboBoxChanged(juce::ComboBox *box) override;
 
     void mouseDown(const juce::MouseEvent &event) override;
 

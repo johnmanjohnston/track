@@ -2,7 +2,6 @@
 #include "../editor.h"
 #include "../processor.h"
 #include "BinaryData.h"
-#include "juce_data_structures/juce_data_structures.h"
 #include "subwindow.h"
 #include "track.h"
 #include <JuceHeader.h>

@@ -1,7 +1,6 @@
 #include "plugin_chain.h"
 #include "clipboard.h"
 #include "defs.h"
-#include "juce_data_structures/juce_data_structures.h"
 #include "subwindow.h"
 #include "track.h"
 #include "utility.h"
@@ -232,6 +231,12 @@ void track::ActionChangeTrivialPluginData::updateGUI() {
             editor->pluginChainComponents[i]
                 ->nodesWrapper.createPluginNodeComponents();
         }
+    }
+
+    for (size_t i = 0; i < editor->relayManagerCompnoents.size(); ++i) {
+        if (editor->relayManagerCompnoents[i]->route == route)
+            editor->relayManagerCompnoents[i]
+                ->rmNodesWrapper.createRelayNodes();
     }
 };
 

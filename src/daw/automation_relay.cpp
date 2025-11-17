@@ -1,5 +1,7 @@
 #include "automation_relay.h"
 #include "defs.h"
+#include "juce_events/juce_events.h"
+#include "plugin_chain.h"
 #include "subwindow.h"
 #include "track.h"
 
@@ -147,11 +149,21 @@ void track::RelayManagerNodesWrapper::mouseDown(const juce::MouseEvent &event) {
     }
 }
 
-track::RelayManagerNode::RelayManagerNode() : juce::Component() {
+track::RelayManagerNode::RelayManagerNode()
+    : juce::Component(), juce::ComboBox::Listener() {
     addAndMakeVisible(relaySelector);
     addAndMakeVisible(hostedPluginParamSelector);
 
+    // add listener for the sole purpose of handling un/redoable actions; the
+    // actual logic where you change plugins' relay param values happens in
+    // lambda functions below; this works because the LISTENERS get called
+    // BEFORE THE LAMBDAS
+    hostedPluginParamSelector.addListener(this);
+    relaySelector.addListener(this);
+
+    // sex1
     hostedPluginParamSelector.onChange = [this] {
+        DBG("this is the lambda!");
         DBG(hostedPluginParamSelector.getSelectedId());
 
         std::unique_ptr<track::subplugin> *plugin = rmc->getPlugin();
@@ -200,13 +212,51 @@ void track::RelayManagerNode::createMenuEntries() {
                                .pluginParamIndex;
 
     if (hostedSelectedID != -1)
-        hostedPluginParamSelector.setSelectedId(hostedSelectedID);
+        hostedPluginParamSelector.setSelectedId(
+            hostedSelectedID, juce::NotificationType::dontSendNotification);
 
     int relayedID = plugin->get()
                         ->relayParams[(size_t)this->paramVectorIndex]
                         .outputParamID;
     if (relayedID != -1)
-        relaySelector.setSelectedId(relayedID);
+        relaySelector.setSelectedId(
+            relayedID, juce::NotificationType::dontSendNotification);
+}
+
+// sex0
+void track::RelayManagerNode::comboBoxChanged(juce::ComboBox *box) {
+    DBG("this is the listener");
+    DBG("comboBoxChanged() called");
+
+    jassert(box == &this->hostedPluginParamSelector ||
+            box == &this->relaySelector);
+
+    std::unique_ptr<track::subplugin> *plugin = rmc->getPlugin();
+
+    // prepare data for action
+    pluginClipboardData oldData;
+    oldData.bypassed = plugin->get()->bypassed;
+    oldData.dryWetMix = plugin->get()->dryWetMix;
+    oldData.relayParams = plugin->get()->relayParams;
+
+    pluginClipboardData newData = oldData;
+
+    if (box == &this->hostedPluginParamSelector) {
+        newData.relayParams[(size_t)this->paramVectorIndex].pluginParamIndex =
+            hostedPluginParamSelector.getSelectedId();
+    } else {
+        newData.relayParams[(size_t)this->paramVectorIndex].outputParamID =
+            relaySelector.getSelectedId();
+    }
+
+    AudioPluginAudioProcessorEditor *editor =
+        rmc->findParentComponentOfClass<AudioPluginAudioProcessorEditor>();
+
+    ActionChangeTrivialPluginData *action = new ActionChangeTrivialPluginData(
+        oldData, newData, rmc->route, rmc->pluginIndex, rmc->processor, editor);
+    rmc->processor->undoManager.beginNewTransaction(
+        "action change trivial plugin data (relay param change)");
+    rmc->processor->undoManager.perform(action);
 }
 
 void track::RelayManagerNode::mouseDown(const juce::MouseEvent &event) {
