@@ -276,6 +276,22 @@ void AudioPluginAudioProcessorEditor::openRelayMenu(std::vector<int> route,
     repaint();
 }
 
+bool AudioPluginAudioProcessorEditor::isRelayMenuOpened(std::vector<int> route,
+                                                        int pluginIndex) {
+    bool retval = false;
+
+    for (size_t i = 0; i < relayManagerCompnoents.size(); ++i) {
+        if (relayManagerCompnoents[i]->route == route) {
+            if (relayManagerCompnoents[i]->pluginIndex == pluginIndex) {
+                retval = true;
+                break;
+            }
+        }
+    }
+
+    return retval;
+}
+
 void AudioPluginAudioProcessorEditor::openRelayParamInspector() {
     relayParamInspector = std::make_unique<track::RelayParamInspector>();
     relayParamInspector->rpiComponent.processor = &processorRef;

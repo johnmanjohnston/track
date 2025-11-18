@@ -144,6 +144,8 @@ track::ActionReorderPlugin::~ActionReorderPlugin(){};
 
 bool track::ActionReorderPlugin::perform() {
     utility::closeOpenedEditors(route, &openedPlugins, p, e);
+    utility::closeOpenedRelayParamWindows(route, &openedPluginsRelayParams, p,
+                                          e);
 
     audioNode *node = utility::getNodeFromRoute(route, p);
     utility::reorderPlugin(srcIndex, destIndex, node);
@@ -151,12 +153,15 @@ bool track::ActionReorderPlugin::perform() {
     updateGUI();
 
     utility::openEditors(route, openedPlugins, p, e);
+    utility::openRelayParamWindows(route, openedPluginsRelayParams, p, e);
 
     return true;
 }
 
 bool track::ActionReorderPlugin::undo() {
     utility::closeOpenedEditors(route, &openedPlugins, p, e);
+    utility::closeOpenedRelayParamWindows(route, &openedPluginsRelayParams, p,
+                                          e);
 
     audioNode *node = utility::getNodeFromRoute(route, p);
     utility::reorderPlugin(srcIndex, destIndex, node);
@@ -164,6 +169,7 @@ bool track::ActionReorderPlugin::undo() {
     updateGUI();
 
     utility::openEditors(route, openedPlugins, p, e);
+    utility::openRelayParamWindows(route, openedPluginsRelayParams, p, e);
 
     return true;
 }

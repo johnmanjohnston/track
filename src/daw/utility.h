@@ -26,4 +26,10 @@ void openEditors(std::vector<int> nodeRoute,
                  std::vector<track::subplugin *> openedPlugins, void *p,
                  void *e);
 
+void closeOpenedRelayParamWindows(
+    std::vector<int> nodeRoute, std::vector<track::subplugin *> *openedPlugins,
+    void *p, void *e);
+void openRelayParamWindows(std::vector<int> nodeRoute,
+                           std::vector<track::subplugin *> openedPlugins,
+                           void *p, void *e);
 } // namespace track::utility
