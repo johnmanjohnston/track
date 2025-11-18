@@ -90,18 +90,6 @@ void track::RelayManagerNodesWrapper::createRelayNodes() {
     setRelayNodesBounds();
 }
 
-void track::RelayManagerNodesWrapper::removeRelayNode(int index) {
-    // relayNodes.erase(relayNodes.begin() + index);
-
-    RelayManagerComponent *rmc = (RelayManagerComponent *)
-        findParentComponentOfClass<RelayManagerComponent>();
-    rmc->getPlugin()->get()->relayParams.erase(
-        rmc->getPlugin()->get()->relayParams.begin() + index);
-
-    relayNodes.clear();
-    createRelayNodes();
-}
-
 void track::RelayManagerNodesWrapper::setRelayNodesBounds() {
     RelayManagerComponent *rmc =
         findParentComponentOfClass<RelayManagerComponent>();
@@ -161,7 +149,6 @@ track::RelayManagerNode::RelayManagerNode()
     hostedPluginParamSelector.addListener(this);
     relaySelector.addListener(this);
 
-    // sex1
     hostedPluginParamSelector.onChange = [this] {
         DBG("this is the lambda!");
         DBG(hostedPluginParamSelector.getSelectedId());
@@ -223,7 +210,6 @@ void track::RelayManagerNode::createMenuEntries() {
             relayedID, juce::NotificationType::dontSendNotification);
 }
 
-// sex0
 void track::RelayManagerNode::comboBoxChanged(juce::ComboBox *box) {
     DBG("this is the listener");
     DBG("comboBoxChanged() called");
@@ -273,9 +259,25 @@ void track::RelayManagerNode::mouseDown(const juce::MouseEvent &event) {
 }
 
 void track::RelayManagerNode::removeThisRelayParam() {
-    RelayManagerNodesWrapper *nodesWrapper = (RelayManagerNodesWrapper *)
-        findParentComponentOfClass<RelayManagerNodesWrapper>();
-    nodesWrapper->removeRelayNode(this->paramVectorIndex);
+    std::unique_ptr<track::subplugin> *plugin = rmc->getPlugin();
+
+    // prepare data for action
+    pluginClipboardData oldData;
+    oldData.bypassed = plugin->get()->bypassed;
+    oldData.dryWetMix = plugin->get()->dryWetMix;
+    oldData.relayParams = plugin->get()->relayParams;
+
+    pluginClipboardData newData = oldData;
+    newData.relayParams.erase(newData.relayParams.begin() + paramVectorIndex);
+
+    AudioPluginAudioProcessorEditor *editor =
+        rmc->findParentComponentOfClass<AudioPluginAudioProcessorEditor>();
+
+    ActionChangeTrivialPluginData *action = new ActionChangeTrivialPluginData(
+        oldData, newData, rmc->route, rmc->pluginIndex, rmc->processor, editor);
+    rmc->processor->undoManager.beginNewTransaction(
+        "action change trivial plugin data (relay param change)");
+    rmc->processor->undoManager.perform(action);
 }
 
 void track::RelayManagerNode::paint(juce::Graphics &g) {

@@ -61,8 +61,6 @@ class RelayManagerNodesWrapper : public juce::Component {
     std::vector<std::unique_ptr<RelayManagerNode>> relayNodes;
     void createRelayNodes();
     void setRelayNodesBounds();
-
-    void removeRelayNode(int index);
 };
 
 class RelayManagerViewport : public juce::Viewport {
