@@ -20,15 +20,21 @@ void track::CloseButton::mouseUp(const juce::MouseEvent &event) {
 
     // absolute cinema
     if (behaveLikeANormalCloseButton) {
-        juce::Component *componentToRemove =
-            (juce::Component *)getParentComponent();
-        jassert(componentToRemove != nullptr);
+        if (onClose)
+            onClose();
+        else {
 
-        juce::Component *componentToRemoveParent =
-            (juce::Component *)componentToRemove->getParentComponent();
-        jassert(componentToRemoveParent != nullptr);
+            juce::Component *componentToRemove =
+                (juce::Component *)getParentComponent();
+            jassert(componentToRemove != nullptr);
 
-        componentToRemoveParent->removeChildComponent(componentToRemove);
+            juce::Component *componentToRemoveParent =
+                (juce::Component *)componentToRemove->getParentComponent();
+            jassert(componentToRemoveParent != nullptr);
+
+            componentToRemoveParent->removeChildComponent(componentToRemove);
+        }
+
     } else {
         track::PluginEditorWindow *pew =
             (track::PluginEditorWindow *)getParentComponent();

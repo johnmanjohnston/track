@@ -18,6 +18,8 @@ class CloseButton : public juce::Component {
     juce::Colour normalColor = juce::Colour(0xFF'585858);
     juce::Colour hoveredColor = juce::Colour(0xFF'808080);
 
+    std::function<void()> onClose;
+
     bool behaveLikeANormalCloseButton = true;
 };
 

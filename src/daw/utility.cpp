@@ -314,12 +314,14 @@ void track::utility::closeOpenedRelayParamWindows(
     AudioPluginAudioProcessorEditor *editor =
         (AudioPluginAudioProcessorEditor *)e;
 
+    DBG("");
+    DBG("editor relay menu count = " << editor->relayManagerCompnoents.size());
+    DBG("");
+
     for (size_t i = 0; i < node->plugins.size(); ++i) {
         if (editor->isRelayMenuOpened(nodeRoute, i)) {
 
-            // NOW
-            // TODO: write function in editor to remove relay param window
-
+            editor->closeRelayMenu(nodeRoute, i);
             openedPlugins->push_back(node->plugins[i].get());
             continue;
         }
@@ -333,10 +335,16 @@ void track::utility::openRelayParamWindows(
     AudioPluginAudioProcessorEditor *editor =
         (AudioPluginAudioProcessorEditor *)e;
 
+    DBG("");
+    DBG("editor relay menu count = " << editor->relayManagerCompnoents.size());
+    DBG("");
+
     // reopen closed ediors
     for (auto *pl : openedPlugins) {
         for (size_t i = 0; i < node->plugins.size(); ++i) {
             if (node->plugins[i].get() == pl) {
+                DBG("found match! plugin index " << i << " with name "
+                                                 << pl->plugin->getName());
                 editor->openRelayMenu(nodeRoute, i);
                 break;
             }

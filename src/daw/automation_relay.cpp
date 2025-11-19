@@ -8,6 +8,22 @@
 track::RelayManagerComponent::RelayManagerComponent() : track::Subwindow() {
     rmViewport.setViewedComponent(&rmNodesWrapper);
     addAndMakeVisible(this->rmViewport);
+
+    closeBtn.onClose = [this] {
+        AudioPluginAudioProcessorEditor *editor =
+            findParentComponentOfClass<AudioPluginAudioProcessorEditor>();
+
+        long index = 0;
+        for (size_t i = 0; i < editor->relayManagerCompnoents.size(); ++i) {
+            if (editor->relayManagerCompnoents[i].get() == this) {
+                index = (long)i;
+                break;
+            }
+        }
+
+        editor->relayManagerCompnoents.erase(
+            editor->relayManagerCompnoents.begin() + index);
+    };
 }
 track::RelayManagerComponent::~RelayManagerComponent() {}
 
@@ -189,7 +205,7 @@ void track::RelayManagerNode::createMenuEntries() {
     params = pluginInstance->get()->getParameters();
 
     for (int i = 0; i < params.size(); ++i) {
-        DBG(params[i]->getName(64) << "/" << juce::String(i));
+        // DBG(params[i]->getName(64) << "/" << juce::String(i));
         hostedPluginParamSelector.addItem(params[i]->getName(64), 1 + i);
     }
 

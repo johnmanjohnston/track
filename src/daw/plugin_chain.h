@@ -72,8 +72,8 @@ class ActionReorderPlugin : public juce::UndoableAction {
     void *p = nullptr;
     void *e = nullptr;
 
-    std::vector<track::subplugin *> openedPlugins;
-    std::vector<track::subplugin *> openedPluginsRelayParams;
+    std::vector<track::subplugin *> openEditorsPlugins;
+    std::vector<track::subplugin *> openRelayMenuPlugins;
 
     bool perform() override;
     bool undo() override;

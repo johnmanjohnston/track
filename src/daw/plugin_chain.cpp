@@ -143,33 +143,37 @@ track::ActionReorderPlugin::ActionReorderPlugin(std::vector<int> nodeRoute,
 track::ActionReorderPlugin::~ActionReorderPlugin(){};
 
 bool track::ActionReorderPlugin::perform() {
-    utility::closeOpenedEditors(route, &openedPlugins, p, e);
-    utility::closeOpenedRelayParamWindows(route, &openedPluginsRelayParams, p,
-                                          e);
+    utility::closeOpenedEditors(route, &openEditorsPlugins, p, e);
+    utility::closeOpenedRelayParamWindows(route, &openRelayMenuPlugins, p, e);
 
     audioNode *node = utility::getNodeFromRoute(route, p);
     utility::reorderPlugin(srcIndex, destIndex, node);
 
     updateGUI();
 
-    utility::openEditors(route, openedPlugins, p, e);
-    utility::openRelayParamWindows(route, openedPluginsRelayParams, p, e);
+    utility::openEditors(route, openEditorsPlugins, p, e);
+    utility::openRelayParamWindows(route, openRelayMenuPlugins, p, e);
+
+    this->openEditorsPlugins.clear();
+    this->openRelayMenuPlugins.clear();
 
     return true;
 }
 
 bool track::ActionReorderPlugin::undo() {
-    utility::closeOpenedEditors(route, &openedPlugins, p, e);
-    utility::closeOpenedRelayParamWindows(route, &openedPluginsRelayParams, p,
-                                          e);
+    utility::closeOpenedEditors(route, &openEditorsPlugins, p, e);
+    utility::closeOpenedRelayParamWindows(route, &openRelayMenuPlugins, p, e);
 
     audioNode *node = utility::getNodeFromRoute(route, p);
     utility::reorderPlugin(srcIndex, destIndex, node);
 
     updateGUI();
 
-    utility::openEditors(route, openedPlugins, p, e);
-    utility::openRelayParamWindows(route, openedPluginsRelayParams, p, e);
+    utility::openEditors(route, openEditorsPlugins, p, e);
+    utility::openRelayParamWindows(route, openRelayMenuPlugins, p, e);
+
+    this->openEditorsPlugins.clear();
+    this->openRelayMenuPlugins.clear();
 
     return true;
 }
@@ -923,7 +927,7 @@ void track::PluginChainComponent::removePlugin(int pluginIndex) {
 }
 
 void track::PluginChainComponent::updateInsertIndicator(int index) {
-    DBG("pcc updateInsertIndicator() called");
+    // DBG("pcc updateInsertIndicator() called");
 
     if (index > -1) {
         this->nodesWrapper.insertIndicator.setVisible(true);

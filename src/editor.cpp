@@ -276,6 +276,18 @@ void AudioPluginAudioProcessorEditor::openRelayMenu(std::vector<int> route,
     repaint();
 }
 
+void AudioPluginAudioProcessorEditor::closeRelayMenu(std::vector<int> route,
+                                                     int pluginIndex) {
+    for (size_t i = 0; i < relayManagerCompnoents.size(); ++i) {
+        if (relayManagerCompnoents[i]->route == route &&
+            relayManagerCompnoents[i]->pluginIndex == pluginIndex) {
+            this->relayManagerCompnoents.erase(
+                this->relayManagerCompnoents.begin() + (long)i);
+            break;
+        }
+    }
+}
+
 bool AudioPluginAudioProcessorEditor::isRelayMenuOpened(std::vector<int> route,
                                                         int pluginIndex) {
     bool retval = false;
