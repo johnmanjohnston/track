@@ -18,37 +18,21 @@ void track::CloseButton::mouseUp(const juce::MouseEvent &event) {
     if (!event.mods.isLeftButtonDown())
         return;
 
-    // absolute cinema
-    if (behaveLikeANormalCloseButton) {
-        if (onClose)
-            onClose();
-        else {
+    // once upon a tale, here lied absolute cinema--a chunk of code where the
+    // elders tell stories about to the little ones--a chunk of code where
+    // modern civilization feared to tread...
+    if (onClose)
+        onClose();
+    else {
+        juce::Component *componentToRemove =
+            (juce::Component *)getParentComponent();
+        jassert(componentToRemove != nullptr);
 
-            juce::Component *componentToRemove =
-                (juce::Component *)getParentComponent();
-            jassert(componentToRemove != nullptr);
+        juce::Component *componentToRemoveParent =
+            (juce::Component *)componentToRemove->getParentComponent();
+        jassert(componentToRemoveParent != nullptr);
 
-            juce::Component *componentToRemoveParent =
-                (juce::Component *)componentToRemove->getParentComponent();
-            jassert(componentToRemoveParent != nullptr);
-
-            componentToRemoveParent->removeChildComponent(componentToRemove);
-        }
-
-    } else {
-        track::PluginEditorWindow *pew =
-            (track::PluginEditorWindow *)getParentComponent();
-
-        AudioPluginAudioProcessorEditor *editor =
-            findParentComponentOfClass<AudioPluginAudioProcessorEditor>();
-
-        for (size_t i = 0; i < editor->pluginEditorWindows.size(); ++i) {
-            if (editor->pluginEditorWindows[i].get() == pew) {
-                editor->pluginEditorWindows.erase(
-                    editor->pluginEditorWindows.begin() + (long)i);
-                break;
-            }
-        }
+        componentToRemoveParent->removeChildComponent(componentToRemove);
     }
 }
 

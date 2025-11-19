@@ -797,6 +797,19 @@ track::PluginChainComponent::PluginChainComponent() : Subwindow() {
     nodesViewport.setViewedComponent(&nodesWrapper);
     addAndMakeVisible(nodesViewport);
 
+    closeBtn.onClose = [this] {
+        AudioPluginAudioProcessorEditor *editor =
+            findParentComponentOfClass<AudioPluginAudioProcessorEditor>();
+
+        for (size_t i = 0; i < editor->pluginChainComponents.size(); ++i) {
+            if (editor->pluginChainComponents[i].get() == this) {
+                editor->pluginChainComponents.erase(
+                    editor->pluginChainComponents.begin() + (long)i);
+                break;
+            }
+        }
+    };
+
     // addAndMakeVisible(insertIndicator);
 }
 
@@ -959,7 +972,21 @@ void track::PluginChainComponent::reorderPlugin(int srcIndex, int destIndex) {
 // plugin editor window
 track::PluginEditorWindow::PluginEditorWindow() : juce::Component() {
     closeBtn.font = getInterBoldItalic();
-    closeBtn.behaveLikeANormalCloseButton = false;
+
+    closeBtn.onClose = [this] {
+        AudioPluginAudioProcessorEditor *editor =
+            findParentComponentOfClass<AudioPluginAudioProcessorEditor>();
+
+        for (size_t i = 0; i < editor->pluginEditorWindows.size(); ++i) {
+            if (editor->pluginEditorWindows[i].get() == this) {
+                editor->pluginEditorWindows.erase(
+                    editor->pluginEditorWindows.begin() + (long)i);
+                break;
+            }
+        }
+    };
+
+    // closeBtn.behaveLikeANormalCloseButton = false;
     addAndMakeVisible(closeBtn);
 }
 track::PluginEditorWindow::~PluginEditorWindow() {

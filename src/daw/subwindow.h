@@ -19,8 +19,6 @@ class CloseButton : public juce::Component {
     juce::Colour hoveredColor = juce::Colour(0xFF'808080);
 
     std::function<void()> onClose;
-
-    bool behaveLikeANormalCloseButton = true;
 };
 
 class Subwindow : public juce::Component {

@@ -13,16 +13,13 @@ track::RelayManagerComponent::RelayManagerComponent() : track::Subwindow() {
         AudioPluginAudioProcessorEditor *editor =
             findParentComponentOfClass<AudioPluginAudioProcessorEditor>();
 
-        long index = 0;
         for (size_t i = 0; i < editor->relayManagerCompnoents.size(); ++i) {
             if (editor->relayManagerCompnoents[i].get() == this) {
-                index = (long)i;
+                editor->relayManagerCompnoents.erase(
+                    editor->relayManagerCompnoents.begin() + (long)i);
                 break;
             }
         }
-
-        editor->relayManagerCompnoents.erase(
-            editor->relayManagerCompnoents.begin() + index);
     };
 }
 track::RelayManagerComponent::~RelayManagerComponent() {}
