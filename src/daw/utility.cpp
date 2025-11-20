@@ -351,3 +351,18 @@ void track::utility::openRelayParamWindows(
         }
     }
 }
+
+juce::String track::utility::prettyVector(std::vector<int> x) {
+    juce::String retval = "[";
+
+    for (size_t i = 0; i < x.size(); ++i) {
+        retval += juce::String(x[i]);
+
+        if (i != x.size() - 1) {
+            retval += ", ";
+        }
+    }
+
+    retval += "]";
+    return retval;
+}
