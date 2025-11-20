@@ -261,6 +261,12 @@ void track::utility::reorderNodeAlt(std::vector<int> r1, std::vector<int> r2,
     }
 }
 
+bool track::utility::isSibling(std::vector<int> r1, std::vector<int> r2) {
+    r1.pop_back();
+    r2.pop_back();
+    return r1 == r2;
+}
+
 void track::utility::reorderPlugin(int srcIndex, int destIndex,
                                    audioNode *node) {
     // std::move is absolute magic how have i not known of this sooner

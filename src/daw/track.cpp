@@ -1488,6 +1488,19 @@ bool track::ActionMoveNodeToGroup::perform() {
 
 bool track::ActionMoveNodeToGroup::undo() {
     AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
+
+    // FIXME: bug involving undoing action moving node into groups;
+    // imagine two nodes x and y. y is a group, and are siblings, whose parent
+    // is a group. moving x into y works, but undoing that causes segfault due
+    // to groupRoute now being messed up (to easily reproduce this bug,
+    // ideally x is a track, and y is a group)
+    if (nodeToMoveRoute.size() > 1 &&
+        utility::isSibling(groupRoute, nodeToMoveRoute)) {
+        DBG("");
+        DBG("bug will happen.");
+        DBG("");
+    }
+
     audioNode *parent = utility::getNodeFromRoute(groupRoute, p);
 
     if (nodeToMoveRoute.size() == 1) {
