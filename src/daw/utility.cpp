@@ -121,6 +121,9 @@ bool track::utility::isDescendant(audioNode *parent, audioNode *possibleChild,
 void track::utility::moveNodeToGroup(std::vector<int> moveRoute,
                                      std::vector<int> groupRoute, Tracklist *tl,
                                      void *p) {
+    jassert(groupRoute.size() > 0);
+    jassert(moveRoute.size() > 0);
+
     audioNode *trackNode = getNodeFromRoute(moveRoute, p);
     audioNode *parentNode = getNodeFromRoute(groupRoute, p);
 
@@ -291,6 +294,20 @@ bool track::utility::isSibling(std::vector<int> r1, std::vector<int> r2) {
     r1.pop_back();
     r2.pop_back();
     return r1 == r2;
+}
+
+void track::utility::deleteNode(std::vector<int> route, void *p) {
+    jassert(route.size() > 0);
+
+    AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
+
+    if (route.size() == 1) {
+        processor->tracks.erase(processor->tracks.begin() + route.back());
+        return;
+    }
+
+    audioNode *parent = utility::getParentFromRoute(route, p);
+    parent->childNodes.erase(parent->childNodes.begin() + route.back());
 }
 
 void track::utility::reorderPlugin(int srcIndex, int destIndex,

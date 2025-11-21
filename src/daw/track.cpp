@@ -1509,16 +1509,20 @@ bool track::ActionMoveNodeToGroup::perform() {
 bool track::ActionMoveNodeToGroup::undo() {
     AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
 
+    DBG("groupRoute = " << utility::prettyVector(groupRoute));
+    DBG("nodeToMoveRoute = " << utility::prettyVector(nodeToMoveRoute));
+
     // this fixes an edge case involving undoing action moving node into groups;
     // imagine two nodes x and y. y is a group, and are siblings (x is ordered
     // before y), whose parent is a group. moving x into y works, but undoing
     // that causes segfault due to groupRoute now being messed up (to easily
     // reproduce this bug, ideally x is a track, and y is a group).
     // -
-    // the problem is definetely due to stale indices
+    // the problem is definetely due to stale indices, where moving a node
+    // ordered BEFORE the sibling group that it is moving into, messes up
+    // indices of nodes
     bool fixEdgeCase = true;
-    bool edgeCase = nodeToMoveRoute.size() > 1 &&
-                    utility::isSibling(groupRoute, nodeToMoveRoute) &&
+    bool edgeCase = utility::isSibling(groupRoute, nodeToMoveRoute) &&
                     nodeToMoveRoute.back() < groupRoute.back();
     if (edgeCase) {
         DBG("");
@@ -1545,15 +1549,37 @@ bool track::ActionMoveNodeToGroup::undo() {
             << utility::prettyVector(newNodeToMoveRoute));
 
         if (fixEdgeCase) {
-            utility::moveNodeToGroup(newNodeToMoveRoute, newGroupRoute,
-                                     (Tracklist *)tl, p);
+            if (newGroupRoute.size() == 0) {
+                // no parent
+                DBG("aaaaah headache");
+                audioNode tmp;
+                audioNode *nodeToMove =
+                    utility::getNodeFromRoute(newNodeToMoveRoute, p);
 
-            audioNode *parent = utility::getNodeFromRoute(newGroupRoute, p);
-            audioNode &newborn = *parent->childNodes.emplace(
-                parent->childNodes.begin() + movedNodeFinalIndex);
-            parent = utility::getNodeFromRoute(newGroupRoute, p);
-            utility::copyNode(&newborn, &parent->childNodes.back(), p);
-            parent->childNodes.pop_back();
+                utility::copyNode(&tmp, nodeToMove, p);
+
+                // delete node
+                utility::deleteNode(newNodeToMoveRoute, p);
+
+                processor->tracks.emplace(processor->tracks.begin() +
+                                          nodeToMoveRoute.back());
+                utility::copyNode(
+                    &processor->tracks[(size_t)nodeToMoveRoute.back()], &tmp,
+                    p);
+
+            } else {
+                // nested node; moveNodeToGroup() doesn't accept empty
+                // groupRoute
+                utility::moveNodeToGroup(newNodeToMoveRoute, newGroupRoute,
+                                         (Tracklist *)tl, p);
+
+                audioNode *parent = utility::getNodeFromRoute(newGroupRoute, p);
+                audioNode &newborn = *parent->childNodes.emplace(
+                    parent->childNodes.begin() + movedNodeFinalIndex);
+                parent = utility::getNodeFromRoute(newGroupRoute, p);
+                utility::copyNode(&newborn, &parent->childNodes.back(), p);
+                parent->childNodes.pop_back();
+            }
 
             updateGUI();
             return true;
