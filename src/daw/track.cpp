@@ -1481,6 +1481,26 @@ track::ActionMoveNodeToGroup::~ActionMoveNodeToGroup() {}
 bool track::ActionMoveNodeToGroup::perform() {
     utility::moveNodeToGroup(nodeToMoveRoute, groupRoute, (Tracklist *)tl, p);
 
+    if (nodeToMoveRoute.size() > 1 &&
+        utility::isSibling(groupRoute, nodeToMoveRoute)) {
+        // DBG("bug is GOING to happen.");
+
+        /*
+        DBG("old routes:");
+        DBG("groupRoute = " << utility::prettyVector(groupRoute));
+        DBG("nodeToMoveRoute = " << utility::prettyVector(nodeToMoveRoute));
+        DBG("");
+
+        // groupRoute.back()--;
+        groupRoute.pop_back();
+        nodeToMoveRoute.push_back(0);
+
+        DBG("new routes:");
+        DBG("groupRoute = " << utility::prettyVector(groupRoute));
+        DBG("nodeToMoveRoute = " << utility::prettyVector(nodeToMoveRoute));
+        DBG("");*/
+    }
+
     updateGUI();
 
     return true;
@@ -1489,16 +1509,55 @@ bool track::ActionMoveNodeToGroup::perform() {
 bool track::ActionMoveNodeToGroup::undo() {
     AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
 
-    // FIXME: bug involving undoing action moving node into groups;
-    // imagine two nodes x and y. y is a group, and are siblings, whose parent
-    // is a group. moving x into y works, but undoing that causes segfault due
-    // to groupRoute now being messed up (to easily reproduce this bug,
-    // ideally x is a track, and y is a group)
-    if (nodeToMoveRoute.size() > 1 &&
-        utility::isSibling(groupRoute, nodeToMoveRoute)) {
+    // this fixes an edge case involving undoing action moving node into groups;
+    // imagine two nodes x and y. y is a group, and are siblings (x is ordered
+    // before y), whose parent is a group. moving x into y works, but undoing
+    // that causes segfault due to groupRoute now being messed up (to easily
+    // reproduce this bug, ideally x is a track, and y is a group).
+    // -
+    // the problem is definetely due to stale indices
+    bool fixEdgeCase = true;
+    bool edgeCase = nodeToMoveRoute.size() > 1 &&
+                    utility::isSibling(groupRoute, nodeToMoveRoute) &&
+                    nodeToMoveRoute.back() < groupRoute.back();
+    if (edgeCase) {
         DBG("");
         DBG("bug will happen.");
         DBG("");
+
+        DBG("old routes: ");
+        DBG("groupRoute = " << utility::prettyVector(groupRoute));
+        DBG("nodeToMoveRoute = " << utility::prettyVector(nodeToMoveRoute));
+
+        int movedNodeFinalIndex = nodeToMoveRoute.back();
+
+        std::vector<int> newGroupRoute = groupRoute;
+        std::vector<int> newNodeToMoveRoute = nodeToMoveRoute;
+
+        newGroupRoute.pop_back();
+
+        newNodeToMoveRoute.back() = groupRoute.back() - 1;
+        newNodeToMoveRoute.push_back(0);
+
+        DBG("new routes: ");
+        DBG("newGroupRoute = " << utility::prettyVector(newGroupRoute));
+        DBG("newNodeToMoveRoute = "
+            << utility::prettyVector(newNodeToMoveRoute));
+
+        if (fixEdgeCase) {
+            utility::moveNodeToGroup(newNodeToMoveRoute, newGroupRoute,
+                                     (Tracklist *)tl, p);
+
+            audioNode *parent = utility::getNodeFromRoute(newGroupRoute, p);
+            audioNode &newborn = *parent->childNodes.emplace(
+                parent->childNodes.begin() + movedNodeFinalIndex);
+            parent = utility::getNodeFromRoute(newGroupRoute, p);
+            utility::copyNode(&newborn, &parent->childNodes.back(), p);
+            parent->childNodes.pop_back();
+
+            updateGUI();
+            return true;
+        }
     }
 
     audioNode *parent = utility::getNodeFromRoute(groupRoute, p);

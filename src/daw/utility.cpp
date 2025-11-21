@@ -32,6 +32,32 @@ track::audioNode *track::utility::getNodeFromRoute(std::vector<int> route,
     return head;
 }
 
+track::audioNode *track::utility::getParentFromRoute(std::vector<int> route,
+                                                     void *p) {
+    if (route.size() == 1)
+        return nullptr;
+
+    route.pop_back();
+    return utility::getNodeFromRoute(route, p);
+}
+
+track::audioNode *track::utility::findDuplicate(audioNode *parent,
+                                                audioNode *src) {
+    for (auto &child : parent->childNodes) {
+        if (child.trackName == src->trackName &&
+            child.isTrack == src->isTrack &&
+            child.clips.size() == src->clips.size()) {
+            for (size_t i = 0; i < child.clips.size(); ++i) {
+                if (child.clips[i].buffer != src->clips[i].buffer)
+                    continue;
+            }
+
+            return &child;
+        }
+    }
+    return nullptr;
+}
+
 void track::utility::copyNode(audioNode *dest, audioNode *src,
                               void *processor) {
     dest->isTrack = src->isTrack;
