@@ -312,6 +312,9 @@ class ActionMoveNodeToGroup : public juce::UndoableAction {
   public:
     std::vector<int> nodeToMoveRoute;
     std::vector<int> groupRoute;
+
+    std::vector<int> routeAfterMoving;
+
     void *p = nullptr;
     void *tl = nullptr;
     void *tc = nullptr;
