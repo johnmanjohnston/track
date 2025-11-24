@@ -8,6 +8,7 @@
 #include "lookandfeel.h"
 #include "processor.h"
 #include <cmath>
+#include <signal.h>
 
 AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
     AudioPluginAudioProcessor &p)
@@ -80,6 +81,7 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
 #define MENU_UPDATE_LATENCY 3
 #define MENU_BUILD_INFO 6
 #define MENU_OPEN_RELAY_PARAMS_INSPECTOR 7
+#define MENU_RAISE_SEGFAULT 8
 
         contextMenu.addItem(MENU_PLUGIN_SCAN, "Scan plugins");
         contextMenu.addItem(MENU_PLUGIN_LAZY_SCAN, "Lazy scan for plugins");
@@ -93,6 +95,9 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
         contextMenu.addItem(MENU_ABOUT, "About");
         contextMenu.addItem(MENU_BUILD_INFO, "Build info");
 
+#if JUCE_DEBUG
+        contextMenu.addItem(MENU_RAISE_SEGFAULT, "Segfault");
+#endif
         juce::PopupMenu::Options popupmenuOptions;
         contextMenu.showMenuAsync(popupmenuOptions, [this](int result) {
             if (result == MENU_PLUGIN_SCAN) {
@@ -140,6 +145,10 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
                 juce::NativeMessageBox::showMessageBoxAsync(
                     juce::MessageBoxIconType::InfoIcon, "track build info",
                     buildInfoString);
+            }
+
+            else if (result == MENU_RAISE_SEGFAULT) {
+                raise(SIGSEGV);
             }
         });
     };
