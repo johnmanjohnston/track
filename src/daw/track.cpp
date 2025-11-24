@@ -1479,14 +1479,12 @@ track::ActionMoveNodeToGroup::ActionMoveNodeToGroup(std::vector<int> toMove,
 track::ActionMoveNodeToGroup::~ActionMoveNodeToGroup() {}
 
 bool track::ActionMoveNodeToGroup::perform() {
-    routeAfterMoving = groupRoute;
     DBG("perform(): groupRoute = " << utility::prettyVector(groupRoute));
     audioNode *groupNode = utility::getNodeFromRoute(groupRoute, p);
 
-    routeAfterMoving
-        .back()--; // decrementing here makes sense if the node at groupRoute is
-                   // AFTER node at nodeToMoveRoute, but this works even if node
-                   // at nodeToMoveRoute is BEFORE the node at groupRoute?
+    routeAfterMoving = groupRoute;
+
+    routeAfterMoving[groupRoute.size() - 1]--;
 
     routeAfterMoving.push_back(groupNode->childNodes.size());
 
