@@ -1,9 +1,9 @@
 #include "automation_relay.h"
 #include "defs.h"
-#include "juce_events/juce_events.h"
 #include "plugin_chain.h"
 #include "subwindow.h"
 #include "track.h"
+#include "utility.h"
 
 track::RelayManagerComponent::RelayManagerComponent() : track::Subwindow() {
     rmViewport.setViewedComponent(&rmNodesWrapper);
@@ -28,12 +28,7 @@ track::audioNode *track::RelayManagerComponent::getCorrespondingTrack() {
     jassert(processor != nullptr);
     jassert(route.size() > 0);
 
-    audioNode *head = &processor->tracks[(size_t)route[0]];
-    for (size_t i = 1; i < route.size(); ++i) {
-        head = &head->childNodes[(size_t)route[i]];
-    }
-
-    return head;
+    return utility::getNodeFromRoute(route, processor);
 }
 
 std::unique_ptr<track::subplugin> *track::RelayManagerComponent::getPlugin() {
@@ -64,10 +59,12 @@ void track::RelayManagerComponent::paint(juce::Graphics &g) {
 void track::RelayManagerComponent::resized() {
     Subwindow::resized();
 
+    int wrapperHeight = (getPlugin()->get()->relayParams.size() + 1) * 64;
+
     rmViewport.setBounds(0, UI_SUBWINDOW_TITLEBAR_HEIGHT, getWidth(),
                          getHeight() - UI_SUBWINDOW_TITLEBAR_HEIGHT);
     rmNodesWrapper.setBounds(0, 0, getWidth() - 8,
-                             (getPlugin()->get()->relayParams.size() + 1) * 64);
+                             juce::jmax(wrapperHeight, rmViewport.getHeight()));
 }
 
 void track::RelayManagerNodesWrapper::createRelayNodes() {
@@ -141,7 +138,26 @@ void track::RelayManagerNodesWrapper::mouseDown(const juce::MouseEvent &event) {
 
             plugin->get()->relayParams.emplace_back();
 
-            createRelayNodes();
+            // prepare data for action
+            pluginClipboardData oldData;
+            oldData.bypassed = plugin->get()->bypassed;
+            oldData.dryWetMix = plugin->get()->dryWetMix;
+            oldData.relayParams = plugin->get()->relayParams;
+
+            pluginClipboardData newData = oldData;
+            oldData.relayParams.pop_back();
+
+            AudioPluginAudioProcessorEditor *editor =
+                rmc->findParentComponentOfClass<
+                    AudioPluginAudioProcessorEditor>();
+
+            ActionChangeTrivialPluginData *action =
+                new ActionChangeTrivialPluginData(oldData, newData, rmc->route,
+                                                  rmc->pluginIndex,
+                                                  rmc->processor, editor);
+            rmc->processor->undoManager.beginNewTransaction(
+                "action change trivial plugin data (relay param change)");
+            rmc->processor->undoManager.perform(action);
         });
 
         addRelayParamMenu.setLookAndFeel(&getLookAndFeel());
