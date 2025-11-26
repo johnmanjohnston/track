@@ -1,6 +1,5 @@
 #pragma once
 #include "daw/track.h"
-#include "juce_data_structures/juce_data_structures.h"
 #include <JuceHeader.h>
 
 class AudioPluginAudioProcessor : public juce::AudioProcessor {

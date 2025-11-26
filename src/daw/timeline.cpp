@@ -1,7 +1,6 @@
 #include "timeline.h"
 #include "clipboard.h"
 #include "defs.h"
-#include "juce_data_structures/juce_data_structures.h"
 #include "track.h"
 #include <cmath>
 
