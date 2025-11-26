@@ -370,8 +370,7 @@ void track::utility::closeOpenedRelayParamWindows(
 
     for (size_t i = 0; i < node->plugins.size(); ++i) {
         if (editor->isRelayMenuOpened(nodeRoute, i)) {
-
-            editor->closeRelayMenu(nodeRoute, i);
+            editor->closeAllRelayMenusWithRouteAndPluginIndex(nodeRoute, i);
             openedPlugins->push_back(node->plugins[i].get());
             continue;
         }
