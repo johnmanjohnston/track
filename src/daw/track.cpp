@@ -7,6 +7,7 @@
 #include "subwindow.h"
 #include "timeline.h"
 #include "utility.h"
+#include <cstddef>
 
 track::ClipComponent::ClipComponent(clip *c)
     : juce::Component(), thumbnailCache(5),
@@ -1388,6 +1389,22 @@ track::ActionDeleteNode::ActionDeleteNode(std::vector<int> nodeRoute,
 track::ActionDeleteNode::~ActionDeleteNode() {}
 
 bool track::ActionDeleteNode::perform() {
+    // close subwindows relevant to this node
+    TimelineComponent *timelineComponent = (TimelineComponent *)tc;
+    AudioPluginAudioProcessorEditor *editor =
+        timelineComponent
+            ->findParentComponentOfClass<AudioPluginAudioProcessorEditor>();
+    editor->closeAllFxChainsWithRoute(route);
+
+    audioNode *node = utility::getNodeFromRoute(route, p);
+    for (size_t i = 0; i < node->plugins.size(); ++i) {
+        if (editor->isPluginEditorWindowOpen(route, i)) {
+            editor->closePluginEditorWindow(route, i);
+        }
+
+        editor->closeAllRelayMenusWithRouteAndPluginIndex(route, i);
+    }
+
     DBG("ActionDeleteNode::perform() called");
 
     AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;

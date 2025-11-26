@@ -69,11 +69,14 @@ class AudioPluginAudioProcessorEditor : public juce::AudioProcessorEditor,
     std::vector<std::unique_ptr<track::PluginChainComponent>>
         pluginChainComponents;
     void openFxChain(std::vector<int> route);
+    void closeAllFxChainsWithRoute(std::vector<int> route);
 
     std::vector<std::unique_ptr<track::RelayManagerComponent>>
         relayManagerCompnoents;
     void openRelayMenu(std::vector<int> route, int pluginIndex);
     void closeRelayMenu(std::vector<int> route, int pluginIndex);
+    void closeAllRelayMenusWithRouteAndPluginIndex(std::vector<int> route,
+                                                   int pluginIndex);
     bool isRelayMenuOpened(std::vector<int> route, int pluginIndex);
 
     std::unique_ptr<track::RelayParamInspector> relayParamInspector;

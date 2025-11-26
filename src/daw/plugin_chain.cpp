@@ -311,6 +311,9 @@ track::PluginNodeComponent::PluginNodeComponent() : juce::Component() {
 
         DBG("pluginIndex = " << pluginIndex);
 
+        if (editor->isPluginEditorWindowOpen(pcc->route, pluginIndex))
+            editor->closePluginEditorWindow(pcc->route, pluginIndex);
+
         editor->openPluginEditorWindow(pcc->route, pluginIndex);
     };
 
@@ -323,6 +326,8 @@ track::PluginNodeComponent::PluginNodeComponent() : juce::Component() {
         AudioPluginAudioProcessorEditor *editor =
             this->findParentComponentOfClass<AudioPluginAudioProcessorEditor>();
         editor->closePluginEditorWindow(pcc->route, pluginIndex);
+        editor->closeAllRelayMenusWithRouteAndPluginIndex(pcc->route,
+                                                          pluginIndex);
 
         pcc->removePlugin(this->pluginIndex);
         pcc->resized();

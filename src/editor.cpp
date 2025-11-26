@@ -8,6 +8,7 @@
 #include "lookandfeel.h"
 #include "processor.h"
 #include <cmath>
+#include <cstddef>
 #include <signal.h>
 
 AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
@@ -313,6 +314,16 @@ bool AudioPluginAudioProcessorEditor::isRelayMenuOpened(std::vector<int> route,
     return retval;
 }
 
+void AudioPluginAudioProcessorEditor::closeAllRelayMenusWithRouteAndPluginIndex(
+    std::vector<int> route, int pluginIndex) {
+    for (int i = relayManagerCompnoents.size() - 1; i >= 0; --i) {
+        if (relayManagerCompnoents[i]->route == route &&
+            relayManagerCompnoents[i]->pluginIndex == pluginIndex) {
+            relayManagerCompnoents.erase(relayManagerCompnoents.begin() + i);
+        }
+    }
+}
+
 void AudioPluginAudioProcessorEditor::openRelayParamInspector() {
     relayParamInspector = std::make_unique<track::RelayParamInspector>();
     relayParamInspector->rpiComponent.processor = &processorRef;
@@ -336,6 +347,15 @@ void AudioPluginAudioProcessorEditor::openFxChain(std::vector<int> route) {
     addAndMakeVisible(*pcc);
     pcc->setBounds(10, 10, 900, 124);
     repaint();
+}
+
+void AudioPluginAudioProcessorEditor::closeAllFxChainsWithRoute(
+    std::vector<int> route) {
+    for (int i = pluginChainComponents.size() - 1; i >= 0; --i) {
+        if (pluginChainComponents[i]->route == route) {
+            pluginChainComponents.erase(pluginChainComponents.begin() + i);
+        }
+    }
 }
 
 void AudioPluginAudioProcessorEditor::openPluginEditorWindow(
