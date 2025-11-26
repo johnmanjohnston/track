@@ -1479,6 +1479,12 @@ track::ActionMoveNodeToGroup::ActionMoveNodeToGroup(std::vector<int> toMove,
 track::ActionMoveNodeToGroup::~ActionMoveNodeToGroup() {}
 
 bool track::ActionMoveNodeToGroup::perform() {
+    TimelineComponent *timelineComponent = (TimelineComponent *)tc;
+    AudioPluginAudioProcessorEditor *editor =
+        timelineComponent
+            ->findParentComponentOfClass<AudioPluginAudioProcessorEditor>();
+    utility::clearSubwindows(editor);
+
     DBG("perform(): groupRoute = " << utility::prettyVector(groupRoute));
     DBG("perform(): nodeToMoveRoute = "
         << utility::prettyVector(nodeToMoveRoute));
@@ -1528,6 +1534,12 @@ bool track::ActionMoveNodeToGroup::perform() {
 }
 
 bool track::ActionMoveNodeToGroup::undo() {
+    TimelineComponent *timelineComponent = (TimelineComponent *)tc;
+    AudioPluginAudioProcessorEditor *editor =
+        timelineComponent
+            ->findParentComponentOfClass<AudioPluginAudioProcessorEditor>();
+    utility::clearSubwindows(editor);
+
     AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
 
     bool fixEdgeCase = true;
@@ -1543,7 +1555,6 @@ bool track::ActionMoveNodeToGroup::undo() {
             // retrieving the node to move uses the same logic, regardless of
             // that node's parent's existence
 
-            DBG("fuck 1.1");
             audioNode *nodeToMove =
                 utility::getNodeFromRoute(routeAfterMoving, p);
             audioNode tmp;
@@ -1557,19 +1568,15 @@ bool track::ActionMoveNodeToGroup::undo() {
                 utility::copyNode(&newborn, &tmp, p);
 
             } else {
-                DBG("fuck 2.1");
                 audioNode *originalParent =
                     utility::getParentFromRoute(nodeToMoveRoute, p);
 
-                DBG("fuck 2.2");
                 utility::deleteNode(routeAfterMoving, p);
 
-                DBG("fuck 2.3");
                 auto &newborn = *originalParent->childNodes.emplace(
                     originalParent->childNodes.begin() +
                     nodeToMoveRoute.back());
 
-                DBG("fuck 2.4");
                 utility::copyNode(&newborn, &tmp, p);
             }
 
@@ -1641,12 +1648,24 @@ track::ActionReorderNode::ActionReorderNode(std::vector<int> route1,
 track::ActionReorderNode::~ActionReorderNode() {}
 
 bool track::ActionReorderNode::perform() {
+    TimelineComponent *timelineComponent = (TimelineComponent *)tc;
+    AudioPluginAudioProcessorEditor *editor =
+        timelineComponent
+            ->findParentComponentOfClass<AudioPluginAudioProcessorEditor>();
+    utility::clearSubwindows(editor);
+
     utility::reorderNodeAlt(r1, r2, p);
     updateGUI();
     return true;
 }
 
 bool track::ActionReorderNode::undo() {
+    TimelineComponent *timelineComponent = (TimelineComponent *)tc;
+    AudioPluginAudioProcessorEditor *editor =
+        timelineComponent
+            ->findParentComponentOfClass<AudioPluginAudioProcessorEditor>();
+    utility::clearSubwindows(editor);
+
     utility::reorderNodeAlt(r1, r2, p);
     updateGUI();
     return true;

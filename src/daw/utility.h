@@ -36,5 +36,7 @@ void openRelayParamWindows(std::vector<int> nodeRoute,
                            std::vector<track::subplugin *> openedPlugins,
                            void *p, void *e);
 
+void clearSubwindows(void *e);
+
 juce::String prettyVector(std::vector<int> x);
 } // namespace track::utility

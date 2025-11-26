@@ -2,6 +2,7 @@
 #include "../editor.h"
 #include "../processor.h"
 #include "automation_relay.h"
+#include "plugin_chain.h"
 #include "track.h"
 
 int track::utility::getIndexOfClip(audioNode *node, clip *clip) {
@@ -399,6 +400,15 @@ void track::utility::openRelayParamWindows(
             }
         }
     }
+}
+
+void track::utility::clearSubwindows(void *e) {
+    AudioPluginAudioProcessorEditor *editor =
+        (AudioPluginAudioProcessorEditor *)e;
+
+    editor->pluginChainComponents.clear();
+    editor->pluginEditorWindows.clear();
+    editor->relayManagerCompnoents.clear();
 }
 
 juce::String track::utility::prettyVector(std::vector<int> x) {
