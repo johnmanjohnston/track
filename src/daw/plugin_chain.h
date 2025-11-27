@@ -34,6 +34,8 @@ class ActionAddPlugin : public juce::UndoableAction {
                     void *processor, void *editor);
     ~ActionAddPlugin();
 
+    bool validPlugin = false;
+
     bool perform() override;
     bool undo() override;
     void updateGUI();

@@ -151,7 +151,7 @@ class subplugin {
     subplugin();
     ~subplugin();
 
-    void initializePlugin(juce::String path);
+    bool initializePlugin(juce::String path);
 
     std::unique_ptr<juce::AudioPluginInstance> plugin;
     std::vector<relayParam> relayParams;
@@ -175,8 +175,9 @@ class audioNode {
     juce::String trackName = "Untitled Node";
 
     // future john, have fun trying to implement hosting audio plugins :skull:
+    // haha screw you past john you old sack of dirt
     std::vector<std::unique_ptr<subplugin>> plugins;
-    void addPlugin(juce::String path);
+    bool addPlugin(juce::String path);
     void removePlugin(int index);
     void preparePlugins();
 

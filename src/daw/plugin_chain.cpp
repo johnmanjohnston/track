@@ -19,14 +19,17 @@ track::ActionAddPlugin::~ActionAddPlugin() {}
 
 bool track::ActionAddPlugin::perform() {
     audioNode *node = utility::getNodeFromRoute(nodeRoute, p);
-    node->addPlugin(pluginIdentifier);
+    validPlugin = node->addPlugin(pluginIdentifier);
 
     updateGUI();
 
-    return true;
+    return validPlugin;
 }
 
 bool track::ActionAddPlugin::undo() {
+    if (!validPlugin)
+        return false;
+
     // close editor, then remove plugin
     AudioPluginAudioProcessorEditor *editor =
         (AudioPluginAudioProcessorEditor *)e;
@@ -587,21 +590,27 @@ void track::PluginNodesWrapper::mouseDown(const juce::MouseEvent &event) {
                         "action add plugin");
                     pcc->processor->undoManager.perform(action);
 
-                    int pluginIndex = node->plugins.size() - 1;
+                    if (action->validPlugin) {
+                        int pluginIndex = node->plugins.size() - 1;
 
-                    editor->openPluginEditorWindow(pcc->route, pluginIndex);
+                        editor->openPluginEditorWindow(pcc->route, pluginIndex);
 
-                    /*
-                    // very lazy way but i couldn't be bothered now
-                    pluginNodeComponents.clear();
-                    createPluginNodeComponents();
-                    */
+                        /*
+                        // very lazy way but i couldn't be bothered now
+                        pluginNodeComponents.clear();
+                        createPluginNodeComponents();
+                        */
 
-                    pcc->resized();
-                    pcc->nodesViewport.setViewPosition(
-                        pcc->nodesWrapper.getWidth(), 0);
-
-                    return;
+                        pcc->resized();
+                        pcc->nodesViewport.setViewPosition(
+                            pcc->nodesWrapper.getWidth(), 0);
+                    } else {
+                        juce::NativeMessageBox::showMessageBoxAsync(
+                            juce::MessageBoxIconType::WarningIcon,
+                            "Failed to add plugin",
+                            "Couldn't add the plugin at \"" +
+                                action->pluginIdentifier + "\"");
+                    }
 
                     /*
                     // create node component

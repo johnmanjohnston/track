@@ -4,6 +4,7 @@
 #include "automation_relay.h"
 #include "clipboard.h"
 #include "defs.h"
+#include "juce_audio_processors/juce_audio_processors.h"
 #include "subwindow.h"
 #include "timeline.h"
 #include "utility.h"
@@ -2230,8 +2231,7 @@ void track::subplugin::process(juce::AudioBuffer<float> &buffer) {
     }
 }
 
-void track::subplugin::initializePlugin(juce::String path) {
-    DBG("please kill me");
+bool track::subplugin::initializePlugin(juce::String path) {
     juce::OwnedArray<PluginDescription> pluginDescriptions;
     juce::KnownPluginList plist;
     juce::AudioPluginFormatManager apfm;
@@ -2246,7 +2246,6 @@ void track::subplugin::initializePlugin(juce::String path) {
 
     apfm.addDefaultFormats();
 
-    // TODO: handle failure to scan plugin
     for (int i = 0; i < apfm.getNumFormats(); ++i)
         plist.scanAndAddFile(path, true, pluginDescriptions,
                              *apfm.getFormat(i));
@@ -2257,6 +2256,9 @@ void track::subplugin::initializePlugin(juce::String path) {
         apfm.createPluginInstance(*pluginDescriptions[0], track::SAMPLE_RATE,
                                   track::SAMPLES_PER_BLOCK, errorMsg);
 
+    if (plugin.get() == nullptr)
+        return false;
+
     plugin->setPlayConfigDetails(2, 2, track::SAMPLE_RATE,
                                  track::SAMPLES_PER_BLOCK);
     if (track::SAMPLES_PER_BLOCK <= 0) {
@@ -2265,12 +2267,12 @@ void track::subplugin::initializePlugin(juce::String path) {
     }
 
     plugin->prepareToPlay(track::SAMPLE_RATE, track::SAMPLES_PER_BLOCK);
+
+    return true;
 }
 track::subplugin::subplugin() : plugin() {}
 track::subplugin::~subplugin() {}
 
-// TODO: update this function to take care of more advanced audio clip
-// operations (like trimming, and offsetting)
 void track::clip::updateBuffer() {
     juce::File file(path);
 
@@ -2292,17 +2294,23 @@ void track::clip::updateBuffer() {
 
 void track::clip::reverse() { buffer.reverse(0, buffer.getNumSamples()); }
 
-void track::audioNode::addPlugin(juce::String path) {
+bool track::audioNode::addPlugin(juce::String path) {
     jassert(processor != nullptr);
     AudioPluginAudioProcessor *p = (AudioPluginAudioProcessor *)processor;
 
     DBG("calling initializePlugin()");
 
     plugins.push_back(std::make_unique<subplugin>());
-    plugins.back()->initializePlugin(path);
-    plugins.back()->processor = processor;
+    bool success = plugins.back()->initializePlugin(path);
 
-    p->updateLatencyAfterDelay();
+    if (success) {
+        plugins.back()->processor = processor;
+        p->updateLatencyAfterDelay();
+    } else {
+        plugins.pop_back();
+    }
+
+    return success;
 }
 
 void track::audioNode::removePlugin(int index) {
