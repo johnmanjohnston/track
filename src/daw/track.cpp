@@ -988,33 +988,50 @@ void track::TrackComponent::mouseDown(const juce::MouseEvent &event) {
             [this] {
                 DBG("ungroup track");
 
+                AudioPluginAudioProcessorEditor *editor =
+                    findParentComponentOfClass<
+                        AudioPluginAudioProcessorEditor>();
+                AudioPluginAudioProcessor *p =
+                    (AudioPluginAudioProcessor *)processor;
+
+                ActionUngroup *action = new ActionUngroup(
+                    route, processor, findParentComponentOfClass<Tracklist>());
+                p->undoManager.beginNewTransaction("action ungroup");
+                p->undoManager.perform(action);
+
+                /*
                 AudioPluginAudioProcessor *p =
                     (AudioPluginAudioProcessor *)processor;
 
                 audioNode *head = nullptr;
-                Tracklist *tracklist = findParentComponentOfClass<Tracklist>();
+                Tracklist *tracklist =
+                findParentComponentOfClass<Tracklist>();
 
                 if (getCorrespondingTrack()->isTrack) {
                     head = &p->tracks[(size_t)this->route[0]];
-                    for (size_t i = 1; i < route.size() - 2; ++i) {
-                        head = &head->childNodes[(size_t)route[i]];
+                    for (size_t i = 1; i < route.size() - 2;
+                ++i) { head =
+                &head->childNodes[(size_t)route[i]];
                     }
 
                     audioNode *newNode = nullptr;
 
                     if (this->route.size() >= 3)
-                        newNode = &head->childNodes.emplace_back();
-                    else
-                        newNode = &p->tracks.emplace_back();
+                        newNode =
+                &head->childNodes.emplace_back(); else newNode =
+                &p->tracks.emplace_back();
 
-                    DBG("attempting to ungroup track. route.size() = "
+                    DBG("attempting to ungroup track.
+                route.size() = "
                         << this->route.size());
-                    tracklist->copyNode(newNode, getCorrespondingTrack());
+                    tracklist->copyNode(newNode,
+                getCorrespondingTrack());
 
                 } else {
                     head = &p->tracks[(size_t)this->route[0]];
-                    for (size_t i = 1; i < route.size() - 1; ++i) {
-                        head = &head->childNodes[(size_t)route[i]];
+                    for (size_t i = 1; i < route.size() - 1;
+                ++i) { head =
+                &head->childNodes[(size_t)route[i]];
                     }
 
                     if (this->route.size() >= 2) {
@@ -1027,9 +1044,10 @@ void track::TrackComponent::mouseDown(const juce::MouseEvent &event) {
                     }
                 }
 
-                tracklist->deleteTrack(this->route);
+                tracklist->deleteTrack(this->route);*/
 
-                DBG("ungrouping to parent named " << head->trackName);
+                // DBG("ungrouping to parent named " <<
+                // head->trackName);
             });
 
         contextMenu.addItem("Reset volume", [this] {
@@ -1699,6 +1717,76 @@ void track::ActionReorderNode::updateGUI() {
     tracklist->createTrackComponents();
     tracklist->setTrackComponentBounds();
 
+    timelineComponent->updateClipComponents();
+}
+
+track::ActionUngroup::ActionUngroup(std::vector<int> nodeRoute, void *processor,
+                                    void *tracklist) {
+    this->route = nodeRoute;
+    this->p = processor;
+    this->tl = tracklist;
+
+    audioNode *node = utility::getNodeFromRoute(route, p);
+    utility::copyNode(&this->nodeCopy, node, p);
+}
+track::ActionUngroup::~ActionUngroup(){};
+
+bool track::ActionUngroup::perform() {
+    audioNode *node = utility::getNodeFromRoute(route, p);
+
+    utility::copyNode(&this->nodeCopy, node, p);
+
+    if (node->isTrack) {
+        std::vector<int> grandparentRoute = route;
+        grandparentRoute.pop_back();
+        grandparentRoute.pop_back();
+
+        audioNode *newNode = nullptr;
+        if (route.size() >= 3) {
+            audioNode *grandparent =
+                utility::getNodeFromRoute(grandparentRoute, p);
+            newNode = &grandparent->childNodes.emplace_back();
+        } else {
+            AudioPluginAudioProcessor *processor =
+                (AudioPluginAudioProcessor *)p;
+            newNode = &processor->tracks.emplace_back();
+        }
+
+        utility::copyNode(newNode, node, p);
+    } else {
+        audioNode *parent = utility::getParentFromRoute(route, p);
+
+        Tracklist *tracklist = (Tracklist *)tl;
+
+        if (route.size() >= 2) {
+            tracklist->deepCopyGroupInsideGroup(node, parent);
+        } else {
+            tracklist->deepCopyGroupInsideGroup(node, nullptr);
+        }
+    }
+
+    utility::deleteNode(route, p);
+
+    updateGUI();
+    return true;
+}
+
+bool track::ActionUngroup::undo() {
+    DBG("ActionUngroup::undo() not implemented");
+
+    updateGUI();
+    return true;
+}
+
+void track::ActionUngroup::updateGUI() {
+    Tracklist *tracklist = (Tracklist *)tl;
+    TimelineComponent *timelineComponent =
+        (TimelineComponent *)tracklist->timelineComponent;
+
+    tracklist->trackComponents.clear();
+    timelineComponent->clipComponents.clear();
+
+    tracklist->createTrackComponents();
     timelineComponent->updateClipComponents();
 }
 

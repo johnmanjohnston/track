@@ -1,5 +1,6 @@
 #pragma once
 #include "BinaryData.h"
+#include "juce_data_structures/juce_data_structures.h"
 #include "subwindow.h"
 #include <JuceHeader.h>
 
@@ -302,6 +303,22 @@ class ActionReorderNode : public juce::UndoableAction {
     void *p = nullptr;
     void *tl = nullptr;
     void *tc = nullptr;
+
+    bool perform() override;
+    bool undo() override;
+    void updateGUI();
+};
+
+class ActionUngroup : public juce::UndoableAction {
+  public:
+    ActionUngroup(std::vector<int> nodeRoute, void *processor, void *tracklist);
+    ~ActionUngroup();
+
+    std::vector<int> route;
+    void *p = nullptr;
+    void *tl = nullptr;
+
+    audioNode nodeCopy;
 
     bool perform() override;
     bool undo() override;
