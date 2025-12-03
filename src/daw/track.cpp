@@ -1794,15 +1794,36 @@ bool track::ActionUngroup::perform() {
 bool track::ActionUngroup::undo() {
     DBG("ActionUngroup::undo() not implemented");
 
+    AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
+
+    audioNode *originalParent = utility::getParentFromRoute(route, p);
     if (nodeCopy.isTrack) {
-        audioNode *originalParent = utility::getParentFromRoute(route, p);
         audioNode &newNode = *originalParent->childNodes.emplace(
             originalParent->childNodes.begin() + route.back());
 
         utility::copyNode(&newNode, &this->nodeCopy, p);
-    }
+        utility::deleteNode(trackRouteAfterUngroup, p);
+    } else {
+        for (size_t i = 0; i < nodeCopy.childNodes.size(); ++i) {
+            if (originalParent == nullptr) {
+                processor->tracks.erase(processor->tracks.begin() +
+                                        route.back());
+            } else {
+                originalParent->childNodes.erase(
+                    originalParent->childNodes.begin() + route.back());
+            }
+        }
 
-    utility::deleteNode(trackRouteAfterUngroup, p);
+        if (originalParent == nullptr) {
+            auto &newNode = *processor->tracks.emplace(
+                processor->tracks.begin() + route.back());
+            utility::copyNode(&newNode, &this->nodeCopy, p);
+        } else {
+            auto &newNode = *originalParent->childNodes.emplace(
+                originalParent->childNodes.begin() + route.back());
+            utility::copyNode(&newNode, &this->nodeCopy, p);
+        }
+    }
 
     updateGUI();
     return true;
