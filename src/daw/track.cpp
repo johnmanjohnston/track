@@ -1777,6 +1777,16 @@ bool track::ActionUngroup::perform() {
 bool track::ActionUngroup::undo() {
     DBG("ActionUngroup::undo() not implemented");
 
+    if (nodeCopy.isTrack) {
+        audioNode *originalParent = utility::getParentFromRoute(route, p);
+        audioNode &newNode = *originalParent->childNodes.emplace(
+            originalParent->childNodes.begin() + route.back());
+
+        utility::copyNode(&newNode, &this->nodeCopy, p);
+    }
+
+    utility::deleteNode(trackRouteAfterUngroup, p);
+
     updateGUI();
     return true;
 }
