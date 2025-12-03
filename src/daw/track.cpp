@@ -1733,37 +1733,40 @@ track::ActionUngroup::~ActionUngroup(){};
 
 bool track::ActionUngroup::perform() {
     audioNode *node = utility::getNodeFromRoute(route, p);
-
-    utility::copyNode(&this->nodeCopy, node, p);
+    AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
 
     if (node->isTrack) {
-        std::vector<int> grandparentRoute = route;
-        grandparentRoute.pop_back();
-        grandparentRoute.pop_back();
+        // move this node to grapdparent
+        audioNode *grandparent = nullptr;
 
-        audioNode *newNode = nullptr;
+        // find grandparent
         if (route.size() >= 3) {
-            audioNode *grandparent =
-                utility::getNodeFromRoute(grandparentRoute, p);
-            newNode = &grandparent->childNodes.emplace_back();
+            std::vector<int> grandparentRoute = route;
+            grandparentRoute.pop_back();
+            grandparentRoute.pop_back();
+
+            grandparent = utility::getNodeFromRoute(grandparentRoute, p);
+
+            this->trackRouteAfterUngroup = grandparentRoute;
+            this->trackRouteAfterUngroup.push_back(
+                grandparent->childNodes.size());
+
         } else {
-            AudioPluginAudioProcessor *processor =
-                (AudioPluginAudioProcessor *)p;
+            grandparent = nullptr;
+            trackRouteAfterUngroup.push_back(processor->tracks.size());
+        }
+
+        // add new node and copy contents over
+        audioNode *newNode = nullptr;
+        if (grandparent == nullptr)
             newNode = &processor->tracks.emplace_back();
-        }
+        else
+            newNode = &grandparent->childNodes.emplace_back();
 
-        utility::copyNode(newNode, node, p);
-    } else {
-        audioNode *parent = utility::getParentFromRoute(route, p);
-
-        Tracklist *tracklist = (Tracklist *)tl;
-
-        if (route.size() >= 2) {
-            tracklist->deepCopyGroupInsideGroup(node, parent);
-        } else {
-            tracklist->deepCopyGroupInsideGroup(node, nullptr);
-        }
+        utility::copyNode(newNode, &this->nodeCopy, p);
     }
+
+    DBG("new route is " << utility::prettyVector(this->trackRouteAfterUngroup));
 
     utility::deleteNode(route, p);
 

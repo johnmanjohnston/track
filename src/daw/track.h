@@ -315,6 +315,8 @@ class ActionUngroup : public juce::UndoableAction {
     ~ActionUngroup();
 
     std::vector<int> route;
+    std::vector<int> trackRouteAfterUngroup;
+
     void *p = nullptr;
     void *tl = nullptr;
 
