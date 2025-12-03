@@ -1764,11 +1764,28 @@ bool track::ActionUngroup::perform() {
             newNode = &grandparent->childNodes.emplace_back();
 
         utility::copyNode(newNode, &this->nodeCopy, p);
+
+        utility::deleteNode(route, p);
+    } else {
+        utility::deleteNode(route, p);
+
+        // get parent and add all nodes; loop backward, emplace at route.back()
+        audioNode *parent = utility::getParentFromRoute(route, p);
+        for (int i = nodeCopy.childNodes.size() - 1; i >= 0; --i) {
+            // add node and copy data
+            if (parent == nullptr) {
+                auto &newNode = *processor->tracks.emplace(
+                    processor->tracks.begin() + route.back());
+                utility::copyNode(&newNode, &this->nodeCopy.childNodes[i], p);
+            } else {
+                auto &newNode = *parent->childNodes.emplace(
+                    parent->childNodes.begin() + route.back());
+                utility::copyNode(&newNode, &this->nodeCopy.childNodes[i], p);
+            }
+        }
     }
 
     DBG("new route is " << utility::prettyVector(this->trackRouteAfterUngroup));
-
-    utility::deleteNode(route, p);
 
     updateGUI();
     return true;
