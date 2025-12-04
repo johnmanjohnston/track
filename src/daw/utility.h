@@ -11,6 +11,8 @@ audioNode *getNodeFromRoute(std::vector<int> route, void *p);
 audioNode *getParentFromRoute(std::vector<int> route, void *p);
 audioNode *findDuplicate(audioNode *parent, audioNode *src);
 void copyNode(audioNode *dest, audioNode *src, void *processor);
+void getTrivialNodeData(TrivialNodeData *dest, audioNode *src);
+void writeTrivialNodeDataToNode(audioNode *dest, TrivialNodeData src);
 void moveNodeToGroup(std::vector<int> moveRoute, std::vector<int> groupRoute,
                      Tracklist *tl, void *p);
 

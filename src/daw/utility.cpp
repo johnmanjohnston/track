@@ -102,6 +102,23 @@ void track::utility::copyNode(audioNode *dest, audioNode *src,
     }
 }
 
+void track::utility::getTrivialNodeData(TrivialNodeData *dest, audioNode *src) {
+    dest->trackName = src->trackName;
+    dest->gain = src->gain;
+    dest->m = src->m;
+    dest->s = src->s;
+    dest->pan = src->pan;
+}
+
+void track::utility::writeTrivialNodeDataToNode(audioNode *dest,
+                                                TrivialNodeData src) {
+    dest->trackName = src.trackName;
+    dest->gain = src.gain;
+    dest->m = src.m;
+    dest->s = src.s;
+    dest->pan = src.pan;
+}
+
 bool track::utility::isDescendant(audioNode *parent, audioNode *possibleChild,
                                   bool directDescandant) {
     for (audioNode &child : parent->childNodes) {

@@ -1,5 +1,6 @@
 #pragma once
 #include "BinaryData.h"
+#include "juce_audio_processors/juce_audio_processors.h"
 #include "juce_data_structures/juce_data_structures.h"
 #include "subwindow.h"
 #include <JuceHeader.h>
@@ -227,6 +228,8 @@ class TrackComponent : public juce::Component {
     juce::Slider gainSlider;
     juce::Slider panSlider;
 
+    float panValueAtStartDrag = -1.f;
+
     juce::Font getAudioNodeLabelFont() {
         static auto typeface = Typeface::createSystemTypefaceFor(
             BinaryData::Inter_18ptRegular_ttf,
@@ -284,6 +287,37 @@ class ActionDeleteNode : public juce::UndoableAction {
     ~ActionDeleteNode();
 
     audioNode nodeCopy;
+
+    bool perform() override;
+    bool undo() override;
+    void updateGUI();
+};
+
+class TrivialNodeData {
+  public:
+    juce::String trackName;
+    float pan;
+    float gain;
+    bool s;
+    bool m;
+};
+class ActionModifyTrivialNodeData : public juce::UndoableAction {
+  public:
+    std::vector<int> route;
+    // audioNode oldState;
+    // audioNode newState;
+
+    ActionModifyTrivialNodeData(std::vector<int> nodeRoute,
+                                TrivialNodeData oldData,
+                                TrivialNodeData newData, void *processor,
+                                void *editor);
+    ~ActionModifyTrivialNodeData();
+
+    TrivialNodeData oldState;
+    TrivialNodeData newState;
+
+    void *p = nullptr;
+    void *e = nullptr;
 
     bool perform() override;
     bool undo() override;

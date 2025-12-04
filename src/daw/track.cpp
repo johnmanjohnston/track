@@ -4,7 +4,6 @@
 #include "automation_relay.h"
 #include "clipboard.h"
 #include "defs.h"
-#include "juce_audio_processors/juce_audio_processors.h"
 #include "subwindow.h"
 #include "timeline.h"
 #include "utility.h"
@@ -956,6 +955,29 @@ track::TrackComponent::TrackComponent(int trackIndex) : juce::Component() {
         getCorrespondingTrack()->pan = panSlider.getValue();
         DBG("new pan value is " << panSlider.getValue());
     };
+    panSlider.onDragStart = [this] {
+        panValueAtStartDrag = panSlider.getValue();
+    };
+    panSlider.onDragEnd = [this] {
+        // now do action
+        TrivialNodeData oldState;
+        TrivialNodeData newState;
+
+        utility::getTrivialNodeData(&oldState, this->getCorrespondingTrack());
+        utility::getTrivialNodeData(&newState, this->getCorrespondingTrack());
+        oldState.pan = this->panValueAtStartDrag;
+
+        this->panValueAtStartDrag = -1.f;
+
+        AudioPluginAudioProcessorEditor *editor =
+            findParentComponentOfClass<AudioPluginAudioProcessorEditor>();
+
+        AudioPluginAudioProcessor *p = (AudioPluginAudioProcessor *)processor;
+        ActionModifyTrivialNodeData *action = new ActionModifyTrivialNodeData(
+            route, oldState, newState, processor, editor);
+        p->undoManager.beginNewTransaction("action modify trivial node data");
+        p->undoManager.perform(action);
+    };
 
     fxBtn.setButtonText("FX");
     addAndMakeVisible(fxBtn);
@@ -1499,6 +1521,46 @@ void track::ActionDeleteNode::updateGUI() {
     tracklist->setTrackComponentBounds();
 
     timelineComponent->updateClipComponents();
+}
+
+track::ActionModifyTrivialNodeData::ActionModifyTrivialNodeData(
+    std::vector<int> nodeRoute, TrivialNodeData oldData,
+    TrivialNodeData newData, void *processor, void *editor)
+    : juce::UndoableAction() {
+
+    this->route = nodeRoute;
+    this->p = processor;
+    this->e = editor;
+    this->oldState = oldData;
+    this->newState = newData;
+}
+track::ActionModifyTrivialNodeData::~ActionModifyTrivialNodeData() {}
+
+bool track::ActionModifyTrivialNodeData::perform() {
+    audioNode *node = utility::getNodeFromRoute(route, p);
+
+    utility::writeTrivialNodeDataToNode(node, newState);
+
+    updateGUI();
+    return true;
+}
+
+bool track::ActionModifyTrivialNodeData::undo() {
+    audioNode *node = utility::getNodeFromRoute(route, p);
+
+    utility::writeTrivialNodeDataToNode(node, oldState);
+
+    updateGUI();
+    return true;
+}
+
+void track::ActionModifyTrivialNodeData::updateGUI() {
+    AudioPluginAudioProcessorEditor *editor =
+        (AudioPluginAudioProcessorEditor *)e;
+
+    editor->tracklist.trackComponents.clear();
+    editor->tracklist.createTrackComponents();
+    editor->tracklist.setTrackComponentBounds();
 }
 
 track::ActionMoveNodeToGroup::ActionMoveNodeToGroup(std::vector<int> toMove,
