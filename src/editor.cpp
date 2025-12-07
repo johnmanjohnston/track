@@ -5,6 +5,9 @@
 #include "daw/plugin_chain.h"
 #include "daw/timeline.h"
 #include "daw/track.h"
+#include "juce_core/juce_core.h"
+#include "juce_events/juce_events.h"
+#include "juce_gui_basics/juce_gui_basics.h"
 #include "lookandfeel.h"
 #include "processor.h"
 #include <cmath>
@@ -85,6 +88,8 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
 #define MENU_RAISE_SEGFAULT 8
 #define MENU_UNDO 9
 #define MENU_REDO 10
+#define MENU_COPY_STATE 11
+#define MENU_WRITE_STATE 12
 
         contextMenu.addItem(MENU_PLUGIN_SCAN, "Scan plugins");
         contextMenu.addItem(MENU_PLUGIN_LAZY_SCAN, "Lazy scan for plugins");
@@ -102,6 +107,8 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
         contextMenu.addSeparator();
         contextMenu.addItem(MENU_ABOUT, "About");
         contextMenu.addItem(MENU_BUILD_INFO, "Build info");
+        contextMenu.addItem(MENU_COPY_STATE, "Copy state as XML");
+        contextMenu.addItem(MENU_WRITE_STATE, "Write state");
 
 #if JUCE_DEBUG
         contextMenu.addSeparator();
@@ -162,6 +169,47 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
                 processorRef.undoManager.undo();
             } else if (result == MENU_REDO) {
                 processorRef.undoManager.redo();
+            } else if (result == MENU_COPY_STATE) {
+                juce::MemoryBlock state;
+                processorRef.getStateInformation(state);
+                auto x = processorRef.getXmlFromBinary(state.getData(),
+                                                       state.getSize());
+                juce::SystemClipboard::copyTextToClipboard(x->toString());
+            } else if (result == MENU_WRITE_STATE) {
+
+                juce::NativeMessageBox::showAsync(
+                    juce::MessageBoxOptions()
+                        .withIconType(juce::MessageBoxIconType::WarningIcon)
+                        .withTitle("Replace plugin state?")
+                        .withMessage("Are you sure you want to replace plugin "
+                                     "state? You cannot undo this within track")
+                        .withButton("Affirmative.")
+                        .withButton("No"),
+                    [this](int result) {
+                        if (result == 0) {
+                            auto xmlText =
+                                juce::SystemClipboard::getTextFromClipboard();
+                            std::unique_ptr<juce::XmlElement> xml(
+                                juce::XmlDocument::parse(xmlText));
+
+                            juce::MemoryBlock state;
+                            processorRef.copyXmlToBinary(*xml, state);
+                            processorRef.setStateInformation(state.getData(),
+                                                             state.getSize());
+
+                            timelineComponent->clipComponentsUpdated = false;
+                            timelineComponent->updateClipComponents();
+
+                            tracklist.trackComponents.clear();
+                            tracklist.createTrackComponents();
+                            tracklist.setTrackComponentBounds();
+
+                            timelineComponent->updateClipComponents();
+                            timelineComponent->repaint();
+
+                            processorRef.undoManager.clearUndoHistory();
+                        }
+                    });
             }
         });
     };
@@ -172,8 +220,9 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
 AudioPluginAudioProcessorEditor::~AudioPluginAudioProcessorEditor() {
     /*
     DBG("track plugin editor destructor called");
-    DBG("plugin editor window vector size is " << pluginEditorWindows.size());
-    DBG("plugin chain coomponents vector size is "
+    DBG("plugin editor window vector size is " <<
+    pluginEditorWindows.size()); DBG("plugin chain coomponents vector size
+    is "
         << pluginChainComponents.size());
         */
 
