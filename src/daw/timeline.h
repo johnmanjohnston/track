@@ -79,6 +79,21 @@ class ActionSplitClip : public juce::UndoableAction {
     void updateGUI();
 };
 
+class ActionShiftClips : public juce::UndoableAction {
+  public:
+    ActionShiftClips(int amount, void *timelineComponent);
+    ~ActionShiftClips();
+
+    int shiftAmount = -1;
+    void *tc;
+
+    bool perform() override;
+    bool undo() override;
+
+    void shift(int bars);
+    void updateGUI();
+};
+
 class TimelineComponent : public juce::Component,
                           public juce::FileDragAndDropTarget {
   public:

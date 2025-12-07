@@ -211,6 +211,47 @@ void track::ActionSplitClip::updateGUI() {
     timelineComponent->updateClipComponents();
 }
 
+track::ActionShiftClips::ActionShiftClips(int amount, void *timelineComponent) {
+    this->shiftAmount = amount;
+    this->tc = timelineComponent;
+}
+track::ActionShiftClips::~ActionShiftClips() {}
+
+bool track::ActionShiftClips::perform() {
+    shift(shiftAmount);
+    updateGUI();
+    return true;
+}
+
+bool track::ActionShiftClips::undo() {
+    shift(-shiftAmount);
+    updateGUI();
+    return true;
+}
+
+void track::ActionShiftClips::shift(int bars) {
+    TimelineComponent *timelineComponent = (TimelineComponent *)tc;
+
+    int beatsPerBar = 4;
+    double secondsPerBar = (60.0 / track::BPM) * beatsPerBar;
+    int samplesPerBar = secondsPerBar * track::SAMPLE_RATE;
+
+    Tracklist *tracklist = timelineComponent->viewport->tracklist;
+
+    for (auto &trc : tracklist->trackComponents) {
+        if (trc->getCorrespondingTrack()->isTrack) {
+            for (auto &clip : trc->getCorrespondingTrack()->clips) {
+                clip.startPositionSample += samplesPerBar * bars;
+            }
+        }
+    }
+}
+
+void track::ActionShiftClips::updateGUI() {
+    TimelineComponent *timelineComponent = (TimelineComponent *)tc;
+    timelineComponent->updateClipComponents();
+}
+
 track::TimelineComponent::~TimelineComponent(){};
 
 track::TimelineViewport::TimelineViewport() : juce::Viewport() {}
@@ -674,6 +715,7 @@ void track::TimelineComponent::splitClip(clip *c, int splitSample,
 }
 
 void track::TimelineComponent::shiftClipByBars(int bars) {
+    /*
     DBG("shiftClipByBars() called with bars " << bars);
 
     int beatsPerBar = 4;
@@ -690,7 +732,11 @@ void track::TimelineComponent::shiftClipByBars(int bars) {
         }
     }
 
-    updateClipComponents();
+    updateClipComponents();*/
+
+    ActionShiftClips *action = new ActionShiftClips(bars, this);
+    processorRef->undoManager.beginNewTransaction("action shift clips");
+    processorRef->undoManager.perform(action);
 }
 
 bool track::TimelineComponent::isInterestedInFileDrag(
