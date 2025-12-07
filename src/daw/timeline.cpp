@@ -364,18 +364,12 @@ bool track::TimelineComponent::keyStateChanged(bool isKeyDown) {
                 processorRef->undoManager.getNumActionsInCurrentTransaction();
             DBG("x=" << x);
 
+            // TODO: this is temporary; in the future, implement a toast
+            // system that tells the user smth "please wait, clips are still
+            // rendering..." or smth idk bro i'm vibing to south arcade now,
+            // bleed out bangs
             if (!renderingWaveforms())
                 processorRef->undoManager.undo();
-            else {
-                // TODO: this is temporary; in the future, implement a toast
-                // system that tells the user smth "please wait, clips are still
-                // rendering..." or smth idk bro i'm vibing to south arcade now,
-                // bleed out bangs
-                juce::Timer::callAfterDelay(500, [this] {
-                    DBG("delaying because rendering waveforms");
-                    processorRef->undoManager.undo();
-                });
-            }
 
             DBG("calling undo() due to ctrl+z");
             DBG("");
@@ -385,7 +379,9 @@ bool track::TimelineComponent::keyStateChanged(bool isKeyDown) {
 
         // ctrl+y
         else if (juce::KeyPress::isKeyCurrentlyDown(89)) {
-            processorRef->undoManager.redo();
+            if (!renderingWaveforms())
+                processorRef->undoManager.redo();
+
             return true;
         }
     }
@@ -640,7 +636,8 @@ void track::TimelineComponent::deleteClip(clip *c, int trackIndex) {
     /*
     int clipIndex = -1;
 
-    audioNode *node = viewport->tracklist->trackComponents[(size_t)trackIndex]
+    audioNode *node =
+    viewport->tracklist->trackComponents[(size_t)trackIndex]
                           ->getCorrespondingTrack();
 
     for (size_t i = 0; i < node->clips.size(); ++i) {
@@ -784,7 +781,8 @@ void track::TimelineComponent::filesDropped(const juce::StringArray &files,
                     "that you dragged the "
                     "right file\n- Verify that the file really is an "
                     "audio file\n- "
-                    "Check if the file is corrupted (try playing it back in "
+                    "Check if the file is corrupted (try playing it back "
+                    "in "
                     "a different "
                     "audio player program)\n- Verify that another program "
                     "isn't using the file"));
@@ -916,8 +914,8 @@ void track::TimelineComponent::addNewClipToTimeline(juce::String path,
     std::unique_ptr<clip> c(new clip());
     c->path = path;
 
-    // TODO: see juce::File().getFileNameWithoutExtension() instead of doing all
-    // this annoying string manipulation thing
+    // TODO: see juce::File().getFileNameWithoutExtension() instead of doing
+    // all this annoying string manipulation thing
 
     // remove directories leading up to the actual file name we want, and
     // strip file extension
