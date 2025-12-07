@@ -2,6 +2,7 @@
 #include "clipboard.h"
 #include "defs.h"
 #include "track.h"
+#include "utility.h"
 #include <cmath>
 
 track::BarNumbersComponent::BarNumbersComponent() : juce::Component() {
@@ -49,24 +50,32 @@ void track::BarNumbersComponent::paint(juce::Graphics &g) {
     }
 }
 
-track::ActionAddClip::ActionAddClip(clip c, audioNode *node,
+track::ActionAddClip::ActionAddClip(clip c, std::vector<int> nodeRoute,
                                     void *timelineComponent)
     : juce::UndoableAction() {
     this->addedClip = c;
-    this->track = node;
+    this->route = nodeRoute;
     this->tc = timelineComponent;
 };
 track::ActionAddClip::~ActionAddClip() {}
 
 bool track::ActionAddClip::perform() {
-    track->clips.push_back(addedClip);
+    TimelineComponent *timelineComponent = (TimelineComponent *)tc;
+    audioNode *node =
+        utility::getNodeFromRoute(route, timelineComponent->processorRef);
+
+    node->clips.push_back(addedClip);
     updateGUI();
 
     return true;
 }
 
 bool track::ActionAddClip::undo() {
-    track->clips.erase(track->clips.begin() + (long)track->clips.size() - 1);
+    TimelineComponent *timelineComponent = (TimelineComponent *)tc;
+    audioNode *node =
+        utility::getNodeFromRoute(route, timelineComponent->processorRef);
+
+    node->clips.erase(node->clips.begin() + (long)node->clips.size() - 1);
     updateGUI();
 
     return true;
@@ -82,6 +91,52 @@ track::TimelineComponent::TimelineComponent() : juce::Component() {
     setWantsKeyboardFocus(true);
     addAndMakeVisible(barNumbers, 10);
 };
+
+track::ActionCutClip::ActionCutClip(clip c, std::vector<int> nodeRoute,
+                                    void *timelineComponent) {
+    this->addedClip = c;
+    this->route = nodeRoute;
+    this->tc = timelineComponent;
+}
+track::ActionCutClip::~ActionCutClip() {}
+
+bool track::ActionCutClip::perform() {
+    DBG("add clip perform() called");
+
+    TimelineComponent *timelineComponent = (TimelineComponent *)tc;
+    audioNode *node =
+        utility::getNodeFromRoute(route, timelineComponent->processorRef);
+
+    for (size_t i = 0; i < node->clips.size(); ++i) {
+        if (utility::clipsEqual(node->clips[i], addedClip)) {
+            node->clips.erase(node->clips.begin() + (long)i);
+            break;
+        }
+    }
+
+    updateGUI();
+    return true;
+}
+bool track::ActionCutClip::undo() {
+    DBG("add clip undo() called");
+
+    TimelineComponent *timelineComponent = (TimelineComponent *)tc;
+    audioNode *node =
+        utility::getNodeFromRoute(route, timelineComponent->processorRef);
+
+    node->clips.push_back(addedClip);
+
+    updateGUI();
+    return true;
+}
+
+void track::ActionCutClip::updateGUI() {
+    TimelineComponent *timelineComponent = (TimelineComponent *)tc;
+
+    timelineComponent->clipComponents.clear();
+    timelineComponent->updateClipComponents();
+}
+
 track::TimelineComponent::~TimelineComponent(){};
 
 track::TimelineViewport::TimelineViewport() : juce::Viewport() {}
@@ -194,7 +249,18 @@ bool track::TimelineComponent::keyStateChanged(bool isKeyDown) {
                 processorRef->undoManager.getNumActionsInCurrentTransaction();
             DBG("x=" << x);
 
-            processorRef->undoManager.undo();
+            if (!renderingWaveforms())
+                processorRef->undoManager.undo();
+            else {
+                // TODO: this is temporary; in the future, implement a toast
+                // system that tells the user smth "please wait, clips are still
+                // rendering..." or smth idk bro i'm vibing to south arcade now,
+                // bleed out bangs
+                juce::Timer::callAfterDelay(500, [this] {
+                    DBG("delaying because rendering waveforms");
+                    processorRef->undoManager.undo();
+                });
+            }
 
             DBG("calling undo() due to ctrl+z");
             DBG("");
@@ -393,6 +459,19 @@ void track::TimelineComponent::resized() {
     barNumbers.toFront(false);
 }
 
+bool track::TimelineComponent::renderingWaveforms() {
+    bool retval = false;
+
+    for (size_t i = 0; i < clipComponents.size(); ++i) {
+        if (!clipComponents[i]->thumbnail.isFullyLoaded()) {
+            retval = true;
+            break;
+        }
+    }
+
+    return retval;
+}
+
 void track::TimelineComponent::updateClipComponents() {
     clipComponentsUpdated = true;
 
@@ -443,6 +522,7 @@ void track::TimelineComponent::resizeTimelineComponent() {
 }
 
 void track::TimelineComponent::deleteClip(clip *c, int trackIndex) {
+    /*
     int clipIndex = -1;
 
     audioNode *node = viewport->tracklist->trackComponents[(size_t)trackIndex]
@@ -457,7 +537,13 @@ void track::TimelineComponent::deleteClip(clip *c, int trackIndex) {
 
     node->clips.erase(node->clips.begin() + clipIndex);
 
-    updateClipComponents();
+    updateClipComponents();*/
+
+    std::vector<int> route =
+        viewport->tracklist->trackComponents[(size_t)trackIndex]->route;
+    ActionCutClip *action = new ActionCutClip(*c, route, this);
+    processorRef->undoManager.beginNewTransaction("action cut clip");
+    processorRef->undoManager.perform(action);
 }
 
 void track::TimelineComponent::splitClip(clip *c, int splitSample,
@@ -724,11 +810,14 @@ void track::TimelineComponent::addNewClipToTimeline(juce::String path,
         viewport->tracklist->trackComponents[(size_t)nodeDisplayIndex]
             ->getCorrespondingTrack();
 
+    std::vector<int> route =
+        viewport->tracklist->trackComponents[(size_t)nodeDisplayIndex]->route;
+
     if (!node->isTrack) {
         DBG("Rejecting file drop onto group");
     } else {
 
-        ActionAddClip *action = new ActionAddClip(*c, node, this);
+        ActionAddClip *action = new ActionAddClip(*c, route, this);
         processorRef->undoManager.beginNewTransaction("action add clip");
 
         // node->clips.push_back(*c);

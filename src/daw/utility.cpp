@@ -441,3 +441,18 @@ juce::String track::utility::prettyVector(std::vector<int> x) {
     retval += "]";
     return retval;
 }
+
+bool track::utility::clipsEqual(track::clip x, track::clip y) {
+    bool retval = true;
+
+    if (x.buffer != y.buffer)
+        retval = false;
+    else if (!juce::approximatelyEqual(x.gain, y.gain))
+        retval = false;
+    else if (x.startPositionSample != y.startPositionSample)
+        retval = false;
+    else if (x.path != y.path)
+        retval = false;
+
+    return retval;
+}

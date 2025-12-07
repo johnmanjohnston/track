@@ -41,4 +41,5 @@ void openRelayParamWindows(std::vector<int> nodeRoute,
 void clearSubwindows(void *e);
 
 juce::String prettyVector(std::vector<int> x);
+bool clipsEqual(track::clip x, track::clip y);
 } // namespace track::utility

@@ -291,13 +291,16 @@ void track::ClipComponent::mouseDown(const juce::MouseEvent &event) {
                 audioNode *node =
                     tracklist->trackComponents[(size_t)this->nodeDisplayIndex]
                         ->getCorrespondingTrack();
+                std::vector<int> route =
+                    tracklist->trackComponents[(size_t)this->nodeDisplayIndex]
+                        ->route;
 
                 track::TimelineComponent *tc = (track::TimelineComponent *)
                     findParentComponentOfClass<TimelineComponent>();
                 jassert(tc != nullptr);
 
                 ActionAddClip *action =
-                    new ActionAddClip(*newClip.get(), node, tc);
+                    new ActionAddClip(*newClip.get(), route, tc);
                 tc->processorRef->undoManager.beginNewTransaction(
                     "action add clip (duplicate clip immediately after)");
                 tc->processorRef->undoManager.perform(action);

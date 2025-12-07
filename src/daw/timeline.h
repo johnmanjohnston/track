@@ -1,5 +1,6 @@
 #pragma once
 #include "../processor.h"
+#include "juce_data_structures/juce_data_structures.h"
 #include "track.h"
 #include <JuceHeader.h>
 
@@ -33,14 +34,29 @@ class BarNumbersComponent : public juce::Component {
     }
 };
 
+// FIXME: USE ROUTE INSTEAD OF NODE PTR
 class ActionAddClip : public juce::UndoableAction {
   public:
     clip addedClip;
-    audioNode *track = nullptr;
+    std::vector<int> route;
     void *tc = nullptr;
 
-    ActionAddClip(clip c, audioNode *node, void *timelineComponent);
+    ActionAddClip(clip c, std::vector<int> nodeRoute, void *timelineComponent);
     ~ActionAddClip();
+
+    bool perform() override;
+    bool undo() override;
+    void updateGUI();
+};
+
+class ActionCutClip : public juce::UndoableAction {
+  public:
+    clip addedClip;
+    std::vector<int> route;
+    void *tc = nullptr;
+
+    ActionCutClip(clip c, std::vector<int> nodeRoute, void *timelineComponent);
+    ~ActionCutClip();
 
     bool perform() override;
     bool undo() override;
@@ -65,6 +81,7 @@ class TimelineComponent : public juce::Component,
     void paint(juce::Graphics &g) override;
     void resizeClipComponent(ClipComponent *clip);
     void resized() override;
+    bool renderingWaveforms();
 
     TimelineViewport *viewport = nullptr;
     AudioPluginAudioProcessor *processorRef = nullptr;
