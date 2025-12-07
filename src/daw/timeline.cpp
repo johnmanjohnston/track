@@ -198,11 +198,14 @@ bool track::TimelineComponent::keyStateChanged(bool isKeyDown) {
 
             DBG("calling undo() due to ctrl+z");
             DBG("");
+
+            return true;
         }
 
         // ctrl+y
         else if (juce::KeyPress::isKeyCurrentlyDown(89)) {
             processorRef->undoManager.redo();
+            return true;
         }
     }
 

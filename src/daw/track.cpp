@@ -292,14 +292,15 @@ void track::ClipComponent::mouseDown(const juce::MouseEvent &event) {
                     tracklist->trackComponents[(size_t)this->nodeDisplayIndex]
                         ->getCorrespondingTrack();
 
-                node->clips.push_back(*newClip);
-
-                // update clip components otherwise shit hits the fan
                 track::TimelineComponent *tc = (track::TimelineComponent *)
                     findParentComponentOfClass<TimelineComponent>();
                 jassert(tc != nullptr);
 
-                tc->updateClipComponents();
+                ActionAddClip *action =
+                    new ActionAddClip(*newClip.get(), node, tc);
+                tc->processorRef->undoManager.beginNewTransaction(
+                    "action add clip (duplicate clip immediately after)");
+                tc->processorRef->undoManager.perform(action);
             }
 
             else if (result == MENU_CUT_CLIP) {
