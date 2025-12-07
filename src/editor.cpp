@@ -83,6 +83,8 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
 #define MENU_BUILD_INFO 6
 #define MENU_OPEN_RELAY_PARAMS_INSPECTOR 7
 #define MENU_RAISE_SEGFAULT 8
+#define MENU_UNDO 9
+#define MENU_REDO 10
 
         contextMenu.addItem(MENU_PLUGIN_SCAN, "Scan plugins");
         contextMenu.addItem(MENU_PLUGIN_LAZY_SCAN, "Lazy scan for plugins");
@@ -93,10 +95,16 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
         contextMenu.addSeparator();
         contextMenu.addItem(MENU_UPDATE_LATENCY, "Update latency");
         contextMenu.addSeparator();
+        contextMenu.addItem(MENU_UNDO, "Undo",
+                            processorRef.undoManager.canUndo());
+        contextMenu.addItem(MENU_REDO, "Redo",
+                            processorRef.undoManager.canRedo());
+        contextMenu.addSeparator();
         contextMenu.addItem(MENU_ABOUT, "About");
         contextMenu.addItem(MENU_BUILD_INFO, "Build info");
 
 #if JUCE_DEBUG
+        contextMenu.addSeparator();
         contextMenu.addItem(MENU_RAISE_SEGFAULT, "Segfault");
 #endif
         juce::PopupMenu::Options popupmenuOptions;
@@ -150,6 +158,10 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
 
             else if (result == MENU_RAISE_SEGFAULT) {
                 raise(SIGSEGV);
+            } else if (result == MENU_UNDO) {
+                processorRef.undoManager.undo();
+            } else if (result == MENU_REDO) {
+                processorRef.undoManager.redo();
             }
         });
     };

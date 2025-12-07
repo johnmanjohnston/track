@@ -2120,113 +2120,18 @@ void track::Tracklist::moveNodeToGroup(track::TrackComponent *caller,
     std::vector<int> toMove = caller->route;
     std::vector<int> group = trackComponents[(size_t)targetIndex]->route;
 
+    audioNode *nodeToMove = utility::getNodeFromRoute(toMove, processor);
+    audioNode *groupToUse = utility::getNodeFromRoute(group, processor);
+    if (utility::isDescendant(groupToUse, nodeToMove, true)) {
+        return;
+    }
+
     ActionMoveNodeToGroup *action = new ActionMoveNodeToGroup(
         toMove, group, processor, this, timelineComponent);
 
     AudioPluginAudioProcessor *p = (AudioPluginAudioProcessor *)processor;
     p->undoManager.beginNewTransaction("action move node to group");
     p->undoManager.perform(action);
-
-    // utility::moveNodeToGroup(caller, targetIndex, this, processor);
-
-    return;
-
-    /*
-    if (targetIndex < 0 || (size_t)targetIndex > trackComponents.size() - 1 ||
-        caller->displayIndex == targetIndex)
-        return;
-
-    audioNode *trackNode = caller->getCorrespondingTrack();
-
-    auto &nodeComponentToMoveTo = this->trackComponents[(size_t)targetIndex];
-
-    audioNode *parentNode = nodeComponentToMoveTo->getCorrespondingTrack();
-    if (parentNode->isTrack) {
-        DBG("rejecting moving track inside a track");
-        return;
-    }
-
-    bool x = isDescendant(parentNode, trackNode, true);
-    if (x) {
-        return;
-    }
-
-    bool y = isDescendant(trackNode, parentNode, false);
-    if (y) {
-        DBG("SECOND DESCENDANCY CHECK FAILED");
-        return;
-    }
-
-    audioNode *newNode = &parentNode->childNodes.emplace_back();
-    std::vector<int> routeCopy = caller->route;
-
-    // calling copyNode() should take care of all the gobbledygook below
-    copyNode(newNode, trackNode);
-*/
-    /*
-    newNode->trackName = trackNode->trackName;
-    newNode->gain = trackNode->gain;
-    newNode->isTrack = trackNode->isTrack;
-    newNode->processor = processor;
-
-    if (trackNode->isTrack)
-        newNode->clips = trackNode->clips;
-    else
-        deepCopyGroupInsideGroup(trackNode, newNode);
-
-    // now the annoying thing, copying plugins. (which is why you can't just
-    // push_back() trackNode into groupNode->childNodes)
-    for (auto &pluginInstance : trackNode->plugins) {
-        if (pluginInstance->getActiveEditor() != nullptr) {
-            DBG("pluginInstance's active editor still exists");
-            delete pluginInstance->getActiveEditor();
-        }
-
-        juce::MemoryBlock pluginData;
-        pluginInstance->getStateInformation(pluginData);
-        pluginInstance->releaseResources();
-
-        juce::String identifier =
-            pluginInstance->getPluginDescription().fileOrIdentifier;
-
-        // ABSOLUTE CINEMA.
-        identifier = identifier.upToLastOccurrenceOf(".vst3", true, true);
-
-        DBG("adding plugin to new node, using identifier " << identifier);
-        newNode->addPlugin(identifier);
-        newNode->plugins[newNode->plugins.size() - 1]->setStateInformation(
-            pluginData.getData(), pluginData.getSize());
-    }
-
-    // node is copied. now delete orginal node
-    AudioPluginAudioProcessor *p = (AudioPluginAudioProcessor *)processor;
-    jassert(caller->route.size() > 0);
-
-    if (routeCopy.size() == 1) {
-        DBG("deleting orphan node with index " << routeCopy[0]);
-        for (auto &pluginInstance : p->tracks[(size_t)routeCopy[0]].plugins) {
-            AudioProcessorEditor *subpluginEditor =
-                pluginInstance->plugin->getActiveEditor();
-            if (subpluginEditor != nullptr) {
-                pluginInstance->plugin->editorBeingDeleted(subpluginEditor);
-            }
-        }
-
-        p->tracks.erase(p->tracks.begin() + routeCopy[0]); // orphan
-    } else {
-        audioNode *head = &p->tracks[(size_t)routeCopy[0]];
-        for (size_t i = 1; i < routeCopy.size() - 1; ++i) {
-            head = &head->childNodes[(size_t)routeCopy[i]];
-        }
-
-        head->childNodes.erase(head->childNodes.begin() +
-                               routeCopy[routeCopy.size() - 1]);
-    }
-
-    trackComponents.clear();
-    createTrackComponents();
-    setTrackComponentBounds();
-*/
 }
 
 void track::Tracklist::mouseDown(const juce::MouseEvent &event) {
