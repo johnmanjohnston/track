@@ -4,6 +4,7 @@
 #include "track.h"
 #include "utility.h"
 #include <cmath>
+#include <functional>
 
 track::BarNumbersComponent::BarNumbersComponent() : juce::Component() {
     setInterceptsMouseClicks(false, false);
@@ -588,6 +589,7 @@ void track::TimelineComponent::updateClipComponents() {
 
     clipComponents.clear();
 
+    std::hash<juce::String> hasher;
     for (size_t i = 0; i < viewport->tracklist->trackComponents.size(); ++i) {
         audioNode *node =
             viewport->tracklist->trackComponents[i]->getCorrespondingTrack();
@@ -596,7 +598,10 @@ void track::TimelineComponent::updateClipComponents() {
             continue;
 
         for (auto &c : node->clips) {
-            this->clipComponents.push_back(std::make_unique<ClipComponent>(&c));
+            int hashed = (int)hasher(c.path) + c.trimLeft + c.trimRight;
+
+            this->clipComponents.push_back(
+                std::make_unique<ClipComponent>(&c, hashed));
             addAndMakeVisible(*clipComponents.back());
 
             auto &cc = clipComponents.back();

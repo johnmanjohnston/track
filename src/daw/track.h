@@ -28,7 +28,7 @@ class clip {
 
 class ClipComponent : public juce::Component, public juce::ChangeListener {
   public:
-    ClipComponent(clip *c);
+    ClipComponent(clip *c, int clipHash);
     ~ClipComponent();
 
     juce::AudioThumbnailCache thumbnailCache;

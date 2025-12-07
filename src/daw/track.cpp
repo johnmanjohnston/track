@@ -9,13 +9,13 @@
 #include "utility.h"
 #include <cstddef>
 
-track::ClipComponent::ClipComponent(clip *c)
+track::ClipComponent::ClipComponent(clip *c, int clipHash)
     : juce::Component(), thumbnailCache(5),
       thumbnail(256, afm, thumbnailCache) {
     jassert(c != nullptr);
 
     this->correspondingClip = c;
-    thumbnail.setSource(&correspondingClip->buffer, SAMPLE_RATE, 2);
+    thumbnail.setSource(&correspondingClip->buffer, SAMPLE_RATE, clipHash);
 
     thumbnail.addChangeListener(this);
 
