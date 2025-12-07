@@ -12,10 +12,7 @@
 track::ClipComponent::ClipComponent(clip *c)
     : juce::Component(), thumbnailCache(5),
       thumbnail(256, afm, thumbnailCache) {
-    if (c == nullptr) {
-        DBG("JOHN WARNING: ClipComponent initialized with no clip provided");
-        return;
-    }
+    jassert(c != nullptr);
 
     this->correspondingClip = c;
     thumbnail.setSource(&correspondingClip->buffer, SAMPLE_RATE, 2);
@@ -268,13 +265,7 @@ void track::ClipComponent::mouseDown(const juce::MouseEvent &event) {
 
             else if (result == MENU_DUPLICATE_CLIP_IMMEDIATELY_AFTER) {
                 std::unique_ptr<clip> newClip(new clip());
-                newClip->path = correspondingClip->path;
-                newClip->buffer = correspondingClip->buffer;
-                newClip->active = correspondingClip->active;
-                newClip->name = correspondingClip->name;
-                newClip->trimLeft = correspondingClip->trimLeft;
-                newClip->trimRight = correspondingClip->trimRight;
-                newClip->gain = correspondingClip->gain;
+                *newClip = *correspondingClip;
 
                 int clipLength = correspondingClip->buffer.getNumSamples() -
                                  correspondingClip->trimLeft -
@@ -288,9 +279,6 @@ void track::ClipComponent::mouseDown(const juce::MouseEvent &event) {
                 jassert(viewport != nullptr);
 
                 track::Tracklist *tracklist = viewport->tracklist;
-                audioNode *node =
-                    tracklist->trackComponents[(size_t)this->nodeDisplayIndex]
-                        ->getCorrespondingTrack();
                 std::vector<int> route =
                     tracklist->trackComponents[(size_t)this->nodeDisplayIndex]
                         ->route;

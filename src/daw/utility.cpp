@@ -5,11 +5,24 @@
 #include "plugin_chain.h"
 #include "track.h"
 
-int track::utility::getIndexOfClip(audioNode *node, clip *clip) {
+int track::utility::getIndexOfClip(audioNode *node, clip *c) {
     int retval = -1;
 
     for (size_t i = 0; i < node->clips.size(); ++i) {
-        if (&node->clips[i] == clip) {
+        if (&node->clips[i] == c) {
+            retval = i;
+            break;
+        }
+    }
+
+    return retval;
+}
+
+int track::utility::getIndexOfClipByValue(audioNode *node, clip c) {
+    int retval = -1;
+
+    for (size_t i = 0; i < node->clips.size(); ++i) {
+        if (clipsEqual(node->clips[i], c)) {
             retval = i;
             break;
         }
@@ -452,6 +465,10 @@ bool track::utility::clipsEqual(track::clip x, track::clip y) {
     else if (x.startPositionSample != y.startPositionSample)
         retval = false;
     else if (x.path != y.path)
+        retval = false;
+    else if (x.trimLeft != y.trimLeft)
+        retval = false;
+    else if (x.trimRight != y.trimRight)
         retval = false;
 
     return retval;

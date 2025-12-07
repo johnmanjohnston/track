@@ -6,7 +6,8 @@ namespace track::utility {
 bool isDescendant(audioNode *parent, audioNode *possibleChild,
                   bool directDescandant);
 
-int getIndexOfClip(audioNode *node, clip *clip);
+int getIndexOfClip(audioNode *node, clip *c);
+int getIndexOfClipByValue(audioNode *node, clip c);
 audioNode *getNodeFromRoute(std::vector<int> route, void *p);
 audioNode *getParentFromRoute(std::vector<int> route, void *p);
 audioNode *findDuplicate(audioNode *parent, audioNode *src);

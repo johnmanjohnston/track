@@ -34,7 +34,6 @@ class BarNumbersComponent : public juce::Component {
     }
 };
 
-// FIXME: USE ROUTE INSTEAD OF NODE PTR
 class ActionAddClip : public juce::UndoableAction {
   public:
     clip addedClip;
@@ -57,6 +56,23 @@ class ActionCutClip : public juce::UndoableAction {
 
     ActionCutClip(clip c, std::vector<int> nodeRoute, void *timelineComponent);
     ~ActionCutClip();
+
+    bool perform() override;
+    bool undo() override;
+    void updateGUI();
+};
+
+class ActionSplitClip : public juce::UndoableAction {
+  public:
+    clip clipCopy;
+    std::vector<int> route;
+    void *tc = nullptr;
+
+    int splitSample = -1;
+
+    ActionSplitClip(clip c, std::vector<int> nodeRoute, int sampleToSplit,
+                    void *timelineComponent);
+    ~ActionSplitClip();
 
     bool perform() override;
     bool undo() override;

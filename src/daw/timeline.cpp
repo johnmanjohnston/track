@@ -137,6 +137,80 @@ void track::ActionCutClip::updateGUI() {
     timelineComponent->updateClipComponents();
 }
 
+track::ActionSplitClip::ActionSplitClip(track::clip c,
+                                        std::vector<int> nodeRoute,
+                                        int sampleToSplit,
+                                        void *timelineComponent) {
+    this->clipCopy = c;
+    this->route = nodeRoute;
+    this->splitSample = sampleToSplit;
+    this->tc = timelineComponent;
+}
+track::ActionSplitClip::~ActionSplitClip() {}
+
+bool track::ActionSplitClip::perform() {
+    TimelineComponent *timelineComponent = (TimelineComponent *)tc;
+    audioNode *node =
+        utility::getNodeFromRoute(route, timelineComponent->processorRef);
+
+    // handle split 1
+    int clipIndex = utility::getIndexOfClipByValue(node, clipCopy);
+    jassert(clipIndex != -1);
+
+    clip *c1 = &node->clips[(size_t)clipIndex];
+    clip c2;
+    c2.trimLeft = c1->trimLeft;
+    c2.trimRight = c1->trimRight;
+
+    int actualSplit = splitSample;
+    c1->trimRight =
+        clipCopy.buffer.getNumSamples() - actualSplit - clipCopy.trimLeft;
+
+    // handle split 2
+    c2.name = clipCopy.name;
+    c2.path = clipCopy.path;
+    c2.buffer = clipCopy.buffer;
+    c2.gain = clipCopy.gain;
+    c2.startPositionSample = clipCopy.startPositionSample + actualSplit;
+    c2.trimLeft += actualSplit;
+
+    node->clips.push_back(c2);
+
+    DBG("c1: left=" << c1->trimLeft << "; right=" << c1->trimRight);
+    DBG("c2: left=" << c2.trimLeft << "; right=" << c2.trimRight);
+
+    updateGUI();
+
+    return true;
+}
+
+bool track::ActionSplitClip::undo() {
+    TimelineComponent *timelineComponent = (TimelineComponent *)tc;
+    audioNode *node =
+        utility::getNodeFromRoute(route, timelineComponent->processorRef);
+
+    clip c1Replica = clipCopy;
+    c1Replica.trimRight =
+        clipCopy.buffer.getNumSamples() - splitSample - clipCopy.trimLeft;
+
+    int c1Index = utility::getIndexOfClipByValue(node, c1Replica);
+
+    clip *c1 = &node->clips[(size_t)c1Index];
+    *c1 = clipCopy;
+
+    node->clips.pop_back(); // get rid of c2
+
+    updateGUI();
+
+    return true;
+}
+
+void track::ActionSplitClip::updateGUI() {
+    TimelineComponent *timelineComponent = (TimelineComponent *)tc;
+    timelineComponent->clipComponents.clear();
+    timelineComponent->updateClipComponents();
+}
+
 track::TimelineComponent::~TimelineComponent(){};
 
 track::TimelineViewport::TimelineViewport() : juce::Viewport() {}
@@ -548,6 +622,7 @@ void track::TimelineComponent::deleteClip(clip *c, int trackIndex) {
 
 void track::TimelineComponent::splitClip(clip *c, int splitSample,
                                          int nodeDisplayIndex) {
+    /*
     audioNode *node =
         viewport->tracklist->trackComponents[(size_t)nodeDisplayIndex]
             ->getCorrespondingTrack();
@@ -589,7 +664,13 @@ void track::TimelineComponent::splitClip(clip *c, int splitSample,
     // c->startPositionSample += splitSample;
 
     updateClipComponents();
-    repaint();
+    repaint();*/
+
+    std::vector<int> route =
+        viewport->tracklist->trackComponents[(size_t)nodeDisplayIndex]->route;
+    ActionSplitClip *action = new ActionSplitClip(*c, route, splitSample, this);
+    processorRef->undoManager.beginNewTransaction("action split clip");
+    processorRef->undoManager.perform(action);
 }
 
 void track::TimelineComponent::shiftClipByBars(int bars) {
