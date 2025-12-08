@@ -113,6 +113,8 @@ class AudioPluginAudioProcessorEditor : public juce::AudioProcessorEditor,
         playhead.updateBounds();
     }
 
+    bool keyStateChanged(bool isKeyDown) override;
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(
         AudioPluginAudioProcessorEditor)
 };

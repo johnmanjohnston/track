@@ -5,8 +5,6 @@
 #include "daw/plugin_chain.h"
 #include "daw/timeline.h"
 #include "daw/track.h"
-#include "juce_core/juce_core.h"
-#include "juce_events/juce_events.h"
 #include "juce_gui_basics/juce_gui_basics.h"
 #include "lookandfeel.h"
 #include "processor.h"
@@ -522,4 +520,40 @@ void AudioPluginAudioProcessorEditor::lazyScan() {
             }
         }
     });
+}
+
+bool AudioPluginAudioProcessorEditor::keyStateChanged(bool isKeyDown) {
+    juce::Component *focused = juce::Component::getCurrentlyFocusedComponent();
+
+    // if we're typing then let that text editor take all keypresses
+    // including ctrl+z/ctrl+y
+    if (dynamic_cast<juce::TextEditor *>(focused)) {
+        return false;
+    }
+
+    if (isKeyDown) {
+        // ctrl+z
+        if (juce::KeyPress::isKeyCurrentlyDown(90)) {
+            DBG("");
+
+            // TODO: this is temporary; in the future, implement a toast
+            // system that tells the user smth "please wait, clips are still
+            // rendering..." or smth idk bro i'm vibing to south arcade now,
+            // bleed out bangs
+            if (!timelineComponent->renderingWaveforms())
+                processorRef.undoManager.undo();
+
+            return true;
+        }
+
+        // ctrl+y
+        else if (juce::KeyPress::isKeyCurrentlyDown(89)) {
+            if (!timelineComponent->renderingWaveforms())
+                processorRef.undoManager.redo();
+
+            return true;
+        }
+    }
+
+    return false;
 }

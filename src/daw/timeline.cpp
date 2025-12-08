@@ -353,43 +353,6 @@ void track::TimelineViewport::mouseWheelMove(
             Component::mouseWheelMove(ev, mouseWheelDetails);
 }
 
-bool track::TimelineComponent::keyStateChanged(bool isKeyDown) {
-    DBG("key state changed for timeline component");
-
-    if (isKeyDown) {
-        // ctrl+z
-        if (juce::KeyPress::isKeyCurrentlyDown(90)) {
-            DBG("");
-
-            int x =
-                processorRef->undoManager.getNumActionsInCurrentTransaction();
-            DBG("x=" << x);
-
-            // TODO: this is temporary; in the future, implement a toast
-            // system that tells the user smth "please wait, clips are still
-            // rendering..." or smth idk bro i'm vibing to south arcade now,
-            // bleed out bangs
-            if (!renderingWaveforms())
-                processorRef->undoManager.undo();
-
-            DBG("calling undo() due to ctrl+z");
-            DBG("");
-
-            return true;
-        }
-
-        // ctrl+y
-        else if (juce::KeyPress::isKeyCurrentlyDown(89)) {
-            if (!renderingWaveforms())
-                processorRef->undoManager.redo();
-
-            return true;
-        }
-    }
-
-    return false;
-}
-
 void track::TimelineComponent::mouseDown(const juce::MouseEvent &event) {
     grabKeyboardFocus();
 

@@ -106,8 +106,6 @@ class TimelineComponent : public juce::Component,
     void addNewClipToTimeline(juce::String path, int startSample,
                               int nodeDisplayIndex);
 
-    bool keyStateChanged(bool isKeyDown) override;
-
     void paint(juce::Graphics &g) override;
     void resizeClipComponent(ClipComponent *clip);
     void resized() override;
