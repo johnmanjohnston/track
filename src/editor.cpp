@@ -105,8 +105,8 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
         contextMenu.addSeparator();
         contextMenu.addItem(MENU_ABOUT, "About");
         contextMenu.addItem(MENU_BUILD_INFO, "Build info");
-        contextMenu.addItem(MENU_COPY_STATE, "Copy state as XML");
-        contextMenu.addItem(MENU_WRITE_STATE, "Write state");
+        contextMenu.addItem(MENU_COPY_STATE, "Copy state to clipboard");
+        contextMenu.addItem(MENU_WRITE_STATE, "Write state from clipboard");
 
 #if JUCE_DEBUG
         contextMenu.addSeparator();
@@ -185,6 +185,10 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
                         .withButton("No"),
                     [this](int result) {
                         if (result == 0) {
+                            timelineComponent->clipComponents.clear();
+                            tracklist.trackComponents.clear();
+                            processorRef.undoManager.clearUndoHistory();
+
                             auto xmlText =
                                 juce::SystemClipboard::getTextFromClipboard();
                             std::unique_ptr<juce::XmlElement> xml(
@@ -204,8 +208,6 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
 
                             timelineComponent->updateClipComponents();
                             timelineComponent->repaint();
-
-                            processorRef.undoManager.clearUndoHistory();
                         }
                     });
             }
