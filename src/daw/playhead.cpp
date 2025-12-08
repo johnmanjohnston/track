@@ -16,8 +16,6 @@ void track::PlayheadComponent::paint(juce::Graphics &g) {
 }
 
 void track::PlayheadComponent::updateBounds() {
-    // DBG("playhead updatebounds() called");
-
     /* okay idfk this randomly crashed and luckily i was running under
        gdb so here's some info for you, future john:
 logs:

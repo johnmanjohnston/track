@@ -12,7 +12,6 @@ track::BarNumbersComponent::BarNumbersComponent() : juce::Component() {
 
 track::BarNumbersComponent::~BarNumbersComponent() {}
 void track::BarNumbersComponent::paint(juce::Graphics &g) {
-    // DBG("timelineComponent paint called");
     g.fillAll(juce::Colour(0xDD'2E2E2E));
 
     // bar markers
@@ -129,7 +128,6 @@ bool track::ActionCutClip::undo() {
     audioNode *node =
         utility::getNodeFromRoute(route, timelineComponent->processorRef);
 
-    // node->clips.push_back(addedClip);
     auto &newClip = *node->clips.emplace(node->clips.begin() + clipIndex);
     newClip = addedClip;
 
@@ -610,50 +608,6 @@ void track::TimelineComponent::deleteClip(clip *c, int trackIndex) {
 
 void track::TimelineComponent::splitClip(clip *c, int splitSample,
                                          int nodeDisplayIndex) {
-    /*
-    audioNode *node =
-        viewport->tracklist->trackComponents[(size_t)nodeDisplayIndex]
-            ->getCorrespondingTrack();
-
-    // handle split 1
-    int clipIndex = -1;
-
-    // find index of c1
-    for (size_t i = 0; i < node->clips.size(); ++i) {
-        if (c == &node->clips[i]) {
-            clipIndex = i;
-            break;
-        }
-    }
-    jassert(clipIndex != -1);
-
-    clip *c1 = &node->clips[(size_t)clipIndex];
-    clip c2;
-    c2.trimLeft = c1->trimLeft;
-    c2.trimRight = c1->trimRight;
-
-    int actualSplit = splitSample;
-    c1->trimRight = c->buffer.getNumSamples() - actualSplit - c->trimLeft;
-
-    // handle split 2
-    c2.name = c->name;
-    c2.path = c->path;
-    c2.buffer = c->buffer;
-    c2.startPositionSample = c->startPositionSample + actualSplit;
-    c2.trimLeft += actualSplit;
-
-    node->clips.push_back(c2);
-
-    DBG("c1: left=" << c1->trimLeft << "; right=" << c1->trimRight);
-    DBG("c2: left=" << c2.trimLeft << "; right=" << c2.trimRight);
-
-    // trim left
-    // c->trimLeft += splitSample;
-    // c->startPositionSample += splitSample;
-
-    updateClipComponents();
-    repaint();*/
-
     std::vector<int> route =
         viewport->tracklist->trackComponents[(size_t)nodeDisplayIndex]->route;
     ActionSplitClip *action = new ActionSplitClip(*c, route, splitSample, this);
@@ -662,25 +616,6 @@ void track::TimelineComponent::splitClip(clip *c, int splitSample,
 }
 
 void track::TimelineComponent::shiftClipByBars(int bars) {
-    /*
-    DBG("shiftClipByBars() called with bars " << bars);
-
-    int beatsPerBar = 4;
-    double secondsPerBar = (60.0 / track::BPM) * beatsPerBar;
-    int samplesPerBar = secondsPerBar * track::SAMPLE_RATE;
-
-    Tracklist *tracklist = viewport->tracklist;
-
-    for (auto &tc : tracklist->trackComponents) {
-        if (tc->getCorrespondingTrack()->isTrack) {
-            for (auto &clip : tc->getCorrespondingTrack()->clips) {
-                clip.startPositionSample += samplesPerBar * bars;
-            }
-        }
-    }
-
-    updateClipComponents();*/
-
     ActionShiftClips *action = new ActionShiftClips(bars, this);
     processorRef->undoManager.beginNewTransaction("action shift clips");
     processorRef->undoManager.perform(action);

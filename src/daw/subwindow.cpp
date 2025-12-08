@@ -82,7 +82,6 @@ void track::Subwindow::paint(juce::Graphics &g) {
 
     // border
     g.setColour(juce::Colour(0xFF'4A4A4A));
-    // g.drawHorizontalLine(titlebarBounds.getHeight(), 0, getWidth());
     g.fillRect(0, getTitleBarBounds().getHeight(), getWidth(), 2);
     g.drawRect(getLocalBounds(), 2);
 }

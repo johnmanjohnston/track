@@ -8,7 +8,6 @@ track::TransportStatusComponent::~TransportStatusComponent(){};
 void track::TransportStatusComponent::paint(juce::Graphics &g) {
     // this whole function is absolute cinema
 
-    // DBG("transport status paint() called");
     // get time info
     // TODO: timing calculations don't work properly for some time signatures
     // like 6/8; that's now a problem for future me
@@ -82,10 +81,9 @@ void track::TransportStatusComponent::paint(juce::Graphics &g) {
     timeSignatureInfoToDisplay.append(juce::String(timeSignature.numerator), 3);
 
     g.setColour(juce::Colour(0xFF'CDD8E4).withAlpha(0.7f));
-    g.setFont(getRobotoMonoThin()
-                  .withHeight(26.f)
-                  .boldened()
-                  .withExtraKerningFactor(-.06f));
+    g.setFont(
+        getRobotoMonoThin().withHeight(26.f).boldened().withExtraKerningFactor(
+            -.06f));
 
     g.drawText(timeInfoToDisplay, timeInfoTextRectangle,
                juce::Justification::left, false);

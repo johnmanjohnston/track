@@ -12,7 +12,6 @@ class TransportStatusComponent : public juce::Component {
 
     AudioPluginAudioProcessor *processorRef = nullptr;
 
-
     // visual studio is an absolute truckload of shit
     juce::Font getRobotoMonoThin() {
         static auto typeface = Typeface::createSystemTypefaceFor(

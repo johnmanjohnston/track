@@ -60,12 +60,8 @@ class AudioPluginAudioProcessorEditor : public juce::AudioProcessorEditor,
     std::unique_ptr<juce::FileChooser> fileChooser;
 
     juce::TextButton configBtn;
-    // int lastKnownLatency = -1;
-    // void updateLastKnownLatency();
-    // void updateLastKnownLatencyAfterDelay(int delay = 1000);
     LatencyPoller latencyPoller;
 
-    // track::PluginChainComponent pluginChainComponent;
     std::vector<std::unique_ptr<track::PluginChainComponent>>
         pluginChainComponents;
     void openFxChain(std::vector<int> route);

@@ -337,18 +337,6 @@ track::PluginNodeComponent::PluginNodeComponent() : juce::Component() {
     };
 
     bypassBtn.onClick = [this] {
-        /*
-        PluginChainComponent *pcc =
-            findParentComponentOfClass<PluginChainComponent>();
-        jassert(pcc != nullptr);
-
-        audioNode *node = pcc->getCorrespondingTrack();
-        jassert(node != nullptr);
-
-        node->plugins[(size_t)this->pluginIndex]->bypassed =
-            !node->plugins[(size_t)this->pluginIndex]->bypassed;
-            */
-
         getPlugin()->get()->bypassed = !getPlugin()->get()->bypassed;
 
         // prepare all this shit man idfk
@@ -611,22 +599,6 @@ void track::PluginNodesWrapper::mouseDown(const juce::MouseEvent &event) {
                             "Couldn't add the plugin at \"" +
                                 action->pluginIdentifier + "\"");
                     }
-
-                    /*
-                    // create node component
-                    this->pluginNodeComponents.emplace_back(
-                        new track::PluginNodeComponent);
-                    PluginNodeComponent &nc =
-                    *this->pluginNodeComponents.back(); nc.pluginIndex =
-                    pluginIndex;
-
-                    addAndMakeVisible(nc);
-                    nc.setBounds(getBoundsForPluginNodeComponent(pluginIndex));
-
-                    pcc->resized();
-                    pcc->nodesViewport.setViewPosition(pcc->nodesWrapper.getWidth(),
-                                                       0);
-                                                       */
                 });
         }
 
@@ -668,25 +640,6 @@ void track::PluginNodesWrapper::mouseDown(const juce::MouseEvent &event) {
                         pcc->nodesWrapper.getWidth(), 0);
 
                     return;
-
-                    /*
-                    // create node component
-                    this->pluginNodeComponents.emplace_back(
-                        new track::PluginNodeComponent());
-                    PluginNodeComponent &nc =
-                        *this->pluginNodeComponents.back();
-                    nc.pluginIndex = node->plugins.size() - 1;
-                    nc.setDryWetSliderValue();
-
-                    addAndMakeVisible(nc);
-                    nc.setBounds(
-                        getBoundsForPluginNodeComponent(nc.pluginIndex));
-
-                    pcc->resized();
-                    pcc->nodesViewport.setViewPosition(
-                        pcc->nodesWrapper.getWidth(), 0);
-
-                    */
                 }
             });
 
@@ -901,13 +854,6 @@ void track::PluginChainComponent::paint(juce::Graphics &g) {
     g.setGradientFill(gradient);
     g.setFont(this->getInterBoldItalic().withHeight(22.f));
     g.drawText("FX", fxLogoBounds, juce::Justification::left, false);
-
-    /*
-    g.setColour(juce::Colours::white);
-    g.setFont(g.getCurrentFont().withHeight(18.f));
-    g.drawText(juce::String(getCorrespondingTrack()->getTotalLatencySamples()),
-               50, 0, 100, 50, juce::Justification::right);
-               */
 }
 
 track::audioNode *track::PluginChainComponent::getCorrespondingTrack() {
@@ -948,7 +894,6 @@ void track::PluginChainComponent::removePlugin(int pluginIndex) {
     processor->undoManager.beginNewTransaction("action remove plugin");
     processor->undoManager.perform(action);
 
-    // TODO: optimize this instead of using lazy where to recreate all p
     nodesWrapper.pluginNodeComponents.clear();
     nodesWrapper.createPluginNodeComponents();
 }

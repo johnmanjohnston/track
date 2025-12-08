@@ -5,7 +5,6 @@
 #include "daw/plugin_chain.h"
 #include "daw/timeline.h"
 #include "daw/track.h"
-#include "juce_gui_basics/juce_gui_basics.h"
 #include "lookandfeel.h"
 #include "processor.h"
 #include <cmath>

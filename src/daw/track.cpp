@@ -27,11 +27,7 @@ track::ClipComponent::ClipComponent(clip *c, int clipHash)
     clipNameLabel.setText(c->name,
                           juce::NotificationType::dontSendNotification);
     clipNameLabel.setInterceptsMouseClicks(false, false);
-    // clipNameLabel.setBounds(getLocalBounds().getX(), getLocalBounds().getY(),
-    // 300, 20);
     addAndMakeVisible(clipNameLabel);
-
-    // clipNameLabel.onTextChange = [this] {};
 
     clipNameLabel.onEditorHide = [this] {
         TimelineComponent *tc = (TimelineComponent *)getParentComponent();
@@ -145,12 +141,6 @@ void track::ClipComponent::paint(juce::Graphics &g) {
         }
     }
 
-    /*
-    if (isMouseOver(false) && !isBeingDragged) {
-        g.setColour(juce::Colours::white.withAlpha(.07f));
-        g.fillRoundedRectangle(getLocalBounds().toFloat(), cornerSize);
-    }*/
-
     g.setColour(juce::Colour(0xFF'000515));
     g.drawRoundedRectangle(getLocalBounds().toFloat(), cornerSize, 1.4f);
 
@@ -196,16 +186,6 @@ void track::ClipComponent::paint(juce::Graphics &g) {
         p.closeSubPath();
         g.fillPath(p);
     }
-
-    /*
-    if (this->correspondingClip->active)
-        g.setColour(juce::Colour(0xFF33587F));
-    else
-        g.setColour(juce::Colour(0xFF'9B9B9B));
-
-    g.drawText(this->correspondingClip->name, 2, 0, getWidth(), 20,
-               juce::Justification::left, true);
-    */
 }
 
 void track::ClipComponent::mouseDown(const juce::MouseEvent &event) {
@@ -317,15 +297,6 @@ void track::ClipComponent::mouseDown(const juce::MouseEvent &event) {
                 // delete the orginal clip from timeline, and still paste it
                 track::clip *newClip = new track::clip;
 
-                /*newClip->buffer = correspondingClip->buffer;
-                newClip->startPositionSample =
-                    correspondingClip->startPositionSample;
-                newClip->name = correspondingClip->name;
-                newClip->path = correspondingClip->path;
-                newClip->active = correspondingClip->active;
-                newClip->trimLeft = correspondingClip->trimLeft;
-                newClip->trimRight = correspondingClip->trimRight;*/
-
                 *newClip = *correspondingClip;
 
                 clipboard::setData(newClip, TYPECODE_CLIP);
@@ -427,8 +398,6 @@ void track::ClipComponent::mouseDrag(const juce::MouseEvent &event) {
 
                 correspondingClip->trimLeft = snappedTrimLeft;
             }
-
-            // DBG("raw left = " << rawSamplePosTrimLeft);
 
             this->reachedLeft = rawSamplePosTrimLeft <= 0;
 
@@ -694,15 +663,6 @@ void track::ActionClipModified::updateGUI() {
     // TODO: some funky stuff happening here when you have a longer undo
     // history. this->cc probably doesn't point to a valid clip component ptr
     TimelineComponent *timelineComponent = (TimelineComponent *)tc;
-    /*
-    ClipComponent *clipComponent = (ClipComponent *)cc;
-
-    timelineComponent->resizeClipComponent(clipComponent);
-
-    clipComponent->clipNameLabel.setText(
-        getClip()->name, juce::NotificationType::dontSendNotification);
-
-    clipComponent->repaint();*/
 
     timelineComponent->updateClipComponents();
 }
@@ -830,17 +790,13 @@ track::TrackComponent::TrackComponent::getCorrespondingTrack() {
 }
 
 void track::TrackComponent::initializSliders() {
-    // DBG("intiailizGainSlider() called");
-    // DBG("track's gain is " << getCorrespondingTrack()->gain);
     gainSlider.setValue(getCorrespondingTrack()->gain);
     panSlider.setValue(getCorrespondingTrack()->pan);
 }
 
 track::TrackComponent::TrackComponent(int trackIndex) : juce::Component() {
     // starting text for track name label is set when TrackComponent is
-    // created in createTrackComponents() DBG("TrackComponent constructor
-    // called");
-
+    // created in createTrackComponents()
     trackNameLabel.setFont(
         getAudioNodeLabelFont().withHeight(17.f).withExtraKerningFactor(
             -0.02f));
@@ -860,8 +816,6 @@ track::TrackComponent::TrackComponent(int trackIndex) : juce::Component() {
     addAndMakeVisible(soloBtn);
     soloBtn.setButtonText("S");
 
-    // gainSlider.hideTextBox(true);
-    // gainSlider.setValue(getCorrespondingTrack()->gain);
     gainSlider.setTextBoxStyle(juce::Slider::TextEntryBoxPosition::NoTextBox,
                                true, 0, 0);
 
@@ -988,56 +942,6 @@ void track::TrackComponent::mouseDown(const juce::MouseEvent &event) {
                     route, processor, findParentComponentOfClass<Tracklist>());
                 p->undoManager.beginNewTransaction("action ungroup");
                 p->undoManager.perform(action);
-
-                /*
-                AudioPluginAudioProcessor *p =
-                    (AudioPluginAudioProcessor *)processor;
-
-                audioNode *head = nullptr;
-                Tracklist *tracklist =
-                findParentComponentOfClass<Tracklist>();
-
-                if (getCorrespondingTrack()->isTrack) {
-                    head = &p->tracks[(size_t)this->route[0]];
-                    for (size_t i = 1; i < route.size() - 2;
-                ++i) { head =
-                &head->childNodes[(size_t)route[i]];
-                    }
-
-                    audioNode *newNode = nullptr;
-
-                    if (this->route.size() >= 3)
-                        newNode =
-                &head->childNodes.emplace_back(); else newNode =
-                &p->tracks.emplace_back();
-
-                    DBG("attempting to ungroup track.
-                route.size() = "
-                        << this->route.size());
-                    tracklist->copyNode(newNode,
-                getCorrespondingTrack());
-
-                } else {
-                    head = &p->tracks[(size_t)this->route[0]];
-                    for (size_t i = 1; i < route.size() - 1;
-                ++i) { head =
-                &head->childNodes[(size_t)route[i]];
-                    }
-
-                    if (this->route.size() >= 2) {
-                        tracklist->deepCopyGroupInsideGroup(
-                            getCorrespondingTrack(), head);
-
-                    } else {
-                        tracklist->deepCopyGroupInsideGroup(
-                            getCorrespondingTrack(), nullptr);
-                    }
-                }
-
-                tracklist->deleteTrack(this->route);*/
-
-                // DBG("ungrouping to parent named " <<
-                // head->trackName);
             });
 
         contextMenu.addItem("Reset volume", [this] {
@@ -1059,7 +963,6 @@ void track::TrackComponent::mouseDown(const juce::MouseEvent &event) {
                 Tracklist *tracklist =
                     (Tracklist *)findParentComponentOfClass<Tracklist>();
 
-                // tracklist->deleteTrack(this->siblingIndex);
                 tracklist->deleteTrack(this->route);
             });
 
@@ -1573,19 +1476,6 @@ bool track::ActionMoveNodeToGroup::perform() {
         routeAfterMoving[(size_t)commonGeneration]--;
     }
 
-    /*
-    // aausdf
-    if (nodeToMoveRoute.size() == 1 && nodeToMoveRoute.back() < groupRoute[0])
-        routeAfterMoving[0]--;*/
-
-    /*if (nodeToMoveRoute.size() == groupRoute.size() &&
-        nodeToMoveRoute[nodeToMoveRoute.size() - 1] <
-            groupRoute[groupRoute.size() - 1]) {
-        routeAfterMoving.back()--;
-    }
-
-    routeAfterMoving.push_back(groupNode->childNodes.size());*/
-
     routeAfterMoving.push_back(groupNode->childNodes.size());
 
     utility::moveNodeToGroup(nodeToMoveRoute, groupRoute, (Tracklist *)tl, p);
@@ -1915,19 +1805,6 @@ void track::Tracklist::copyNode(audioNode *dest, audioNode *src) {
 
 void track::Tracklist::addNewNode(bool isTrack, std::vector<int> parentRoute) {
     AudioPluginAudioProcessor *p = (AudioPluginAudioProcessor *)this->processor;
-    /*
-    audioNode *newNode = nullptr;
-    if (parent == nullptr) {
-        newNode = &p->tracks.emplace_back();
-    } else {
-        newNode = &parent->childNodes.emplace_back();
-    }
-
-    newNode->processor = p;
-    newNode->isTrack = isTrack;
-    newNode->trackName = isTrack ? "Track" : "Group";
-    newNode->trackName += " " + juce::String(trackComponents.size() + 1);
-    */
 
     ActionCreateNode *action =
         new ActionCreateNode(parentRoute, isTrack, this, p);
@@ -1958,23 +1835,6 @@ void track::Tracklist::recursivelyDeleteNodePlugins(audioNode *node) {
             recursivelyDeleteNodePlugins(&child);
         }
     }
-
-    for (auto &plugin : node->plugins) {
-        /*
-        if (plugin->getActiveEditor() != nullptr) {
-            DBG("deleting a node which has a plugin with an EDITOR WHCIH IS
-        " "STILL ACTIVE");
-            // plugin->editorBeingDeleted(plugin->getActiveEditor());
-            delete plugin->getActiveEditor();
-        }
-        */
-
-        /*
-        DBG("recursivelyDeleteNodePlugins(): deleting a plugin: "
-            << plugin->getPluginDescription().name);
-        plugin->releaseResources();
-        */
-    }
 }
 
 // vokd track::Tracklist::deleteTrack(int trackIndex) {
@@ -1987,41 +1847,6 @@ void track::Tracklist::deleteTrack(std::vector<int> route) {
 
     p->undoManager.beginNewTransaction("action delete node");
     p->undoManager.perform(action);
-
-    /*
-    TimelineComponent *tc = (TimelineComponent *)this->timelineComponent;
-    tc->clipComponents.clear();
-
-    juce::MessageManagerLock mmlock;
-    AudioPluginAudioProcessor *p = (AudioPluginAudioProcessor *)processor;
-
-    if (juce::MessageManager::getInstance()->isThisTheMessageThread()) {
-        DBG("THIS IS THE MESSAGE THREAD");
-    }
-
-    // trivially delete
-    if (route.size() == 1) {
-        DBG("trivially deleted audo node with index: "
-            << getPrettyVector(route));
-
-        recursivelyDeleteNodePlugins(&p->tracks[(size_t)route[0]]);
-        p->tracks.erase(p->tracks.begin() + route[0]);
-    } else {
-        audioNode *head = &p->tracks[(size_t)route[0]];
-        for (size_t i = 1; i < route.size() - 1; ++i) {
-            head = &head->childNodes[(size_t)route[i]];
-        }
-
-        recursivelyDeleteNodePlugins(
-            &head->childNodes[route[route.size() - 1]]);
-        head->childNodes.erase(head->childNodes.begin() +
-                               route[route.size() - 1]);
-    }
-
-    this->trackComponents.clear();
-    this->createTrackComponents();
-    this->setTrackComponentBounds();
-    tc->updateClipComponents();*/
 }
 
 void track::Tracklist::deepCopyGroupInsideGroup(audioNode *childNode,
@@ -2036,51 +1861,9 @@ void track::Tracklist::deepCopyGroupInsideGroup(audioNode *childNode,
             newNode = &p->tracks.emplace_back();
         } else
             newNode = &parentNode->childNodes.emplace_back();
-        /*
-        newNode->trackName = child.trackName;
-        newNode->isTrack = child.isTrack;
-        newNode->gain = child.gain;
-        newNode->processor = processor;
-
-        if (newNode->isTrack)
-            newNode->clips = childNode->clips;
-        else {
-            deepCopyGroupInsideGroup(&child, newNode);
-        }
-        */
 
         copyNode(newNode, &child);
         continue;
-
-        // now the annoying thing, copying plugins. (which is why you can't
-        // just push_back() trackNode into groupNode->childNodes)
-        for (auto &p : child.plugins) {
-            /*
-            if (pluginInstance->getActiveEditor() != nullptr) {
-                DBG("pluginInstance's active editor still exists");
-                delete pluginInstance->getActiveEditor();
-            }
-            */
-
-            auto &pluginInstance = p->plugin;
-            // retrieve data then free up original plugin instance's
-            // resources
-            juce::MemoryBlock pluginData;
-            pluginInstance->getStateInformation(pluginData);
-            pluginInstance->releaseResources();
-
-            juce::String identifier =
-                pluginInstance->getPluginDescription().fileOrIdentifier;
-
-            identifier = identifier.upToLastOccurrenceOf(".vst3", true, true);
-
-            // add plugin to new node and copy data
-            DBG("adding plugin to new node, using identifier " << identifier);
-            newNode->addPlugin(identifier);
-            newNode->plugins[newNode->plugins.size() - 1]
-                ->plugin->setStateInformation(pluginData.getData(),
-                                              pluginData.getSize());
-        }
     }
 }
 
@@ -2145,13 +1928,6 @@ int track::Tracklist::findChildren(audioNode *parentNode,
 
         addAndMakeVisible(*trackComponents.back());
 
-        /*
-        DBG(tabs << "found " << (childNode->isTrack ? "track" : "group") <<
-        " "
-                 << childNode->trackName << "(" << i << foundItems << depth
-                 << ") " << getPrettyVector(route));
-                 */
-
         if (!childNode->isTrack) {
             foundItems = findChildren(childNode, route, foundItems, depth + 1);
         } else {
@@ -2201,6 +1977,7 @@ void track::Tracklist::createTrackComponents() {
     repaint();
 
     // ee
+    // future john here: ee indeed
 }
 
 void track::Tracklist::setTrackComponentBounds() {
@@ -2461,16 +2238,6 @@ void track::audioNode::process(int numSamples, int currentSample) {
             // bounds check
             if (clipEnd > currentSample &&
                 clipStart < currentSample + outputBufferLength) {
-
-                /*
-                DBG("clip in bounds: "
-                    << c.name << "; clipstart: " << c.startPositionSample
-                    << "; trimleft=" << c.trimLeft << ";
-                clipstart+trimleft="
-                    << c.startPositionSample + c.trimLeft
-                    << "; cursample=" << currentSample
-                    << "; clipUsableNumSamples=" << clipUsableNumSamples);
-                    */
 
                 // where in buffer should clip start?
                 int outputOffset =

@@ -68,15 +68,6 @@ void track::RelayManagerComponent::resized() {
 }
 
 void track::RelayManagerNodesWrapper::createRelayNodes() {
-    /*
-    for (int i = 0; i < 10; ++i) {
-        DBG("creating relay node " << i);
-        this->relayNodes.emplace_back(new RelayManagerNode);
-        auto &x = relayNodes.back();
-        addAndMakeVisible(*x);
-    }
-    */
-
     relayNodes.clear();
 
     track::RelayManagerComponent *rmc = (RelayManagerComponent *)
@@ -407,28 +398,6 @@ void track::RelayParamInspector::resized() {
     rpiViewport.setBounds(0, UI_SUBWINDOW_TITLEBAR_HEIGHT, getWidth(),
                           getHeight() - UI_SUBWINDOW_TITLEBAR_HEIGHT);
     rpiComponent.setBounds(0, 0, 2000, 3100);
-
-    /*
-    int params = 128;
-
-    for (int i = 0; i < params; ++i) {
-        paramSliders[i].setBounds(2, i * 20, 100, 20);
-    }*/
 }
 
-void track::RelayParamInspector::initSliders() {
-    // int params = 128;
-
-    /*
-    // rangedaudioparameter
-    juce::Array<juce::AudioProcessorParameter*> processorParams =
-    processor->getParameters();
-
-    for (int i = 0; i < params; ++i) {
-    }
-
-    //juce::RangedAudioParameter* = processor->getParam
-    */
-
-    rpiComponent.initSliders();
-}
+void track::RelayParamInspector::initSliders() { rpiComponent.initSliders(); }

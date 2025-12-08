@@ -57,8 +57,6 @@ class ActionRemovePlugin : public juce::UndoableAction {
     bool undo() override;
     void updateGUI();
 
-    // void closeAlreadyOpenedEditors();
-    // void reopenEditors();
     std::vector<track::subplugin *> openedPlugins;
 };
 
@@ -217,7 +215,7 @@ class PluginEditorWindow : public juce::Component, juce::Timer {
     audioNode *getCorrespondingTrack();
     std::unique_ptr<track::subplugin> *getPlugin();
 
-    // TODO: this shouldn't belong in this class
+    // this shouldn't belong in this class but whatever
     static const juce::Font getInterBoldItalic() {
         static auto typeface = Typeface::createSystemTypefaceFor(
             BinaryData::Inter_18ptBoldItalic_ttf,

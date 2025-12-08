@@ -342,12 +342,6 @@ void track::ui::CustomLookAndFeel::drawLabel(Graphics &g, Label &label) {
 
         g.drawText(label.getText(), textArea, label.getJustificationType(),
                    true);
-        /*
-        g.drawFittedText(
-            label.getText(), textArea, label.getJustificationType(),
-            jmax(1, (int)((float)textArea.getHeight() / font.getHeight())),
-            label.getMinimumHorizontalScale());
-            */
 
         g.setColour(label.findColour(Label::outlineColourId)
                         .withMultipliedAlpha(alpha));
@@ -368,8 +362,6 @@ void track::ui::CustomLookAndFeel::drawLabel(Graphics &g, Label &label) {
 
         te->setBounds(bounds);
     }
-
-    // g.drawRect(label.getLocalBounds());
 }
 
 void track::ui::CustomLookAndFeel::drawComboBox(Graphics &g, int width,

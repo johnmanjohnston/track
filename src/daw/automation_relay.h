@@ -102,7 +102,6 @@ class RelayParamInspectorComponent : public juce::Component {
         paramSliderAttachments;
     AudioPluginAudioProcessor *processor = nullptr;
 
-    // void paint(juce::Graphics &g) { g.fillAll(juce::Colours::magenta); }
     void paint(juce::Graphics &g);
     void resized();
     void initSliders();

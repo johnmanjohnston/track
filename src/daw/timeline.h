@@ -120,7 +120,6 @@ class TimelineComponent : public juce::Component,
     TimelineViewport *viewport = nullptr;
     AudioPluginAudioProcessor *processorRef = nullptr;
 
-    // std::vector<ClipComponent*> clipComponents;
     std::vector<std::unique_ptr<ClipComponent>> clipComponents;
     void updateClipComponents();
     void resizeTimelineComponent();
@@ -132,12 +131,6 @@ class TimelineComponent : public juce::Component,
     void splitClip(clip *c, int splitSample, int nodeDisplayIndex);
     void shiftClipByBars(int bars);
 
-    /*
-    //forum.juce.com/t/creating-arrays-vectors-of-components-copy-move-semantics/47054/5
-    std::vector<std::unique_ptr<TrackComponent>> trackComponents;
-    */
-
-    // TODO: this function should not be in this class
     juce::Font getInterRegular() {
         static auto typeface = Typeface::createSystemTypefaceFor(
             BinaryData::Inter_18ptRegular_ttf,
@@ -145,9 +138,6 @@ class TimelineComponent : public juce::Component,
 
         return Font(typeface);
     }
-
-  private:
-    int zoomLevel = 1;
 };
 
 } // namespace track
