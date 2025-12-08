@@ -91,12 +91,15 @@ void track::ClipComponent::paint(juce::Graphics &g) {
             g.fillRoundedRectangle(getLocalBounds().toFloat(), cornerSize);
         } else {
             if (this->correspondingClip->active) {
+                juce::Colour base = juce::Colour(0xFF'33587F);
+
                 if (this->hasKeyboardFocus(true))
-                    g.setColour(juce::Colour(0xFF'33587F)
-                                    .brighter(0.3f)
-                                    .withMultipliedSaturation(1.2f));
+                    g.setColour(
+                        base.brighter(0.3f).withMultipliedSaturation(1.2f));
+                else if (isMouseOver(false))
+                    g.setColour(base.brighter(0.1f));
                 else
-                    g.setColour(juce::Colour(0xFF'33587F));
+                    g.setColour(base);
 
                 g.fillRoundedRectangle(getLocalBounds().toFloat(), cornerSize);
             }
@@ -142,10 +145,11 @@ void track::ClipComponent::paint(juce::Graphics &g) {
         }
     }
 
+    /*
     if (isMouseOver(false) && !isBeingDragged) {
         g.setColour(juce::Colours::white.withAlpha(.07f));
         g.fillRoundedRectangle(getLocalBounds().toFloat(), cornerSize);
-    }
+    }*/
 
     g.setColour(juce::Colour(0xFF'000515));
     g.drawRoundedRectangle(getLocalBounds().toFloat(), cornerSize, 1.4f);
