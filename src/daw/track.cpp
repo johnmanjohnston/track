@@ -587,6 +587,8 @@ bool track::ClipComponent::keyStateChanged(bool isKeyDown) {
         if (juce::KeyPress::isKeyCurrentlyDown(82)) {
             juce::Timer::callAfterDelay(10,
                                         [this] { clipNameLabel.showEditor(); });
+
+            return true;
         }
 
         // 0
@@ -596,6 +598,8 @@ bool track::ClipComponent::keyStateChanged(bool isKeyDown) {
 
             TimelineComponent *tc = (TimelineComponent *)getParentComponent();
             tc->grabKeyboardFocus();
+
+            return true;
         }
 
         // x, backspace, delete
@@ -608,6 +612,8 @@ bool track::ClipComponent::keyStateChanged(bool isKeyDown) {
 
             if (!tc->renderingWaveforms())
                 tc->deleteClip(correspondingClip, nodeDisplayIndex);
+
+            return true;
         }
     }
 
