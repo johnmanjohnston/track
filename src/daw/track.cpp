@@ -1655,6 +1655,12 @@ bool track::ActionUngroup::perform() {
     audioNode *node = utility::getNodeFromRoute(route, p);
     AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
 
+    Tracklist *tracklist = (Tracklist *)tl;
+    AudioPluginAudioProcessorEditor *editor =
+        tracklist
+            ->findParentComponentOfClass<AudioPluginAudioProcessorEditor>();
+    utility::clearSubwindows(editor);
+
     if (node->isTrack) {
         // move this node to grapdparent
         audioNode *grandparent = nullptr;
@@ -1715,6 +1721,12 @@ bool track::ActionUngroup::undo() {
     DBG("ActionUngroup::undo() not implemented");
 
     AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
+
+    Tracklist *tracklist = (Tracklist *)tl;
+    AudioPluginAudioProcessorEditor *editor =
+        tracklist
+            ->findParentComponentOfClass<AudioPluginAudioProcessorEditor>();
+    utility::clearSubwindows(editor);
 
     audioNode *originalParent = utility::getParentFromRoute(route, p);
     if (nodeCopy.isTrack) {
