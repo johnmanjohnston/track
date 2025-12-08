@@ -102,18 +102,22 @@ track::ActionCutClip::ActionCutClip(clip c, std::vector<int> nodeRoute,
 track::ActionCutClip::~ActionCutClip() {}
 
 bool track::ActionCutClip::perform() {
-    DBG("add clip perform() called");
-
     TimelineComponent *timelineComponent = (TimelineComponent *)tc;
     audioNode *node =
         utility::getNodeFromRoute(route, timelineComponent->processorRef);
 
-    for (size_t i = 0; i < node->clips.size(); ++i) {
-        if (utility::clipsEqual(node->clips[i], addedClip)) {
-            node->clips.erase(node->clips.begin() + (long)i);
-            break;
+    if (clipIndex == -1) {
+        for (size_t i = 0; i < node->clips.size(); ++i) {
+            if (utility::clipsEqual(node->clips[i], addedClip)) {
+                clipIndex = i;
+                break;
+            }
         }
     }
+
+    DBG("add clip perform() called");
+
+    node->clips.erase(node->clips.begin() + (long)clipIndex);
 
     updateGUI();
     return true;
@@ -125,7 +129,9 @@ bool track::ActionCutClip::undo() {
     audioNode *node =
         utility::getNodeFromRoute(route, timelineComponent->processorRef);
 
-    node->clips.push_back(addedClip);
+    // node->clips.push_back(addedClip);
+    auto &newClip = *node->clips.emplace(node->clips.begin() + clipIndex);
+    newClip = addedClip;
 
     updateGUI();
     return true;
@@ -155,10 +161,10 @@ bool track::ActionSplitClip::perform() {
         utility::getNodeFromRoute(route, timelineComponent->processorRef);
 
     // handle split 1
-    int clipIndex = utility::getIndexOfClipByValue(node, clipCopy);
-    jassert(clipIndex != -1);
+    c1Index = utility::getIndexOfClipByValue(node, clipCopy);
+    jassert(c1Index != -1);
 
-    clip *c1 = &node->clips[(size_t)clipIndex];
+    clip *c1 = &node->clips[(size_t)c1Index];
     clip c2;
     c2.trimLeft = c1->trimLeft;
     c2.trimRight = c1->trimRight;
@@ -189,12 +195,6 @@ bool track::ActionSplitClip::undo() {
     TimelineComponent *timelineComponent = (TimelineComponent *)tc;
     audioNode *node =
         utility::getNodeFromRoute(route, timelineComponent->processorRef);
-
-    clip c1Replica = clipCopy;
-    c1Replica.trimRight =
-        clipCopy.buffer.getNumSamples() - splitSample - clipCopy.trimLeft;
-
-    int c1Index = utility::getIndexOfClipByValue(node, c1Replica);
 
     clip *c1 = &node->clips[(size_t)c1Index];
     *c1 = clipCopy;
@@ -601,24 +601,6 @@ void track::TimelineComponent::resizeTimelineComponent() {
 }
 
 void track::TimelineComponent::deleteClip(clip *c, int trackIndex) {
-    /*
-    int clipIndex = -1;
-
-    audioNode *node =
-    viewport->tracklist->trackComponents[(size_t)trackIndex]
-                          ->getCorrespondingTrack();
-
-    for (size_t i = 0; i < node->clips.size(); ++i) {
-        if (c == &node->clips[i]) {
-            clipIndex = i;
-            break;
-        }
-    }
-
-    node->clips.erase(node->clips.begin() + clipIndex);
-
-    updateClipComponents();*/
-
     std::vector<int> route =
         viewport->tracklist->trackComponents[(size_t)trackIndex]->route;
     ActionCutClip *action = new ActionCutClip(*c, route, this);

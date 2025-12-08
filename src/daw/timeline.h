@@ -59,6 +59,9 @@ class ActionCutClip : public juce::UndoableAction {
     bool perform() override;
     bool undo() override;
     void updateGUI();
+
+  private:
+    int clipIndex = -1;
 };
 
 class ActionSplitClip : public juce::UndoableAction {
@@ -76,6 +79,9 @@ class ActionSplitClip : public juce::UndoableAction {
     bool perform() override;
     bool undo() override;
     void updateGUI();
+
+  private:
+    int c1Index = -1;
 };
 
 class ActionShiftClips : public juce::UndoableAction {

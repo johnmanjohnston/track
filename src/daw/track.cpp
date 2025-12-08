@@ -632,37 +632,9 @@ bool track::ClipComponent::keyStateChanged(bool isKeyDown) {
                   juce::KeyPress::isKeyCurrentlyDown(268435711)) &&
                  !clipNameLabel.isBeingEdited()) {
             TimelineComponent *tc = (TimelineComponent *)getParentComponent();
-            tc->deleteClip(correspondingClip, nodeDisplayIndex);
-        }
 
-        // ctrl+z
-        else if (juce::KeyPress::isKeyCurrentlyDown(90)) {
-            TimelineComponent *tc = (TimelineComponent *)getParentComponent();
-            // if (tc->processorRef->undoManager.canUndo()) {
-            DBG("calling processor's undoManager.undo()");
-
-            // ActionClipComponentMove x{};
-            // tc->processorRef->undoManager.perform(&x);
-
-            if (!tc->processorRef->undoManager.canUndo()) {
-                DBG("CANNOT UNDO :(");
-            } else {
-
-                tc->processorRef->undoManager.undo();
-                // tc->resizeClipComponent(this);
-            }
-
-            repaint();
-        }
-
-        // ctrl+y
-        else if (juce::KeyPress::isKeyCurrentlyDown(89)) {
-            DBG("calling redo()");
-            TimelineComponent *tc = (TimelineComponent *)getParentComponent();
-            tc->processorRef->undoManager.redo();
-
-            // tc->resizeClipComponent(this);
-            repaint();
+            if (!tc->renderingWaveforms())
+                tc->deleteClip(correspondingClip, nodeDisplayIndex);
         }
     }
 
