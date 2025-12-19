@@ -4,6 +4,7 @@
 #include "automation_relay.h"
 #include "clipboard.h"
 #include "defs.h"
+#include "juce_graphics/juce_graphics.h"
 #include "subwindow.h"
 #include "timeline.h"
 #include "utility.h"
@@ -86,19 +87,18 @@ void track::ClipComponent::paint(juce::Graphics &g) {
             g.setColour(juce::Colour(0xFF'487FB7));
             g.fillRoundedRectangle(getLocalBounds().toFloat(), cornerSize);
         } else {
-            if (this->correspondingClip->active) {
-                juce::Colour base = juce::Colour(0xFF'33587F);
+            juce::Colour base = correspondingClip->active
+                                    ? juce::Colour(0xFF'33587F)
+                                    : juce::Colour(0x00'2D2D2D);
 
-                if (this->hasKeyboardFocus(true))
-                    g.setColour(
-                        base.brighter(0.3f).withMultipliedSaturation(1.2f));
-                else if (isMouseOver(false))
-                    g.setColour(base.brighter(0.1f));
-                else
-                    g.setColour(base);
+            if (this->hasKeyboardFocus(true))
+                g.setColour(base.brighter(0.3f).withMultipliedSaturation(1.2f));
+            else if (isMouseOver(false))
+                g.setColour(base.brighter(0.1f).withAlpha(1.f));
+            else
+                g.setColour(base);
 
-                g.fillRoundedRectangle(getLocalBounds().toFloat(), cornerSize);
-            }
+            g.fillRoundedRectangle(getLocalBounds().toFloat(), cornerSize);
         }
 
         if (this->correspondingClip->active) {
