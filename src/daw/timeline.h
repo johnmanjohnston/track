@@ -122,6 +122,7 @@ class TimelineComponent : public juce::Component,
 
     std::vector<std::unique_ptr<ClipComponent>> clipComponents;
     void updateClipComponents();
+    void updateOnlyStaleClipComponents();
     void resizeTimelineComponent();
 
     BarNumbersComponent barNumbers;

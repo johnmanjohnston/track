@@ -39,6 +39,7 @@ class ClipComponent : public juce::Component, public juce::ChangeListener {
     clip *correspondingClip = nullptr;
 
     void paint(juce::Graphics &g) override;
+    bool stale = true;
     int nodeDisplayIndex = -1;
 
     // moving clips

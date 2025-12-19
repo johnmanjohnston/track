@@ -574,6 +574,17 @@ void track::TimelineComponent::updateClipComponents() {
     resizeTimelineComponent();
 }
 
+void track::TimelineComponent::updateOnlyStaleClipComponents() {
+    for (auto &cc : clipComponents) {
+        if (cc->stale) {
+            resizeClipComponent(cc.get());
+            cc->repaint();
+
+            cc->stale = false;
+        }
+    }
+}
+
 void track::TimelineComponent::resizeTimelineComponent() {
     int largestEnd = -1;
 
