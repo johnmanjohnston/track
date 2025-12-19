@@ -1,6 +1,7 @@
 #include "timeline.h"
 #include "clipboard.h"
 #include "defs.h"
+#include "juce_events/juce_events.h"
 #include "track.h"
 #include "utility.h"
 #include <cmath>
@@ -577,6 +578,9 @@ void track::TimelineComponent::updateClipComponents() {
 void track::TimelineComponent::updateOnlyStaleClipComponents() {
     for (auto &cc : clipComponents) {
         if (cc->stale) {
+            cc->clipNameLabel.setText(
+                cc->correspondingClip->name,
+                juce::NotificationType::dontSendNotification);
             resizeClipComponent(cc.get());
             cc->repaint();
 

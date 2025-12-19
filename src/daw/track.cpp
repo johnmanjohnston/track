@@ -4,7 +4,6 @@
 #include "automation_relay.h"
 #include "clipboard.h"
 #include "defs.h"
-#include "juce_graphics/juce_graphics.h"
 #include "subwindow.h"
 #include "timeline.h"
 #include "utility.h"
@@ -44,7 +43,6 @@ track::ClipComponent::ClipComponent(clip *c, int clipHash)
             *this->correspondingClip);
 
         action->tc = tc;
-        action->cc = this;
 
         correspondingClip->name = clipNameLabel.getText(true);
 
@@ -535,7 +533,6 @@ void track::ClipComponent::mouseUp(const juce::MouseEvent &event) {
             *this->correspondingClip);
 
         action->tc = tc;
-        action->cc = this;
 
         action->oldClip.startPositionSample = startDragStartPositionSample;
         action->oldClip.trimLeft = startTrimLeftPositionSample;
@@ -678,14 +675,18 @@ void track::ActionClipModified::markClipComponentStale() {
 
 void track::ActionClipModified::updateGUI() {
     jassert(tc != nullptr);
-    jassert(cc != nullptr);
 
-    // TODO: some funky stuff happening here when you have a longer undo
-    // history. this->cc probably doesn't point to a valid clip component ptr
     TimelineComponent *timelineComponent = (TimelineComponent *)tc;
-
-    // timelineComponent->updateClipComponents();
     timelineComponent->updateOnlyStaleClipComponents();
+
+    // hunt for clip editor windows for this clip and update
+    AudioPluginAudioProcessorEditor *editor =
+        (AudioPluginAudioProcessorEditor *)timelineComponent
+            ->findParentComponentOfClass<AudioPluginAudioProcessorEditor>();
+
+    for (auto &cpw : editor->clipPropertiesWindows) {
+        cpw->init();
+    }
 }
 
 track::ClipPropertiesWindow::ClipPropertiesWindow() : track::Subwindow() {
@@ -696,13 +697,27 @@ track::ClipPropertiesWindow::ClipPropertiesWindow() : track::Subwindow() {
     gainSlider.setNumDecimalPlacesToDisplay(2);
     nameLabel.setEditable(true, true, false);
 
-    nameLabel.onTextChange = [this] {
+    nameLabel.onEditorShow = [this] { this->oldName = nameLabel.getText(); };
+    nameLabel.onEditorHide = [this] {
         getClip()->name = nameLabel.getText();
-        repaint();
 
         AudioPluginAudioProcessorEditor *editor =
             findParentComponentOfClass<AudioPluginAudioProcessorEditor>();
-        editor->timelineComponent->updateClipComponents();
+        TimelineComponent *tc = editor->timelineComponent.get();
+
+        ActionClipModified *action =
+            new ActionClipModified(p, route, clipIndex, *getClip());
+        action->tc = tc;
+
+        action->oldClip.name = this->oldName;
+
+        tc->processorRef->undoManager.beginNewTransaction(
+            "action clip modified");
+        tc->processorRef->undoManager.perform(action);
+    };
+
+    gainSlider.onDragStart = [this] {
+        this->gainAtDragStart = gainSlider.getValue();
     };
 
     gainSlider.onValueChange = [this] {
@@ -711,11 +726,19 @@ track::ClipPropertiesWindow::ClipPropertiesWindow() : track::Subwindow() {
     };
 
     gainSlider.onDragEnd = [this] {
-        // redraw clip
-        // TODO: optimize
         AudioPluginAudioProcessorEditor *editor =
             findParentComponentOfClass<AudioPluginAudioProcessorEditor>();
-        editor->timelineComponent->updateClipComponents();
+        TimelineComponent *tc = editor->timelineComponent.get();
+
+        ActionClipModified *action =
+            new ActionClipModified(p, route, clipIndex, *getClip());
+        action->tc = tc;
+
+        action->oldClip.gain = gainAtDragStart;
+
+        tc->processorRef->undoManager.beginNewTransaction(
+            "action clip modified");
+        tc->processorRef->undoManager.perform(action);
     };
 
     nameLabel.setFont(getInterSemiBold().withHeight(17.f));

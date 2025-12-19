@@ -107,7 +107,6 @@ class ActionClipModified : public juce::UndoableAction {
     // - try to undo the moving of that clip
     // so make sure to check that and fix it you moron
     void *tc = nullptr;
-    void *cc = nullptr;
 
     ActionClipModified(void *processor, std::vector<int> nodeRoute,
                        int indexOfClip, clip c);
@@ -145,6 +144,9 @@ class ClipPropertiesWindow : public track::Subwindow {
 
         return Font(typeface);
     }
+
+    juce::String oldName = "";
+    float gainAtDragStart = -1.f;
 };
 
 class relayParam;
