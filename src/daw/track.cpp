@@ -534,8 +534,6 @@ void track::ClipComponent::mouseUp(const juce::MouseEvent &event) {
             tracklist->trackComponents[(size_t)nodeDisplayIndex]->route, index,
             *this->correspondingClip);
 
-        this->stale = true;
-
         action->tc = tc;
         action->cc = this;
 
@@ -650,6 +648,7 @@ bool track::ActionClipModified::perform() {
     clip *c = getClip();
     *c = newClip;
 
+    markClipComponentStale();
     updateGUI();
 
     return true;
@@ -659,6 +658,14 @@ bool track::ActionClipModified::undo() {
     clip *c = getClip();
     *c = oldClip;
 
+    markClipComponentStale();
+    updateGUI();
+
+    return true;
+}
+
+void track::ActionClipModified::markClipComponentStale() {
+
     // the ClipComponent for this clip is probably not stale;
     // so stalify it here
     TimelineComponent *timelineComponent = (TimelineComponent *)tc;
@@ -667,10 +674,6 @@ bool track::ActionClipModified::undo() {
             clipComponent->stale = true;
         }
     }
-
-    updateGUI();
-
-    return true;
 }
 
 void track::ActionClipModified::updateGUI() {

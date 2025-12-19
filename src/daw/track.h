@@ -115,6 +115,7 @@ class ActionClipModified : public juce::UndoableAction {
 
     bool perform() override;
     bool undo() override;
+    void markClipComponentStale();
     void updateGUI(); // GUI sounds cooler than UI here, idk man
 };
 
