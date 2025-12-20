@@ -10,18 +10,14 @@ class clip {
     juce::String name = "untitled clip";
 
     int startPositionSample = -1; // absolute sample position within host
-    int endPositionSample =
-        -1; // relative to audio file start, irrespective of looping
-    int endPositionSampleWithLooping; // absolute sample position within host
-    bool isLooping;
     bool active = true;
 
     float gain = 1.f;
 
-    int trimLeft = -1;
-    int trimRight = -1;
+    int trimLeft = 0;
+    int trimRight = 0;
 
-    juce::AudioBuffer<float> buffer; // irrespective of looping
+    juce::AudioBuffer<float> buffer;
     void updateBuffer();
     void reverse();
 };
