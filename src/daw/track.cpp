@@ -366,6 +366,7 @@ void track::ClipComponent::mouseDown(const juce::MouseEvent &event) {
     }
 }
 
+// cs exam tomorrow but fuck it the curriculum is full of shit
 void track::ClipComponent::mouseDrag(const juce::MouseEvent &event) {
     // DBG("dragging is happening");
     isBeingDragged = true;
@@ -380,28 +381,27 @@ void track::ClipComponent::mouseDrag(const juce::MouseEvent &event) {
     if (event.mods.isCtrlDown()) {
         // trim left
         if (trimMode == -1) {
-            int rawSamplePosTrimLeft =
-                startTrimLeftPositionSample +
-                ((distanceMoved * SAMPLE_RATE) / UI_ZOOM_MULTIPLIER);
+            int raw = ((distanceMoved * SAMPLE_RATE) / UI_ZOOM_MULTIPLIER);
+            this->reachedLeft = raw <= 0;
 
-            DBG("rawSamplePosTrimLeft = " << rawSamplePosTrimLeft);
-            DBG("startTrimLeftPositionSample = "
-                << startTrimLeftPositionSample);
-            DBG("");
+            if (raw < 0) {
+                correspondingClip->trimLeft = 0;
+                correspondingClip->startPositionSample =
+                    startDragStartPositionSample;
+                TimelineComponent *tc =
+                    findParentComponentOfClass<TimelineComponent>();
+                tc->resizeClipComponent(this);
 
-            if (event.mods.isAltDown()) {
-                correspondingClip->trimLeft = rawSamplePosTrimLeft;
-            } else {
-                int snappedTrimLeft =
-                    utility::snapSample(rawSamplePosTrimLeft, SNAP_DIVISION);
-
-                correspondingClip->trimLeft = snappedTrimLeft;
+                repaint();
+                return;
             }
 
-            this->reachedLeft = rawSamplePosTrimLeft <= 0;
+            raw = juce::jmax(0, raw);
 
             correspondingClip->trimLeft =
-                juce::jmax(0, correspondingClip->trimLeft);
+                event.mods.isAltDown()
+                    ? raw
+                    : utility::snapSample(raw, SNAP_DIVISION);
         }
 
         // trim right
@@ -447,72 +447,11 @@ void track::ClipComponent::mouseDrag(const juce::MouseEvent &event) {
         }
     }
 
-    // bool forbidMovement = trimMode == -1 && reachedLeft;
-
-    int oldEndPos = correspondingClip->startPositionSample +
-                    correspondingClip->buffer.getNumSamples() -
-                    correspondingClip->trimRight - correspondingClip->trimLeft;
-
-    // moving clips. fixing messed up left trim. this is a mess.
-    int newStartPos = -1;
-
-    newStartPos = event.mods.isAltDown()
-                      ? rawSamplePos
-                      : utility::snapSample(rawSamplePos, SNAP_DIVISION);
-
-    /*
-    bool forbidMovement = false;
-    if (trimMode == -1) {
-        int rawSamplePosTrimLeft =
-            startTrimLeftPositionSample +
-            ((distanceMoved * SAMPLE_RATE) / UI_ZOOM_MULTIPLIER);
-
-        forbidMovement = rawSamplePosTrimLeft < 0;
-    }*/
-
-    if (reachedLeft) {
-
-        int rawSamplePosTrimLeft =
-            startTrimLeftPositionSample +
-            ((distanceMoved * SAMPLE_RATE) / UI_ZOOM_MULTIPLIER);
-
-        DBG("BAD");
-        newStartPos -= rawSamplePosTrimLeft;
-    }
+    int newStartPos = event.mods.isAltDown()
+                          ? rawSamplePos
+                          : utility::snapSample(rawSamplePos, SNAP_DIVISION);
 
     correspondingClip->startPositionSample = newStartPos;
-
-    /*
-    int newEndPos = newStartPos + correspondingClip->buffer.getNumSamples() -
-                    correspondingClip->trimRight - correspondingClip->trimLeft;
-
-    int diff = oldEndPos - newEndPos;
-
-    // if we want to forbid movement, then shove the clip back its orginal
-    // place. there's probably a better way to take care of this.
-    if (forbidMovement) {
-        correspondingClip->startPositionSample += diff;
-    }
-
-    int endPosPostCorrection = correspondingClip->startPositionSample +
-                               correspondingClip->buffer.getNumSamples() -
-                               correspondingClip->trimRight -
-                               correspondingClip->trimLeft;
-
-    // there's a strange bug where is you untrim left too quickly, the whole
-    // clip shifts to the right a bit. this should shove the clip back in place
-    if (finalEndPos - endPosPostCorrection < 0 && trimMode == -1) {
-        DBG(finalEndPos - endPosPostCorrection);
-        DBG(event.getDistanceFromDragStartX());
-        DBG("-");
-
-        // if distance from drag start is 1, the whole clip flies away?????
-        if (event.getDistanceFromDragStartX() != 1)
-            correspondingClip->startPositionSample +=
-                finalEndPos - endPosPostCorrection;
-    }
-    finalEndPos = endPosPostCorrection;
-    */
 
     TimelineComponent *tc = findParentComponentOfClass<TimelineComponent>();
     tc->resizeClipComponent(this);
