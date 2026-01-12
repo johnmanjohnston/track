@@ -475,13 +475,14 @@ bool track::utility::clipsEqual(track::clip x, track::clip y) {
     return retval;
 }
 
-int track::utility::snapSample(int sample, int division) {
+int track::utility::snapSample(int sample, int division, int offset) {
     double secondsPerBeat = 60.f / BPM;
     int samplesPerBar = (secondsPerBeat * SAMPLE_RATE) * 4; // for 4/4
     int samplesPerSnap = samplesPerBar / division;
 
     int snapped =
         ((sample + samplesPerSnap / 2) / samplesPerSnap) * samplesPerSnap;
+    snapped += offset;
 
     return snapped;
 }

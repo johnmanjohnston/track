@@ -370,9 +370,14 @@ void track::ClipComponent::mouseDrag(const juce::MouseEvent &event) {
     // DBG("dragging is happening");
     isBeingDragged = true;
 
-    int distanceMoved = startDragX + event.getDistanceFromDragStartX();
+    int distanceMoved = event.getDistanceFromDragStartX();
     int rawSamplePos = startDragStartPositionSample +
                        ((distanceMoved * SAMPLE_RATE) / UI_ZOOM_MULTIPLIER);
+
+    DBG(rawSamplePos);
+
+    // technically no longer "raw" but ehh whatever
+    rawSamplePos = juce::jmax(rawSamplePos, startDragStartPositionSample);
 
     // if ctrl held, trim
     if (event.mods.isCtrlDown()) {
@@ -385,11 +390,10 @@ void track::ClipComponent::mouseDrag(const juce::MouseEvent &event) {
             if (event.mods.isAltDown()) {
                 correspondingClip->trimLeft = rawSamplePosTrimLeft;
             } else {
-                /*
                 int snappedTrimLeft =
                     utility::snapSample(rawSamplePosTrimLeft, SNAP_DIVISION);
 
-                correspondingClip->trimLeft = snappedTrimLeft;*/
+                correspondingClip->trimLeft = snappedTrimLeft;
             }
 
             this->reachedLeft = rawSamplePosTrimLeft <= 0;
@@ -441,7 +445,7 @@ void track::ClipComponent::mouseDrag(const juce::MouseEvent &event) {
         }
     }
 
-    bool forbidMovement = trimMode == -1 && reachedLeft;
+    // bool forbidMovement = trimMode == -1 && reachedLeft;
 
     int oldEndPos = correspondingClip->startPositionSample +
                     correspondingClip->buffer.getNumSamples() -
@@ -450,21 +454,19 @@ void track::ClipComponent::mouseDrag(const juce::MouseEvent &event) {
     // moving clips. fixing messed up left trim. this is a mess.
     int newStartPos = -1;
 
-    double secondsPerBeat = 60.f / BPM;
-    int samplesPerBar = (secondsPerBeat * SAMPLE_RATE) * 4;
-    int samplesPerSnap = samplesPerBar / SNAP_DIVISION;
+    newStartPos = event.mods.isAltDown()
+                      ? rawSamplePos
+                      : utility::snapSample(rawSamplePos, SNAP_DIVISION);
 
-    // if alt held, don't snap
-    int snappedSamplePos = -1;
-    if (event.mods.isAltDown()) {
-        newStartPos = rawSamplePos;
-    } else {
-        snappedSamplePos =
-            ((rawSamplePos + samplesPerSnap / 2) / samplesPerSnap) *
-            samplesPerSnap;
+    /*
+    bool forbidMovement = false;
+    if (trimMode == -1) {
+        int rawSamplePosTrimLeft =
+            startTrimLeftPositionSample +
+            ((distanceMoved * SAMPLE_RATE) / UI_ZOOM_MULTIPLIER);
 
-        newStartPos = snappedSamplePos;
-    }
+        forbidMovement = rawSamplePosTrimLeft < 0;
+    }*/
 
     correspondingClip->startPositionSample = newStartPos;
 
