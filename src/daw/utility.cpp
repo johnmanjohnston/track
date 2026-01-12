@@ -2,6 +2,7 @@
 #include "../editor.h"
 #include "../processor.h"
 #include "automation_relay.h"
+#include "defs.h"
 #include "plugin_chain.h"
 #include "track.h"
 
@@ -472,4 +473,15 @@ bool track::utility::clipsEqual(track::clip x, track::clip y) {
         retval = false;
 
     return retval;
+}
+
+int track::utility::snapSample(int sample, int division) {
+    double secondsPerBeat = 60.f / BPM;
+    int samplesPerBar = (secondsPerBeat * SAMPLE_RATE) * 4; // for 4/4
+    int samplesPerSnap = samplesPerBar / division;
+
+    int snapped =
+        ((sample + samplesPerSnap / 2) / samplesPerSnap) * samplesPerSnap;
+
+    return snapped;
 }

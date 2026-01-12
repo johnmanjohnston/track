@@ -26,7 +26,7 @@ constexpr int UI_SUBWINDOW_TITLEBAR_MARGIN = 5;
 extern int BPM; // set in playhead
 extern int SNAP_DIVISION;
 
-constexpr int TRIM_REGION_WIDTH = 8;
+constexpr int TRIM_REGION_WIDTH = 16;
 
 // set in prepareToPlay()
 extern double SAMPLE_RATE;

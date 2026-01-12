@@ -385,16 +385,11 @@ void track::ClipComponent::mouseDrag(const juce::MouseEvent &event) {
             if (event.mods.isAltDown()) {
                 correspondingClip->trimLeft = rawSamplePosTrimLeft;
             } else {
-                double secondsPerBeat = 60.f / BPM;
-                int samplesPerBar = (secondsPerBeat * SAMPLE_RATE) * 4;
-                int samplesPerSnap = samplesPerBar / SNAP_DIVISION;
-
+                /*
                 int snappedTrimLeft =
-                    ((rawSamplePosTrimLeft + samplesPerSnap / 2) /
-                     samplesPerSnap) *
-                    samplesPerSnap;
+                    utility::snapSample(rawSamplePosTrimLeft, SNAP_DIVISION);
 
-                correspondingClip->trimLeft = snappedTrimLeft;
+                correspondingClip->trimLeft = snappedTrimLeft;*/
             }
 
             this->reachedLeft = rawSamplePosTrimLeft <= 0;
@@ -416,6 +411,7 @@ void track::ClipComponent::mouseDrag(const juce::MouseEvent &event) {
             if (event.mods.isAltDown()) {
                 correspondingClip->trimRight = rawSamplePosTrimRight;
             } else {
+                /*
                 double secondsPerBeat = 60.f / BPM;
                 int samplesPerBar = (secondsPerBeat * SAMPLE_RATE) * 4;
                 int samplesPerSnap = samplesPerBar / SNAP_DIVISION;
@@ -424,7 +420,7 @@ void track::ClipComponent::mouseDrag(const juce::MouseEvent &event) {
                     ((rawSamplePosTrimRight + samplesPerSnap / 2) /
                      samplesPerSnap) *
                     samplesPerSnap;
-                correspondingClip->trimRight = snappedTrimRight;
+                correspondingClip->trimRight = snappedTrimRight;*/
             }
 
             DBG("raw right = " << rawSamplePosTrimRight);
@@ -472,6 +468,7 @@ void track::ClipComponent::mouseDrag(const juce::MouseEvent &event) {
 
     correspondingClip->startPositionSample = newStartPos;
 
+    /*
     int newEndPos = newStartPos + correspondingClip->buffer.getNumSamples() -
                     correspondingClip->trimRight - correspondingClip->trimLeft;
 
@@ -501,6 +498,7 @@ void track::ClipComponent::mouseDrag(const juce::MouseEvent &event) {
                 finalEndPos - endPosPostCorrection;
     }
     finalEndPos = endPosPostCorrection;
+    */
 
     TimelineComponent *tc = findParentComponentOfClass<TimelineComponent>();
     tc->resizeClipComponent(this);
