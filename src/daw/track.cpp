@@ -376,9 +376,6 @@ void track::ClipComponent::mouseDrag(const juce::MouseEvent &event) {
 
     DBG(rawSamplePos);
 
-    // technically no longer "raw" but ehh whatever
-    rawSamplePos = juce::jmax(rawSamplePos, startDragStartPositionSample);
-
     // if ctrl held, trim
     if (event.mods.isCtrlDown()) {
         // trim left
@@ -386,6 +383,11 @@ void track::ClipComponent::mouseDrag(const juce::MouseEvent &event) {
             int rawSamplePosTrimLeft =
                 startTrimLeftPositionSample +
                 ((distanceMoved * SAMPLE_RATE) / UI_ZOOM_MULTIPLIER);
+
+            DBG("rawSamplePosTrimLeft = " << rawSamplePosTrimLeft);
+            DBG("startTrimLeftPositionSample = "
+                << startTrimLeftPositionSample);
+            DBG("");
 
             if (event.mods.isAltDown()) {
                 correspondingClip->trimLeft = rawSamplePosTrimLeft;
@@ -467,6 +469,16 @@ void track::ClipComponent::mouseDrag(const juce::MouseEvent &event) {
 
         forbidMovement = rawSamplePosTrimLeft < 0;
     }*/
+
+    if (reachedLeft) {
+
+        int rawSamplePosTrimLeft =
+            startTrimLeftPositionSample +
+            ((distanceMoved * SAMPLE_RATE) / UI_ZOOM_MULTIPLIER);
+
+        DBG("BAD");
+        newStartPos -= rawSamplePosTrimLeft;
+    }
 
     correspondingClip->startPositionSample = newStartPos;
 
