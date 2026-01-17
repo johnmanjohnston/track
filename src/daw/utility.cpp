@@ -96,7 +96,6 @@ void track::utility::copyNode(audioNode *dest, audioNode *src,
         auto &pluginInstance = p->plugin;
         juce::MemoryBlock pluginData;
         pluginInstance->getStateInformation(pluginData);
-        pluginInstance->releaseResources();
 
         juce::String identifier =
             pluginInstance->getPluginDescription().fileOrIdentifier;
