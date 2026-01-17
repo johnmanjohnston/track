@@ -305,11 +305,12 @@ void track::ClipComponent::mouseDown(const juce::MouseEvent &event) {
 
                 coolColors = true;
                 repaint();
-                juce::Timer::callAfterDelay(80, [this] {
-                    this->coolColors = false;
-                    getParentComponent()->grabKeyboardFocus();
-                    repaint();
-                });
+                juce::Timer::callAfterDelay(
+                    UI_VISUAL_FEEDBACK_FLASH_DURATION_MS, [this] {
+                        this->coolColors = false;
+                        getParentComponent()->grabKeyboardFocus();
+                        repaint();
+                    });
             }
 
             else if (result == MENU_SHOW_IN_EXPLORER) {

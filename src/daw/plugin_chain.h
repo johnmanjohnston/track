@@ -126,6 +126,8 @@ class PluginNodeComponent : public juce::Component {
     bool getPluginBypassedStatus();
 
     float dryWetMixAtDragStart = -1.f;
+
+    bool coolColors = false;
 };
 
 class PluginNodesWrapper : public juce::Component {

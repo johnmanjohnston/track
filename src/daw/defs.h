@@ -23,6 +23,8 @@ constexpr int UI_TOPBAR_HEIGHT = 50;
 constexpr int UI_SUBWINDOW_TITLEBAR_HEIGHT = 24;
 constexpr int UI_SUBWINDOW_TITLEBAR_MARGIN = 5;
 
+constexpr int UI_VISUAL_FEEDBACK_FLASH_DURATION_MS = 60;
+
 extern int BPM; // set in playhead
 extern int SNAP_DIVISION;
 

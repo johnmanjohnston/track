@@ -409,6 +409,16 @@ void track::PluginNodeComponent::mouseDown(const juce::MouseEvent &event) {
                 data->data = pluginData.toBase64Encoding();
 
                 clipboard::setData(data, TYPECODE_PLUGIN);
+
+                // visual feedback
+                coolColors = true;
+                repaint();
+
+                juce::Timer::callAfterDelay(
+                    UI_VISUAL_FEEDBACK_FLASH_DURATION_MS, [this] {
+                        coolColors = false;
+                        repaint();
+                    });
             });
 
             menu.setLookAndFeel(&getLookAndFeel());
@@ -459,7 +469,10 @@ void track::PluginNodeComponent::setDryWetSliderValue() {
 
 void track::PluginNodeComponent::paint(juce::Graphics &g) {
     if (getPlugin() && getPlugin()->get()) {
-        g.fillAll(juce::Colour(0xFF'121212));
+        if (!coolColors)
+            g.fillAll(juce::Colour(0xFF'121212));
+        else
+            g.fillAll(juce::Colour(0xFF'FFFFFF));
 
         // border
         g.setColour(juce::Colours::lightgrey.withAlpha(.3f));
@@ -722,6 +735,20 @@ void track::PluginNodesWrapper::mouseDown(const juce::MouseEvent &event) {
 
             clipboard::setData(chainClipboardData, TYPECODE_PLUGIN_CHAIN);
             DBG("plugin chain copied");
+
+            // visual feedback
+            for (auto &pnc : pluginNodeComponents) {
+                pnc->coolColors = true;
+            }
+            repaint();
+
+            juce::Timer::callAfterDelay(
+                UI_VISUAL_FEEDBACK_FLASH_DURATION_MS, [this] {
+                    for (auto &pnc : pluginNodeComponents) {
+                        pnc->coolColors = false;
+                    }
+                    repaint();
+                });
         });
 
         pluginMenu.showMenuAsync(juce::PopupMenu::Options());

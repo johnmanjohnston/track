@@ -4,10 +4,13 @@
 #include "track.h"
 
 // custom close button because lookandfeels are annoying
-track::CloseButton::CloseButton() : juce::Component(), font() {}
+track::CloseButton::CloseButton() : juce::Component(), font() {
+    setOpaque(false);
+}
 track::CloseButton::~CloseButton() {}
 
 void track::CloseButton::paint(juce::Graphics &g) {
+    g.fillAll(juce::Colours::transparentWhite);
     g.setFont(font.withHeight(22.f));
     g.setColour(isHoveredOver == true ? hoveredColor : normalColor);
     g.drawText("X", 0, 0, getWidth(), getHeight(), juce::Justification::centred,
