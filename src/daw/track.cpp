@@ -372,79 +372,34 @@ void track::ClipComponent::mouseDrag(const juce::MouseEvent &event) {
     isBeingDragged = true;
 
     int distanceMoved = event.getDistanceFromDragStartX();
-    int rawSamplePos = startDragStartPositionSample +
-                       ((distanceMoved * SAMPLE_RATE) / UI_ZOOM_MULTIPLIER);
-
-    DBG(rawSamplePos);
+    int deltaSamples = (distanceMoved * SAMPLE_RATE) / UI_ZOOM_MULTIPLIER;
+    int rawSamplePos = startDragStartPositionSample + deltaSamples;
 
     // if ctrl held, trim
     if (event.mods.isCtrlDown()) {
         // trim left
         if (trimMode == -1) {
-            int raw = ((distanceMoved * SAMPLE_RATE) / UI_ZOOM_MULTIPLIER);
-            this->reachedLeft = raw <= 0;
+            int newTrimLeft =
+                std::max(0, startTrimLeftPositionSample + deltaSamples);
+            int trimDelta = newTrimLeft - startTrimLeftPositionSample;
 
-            if (raw < 0) {
-                correspondingClip->trimLeft = 0;
-                correspondingClip->startPositionSample =
-                    startDragStartPositionSample;
-                TimelineComponent *tc =
-                    findParentComponentOfClass<TimelineComponent>();
-                tc->resizeClipComponent(this);
-
-                repaint();
-                return;
-            }
-
-            raw = juce::jmax(0, raw);
-
-            correspondingClip->trimLeft =
-                event.mods.isAltDown()
-                    ? raw
-                    : utility::snapSample(raw, SNAP_DIVISION);
+            correspondingClip->trimLeft = newTrimLeft;
+            correspondingClip->startPositionSample =
+                startDragStartPositionSample + trimDelta;
         }
 
         // trim right
         else if (trimMode == 1) {
-            DBG("mouseClickX = " << mouseClickX);
-            DBG("getWidth() - track::TRIM_REGION_WIDTH = "
-                << getWidth() - track::TRIM_REGION_WIDTH);
+            int newTrimRight =
+                std::min(0, startTrimRightPositionSample + deltaSamples);
+            // int trimDelta = newTrimRight - startTrimLeftPositionSample;
 
-            int rawSamplePosTrimRight =
-                startTrimRightPositionSample +
-                ((-distanceMoved * SAMPLE_RATE) / UI_ZOOM_MULTIPLIER);
-
-            if (event.mods.isAltDown()) {
-                correspondingClip->trimRight = rawSamplePosTrimRight;
-            } else {
-                /*
-                double secondsPerBeat = 60.f / BPM;
-                int samplesPerBar = (secondsPerBeat * SAMPLE_RATE) * 4;
-                int samplesPerSnap = samplesPerBar / SNAP_DIVISION;
-
-                int snappedTrimRight =
-                    ((rawSamplePosTrimRight + samplesPerSnap / 2) /
-                     samplesPerSnap) *
-                    samplesPerSnap;
-                correspondingClip->trimRight = snappedTrimRight;*/
-            }
-
-            DBG("raw right = " << rawSamplePosTrimRight);
-
-            correspondingClip->trimRight =
-                juce::jmax(0, correspondingClip->trimRight);
-
-            // trimming left involves changing trim left AND moving start
-            // sample which already happens anyway below, but trimming from
-            // right involves only changing trim right; so we resize and
-            // repaint to finish trimming right
-            TimelineComponent *tc =
-                findParentComponentOfClass<TimelineComponent>();
-            tc->resizeClipComponent(this);
-
-            repaint();
-            return;
+            correspondingClip->trimRight = -newTrimRight;
         }
+
+        TimelineComponent *tc = findParentComponentOfClass<TimelineComponent>();
+        tc->resizeClipComponent(this);
+        return;
     }
 
     int newStartPos = event.mods.isAltDown()
