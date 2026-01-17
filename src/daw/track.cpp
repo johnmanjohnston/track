@@ -381,6 +381,19 @@ void track::ClipComponent::mouseDrag(const juce::MouseEvent &event) {
         if (trimMode == -1) {
             int newTrimLeft =
                 std::max(0, startTrimLeftPositionSample + deltaSamples);
+
+            // snap
+            if (!event.mods.isAltDown()) {
+                // absolute snap position ON THE GRID
+                int absoluteLeftBoundary =
+                    startDragStartPositionSample + newTrimLeft;
+                int snappedAbsolute =
+                    utility::snapSample(absoluteLeftBoundary, SNAP_DIVISION);
+                newTrimLeft = snappedAbsolute - startDragStartPositionSample;
+
+                newTrimLeft = utility::snapSample(newTrimLeft, SNAP_DIVISION);
+            }
+
             int trimDelta = newTrimLeft - startTrimLeftPositionSample;
 
             correspondingClip->trimLeft = newTrimLeft;
@@ -391,10 +404,30 @@ void track::ClipComponent::mouseDrag(const juce::MouseEvent &event) {
         // trim right
         else if (trimMode == 1) {
             int newTrimRight =
-                std::min(0, startTrimRightPositionSample + deltaSamples);
-            // int trimDelta = newTrimRight - startTrimLeftPositionSample;
+                std::max(0, startTrimRightPositionSample - deltaSamples);
 
-            correspondingClip->trimRight = -newTrimRight;
+            // snap
+            if (!event.mods.isAltDown()) {
+                // absolute snap position ON THE GRID
+                int absoluteRightBoundary =
+                    correspondingClip->startPositionSample +
+                    correspondingClip->buffer.getNumSamples() -
+                    correspondingClip->trimLeft - newTrimRight;
+
+                int snappedAbsolute =
+                    utility::snapSample(absoluteRightBoundary, SNAP_DIVISION);
+
+                newTrimRight = correspondingClip->startPositionSample +
+                               correspondingClip->buffer.getNumSamples() -
+                               correspondingClip->trimLeft - snappedAbsolute;
+
+                newTrimRight = std::max(0, newTrimRight);
+
+                // newTrimRight = utility::snapSample(newTrimRight,
+                // SNAP_DIVISION);
+            }
+
+            correspondingClip->trimRight = newTrimRight;
         }
 
         TimelineComponent *tc = findParentComponentOfClass<TimelineComponent>();

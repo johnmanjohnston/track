@@ -480,9 +480,8 @@ int track::utility::snapSample(int sample, int division, int offset) {
     int samplesPerBar = (secondsPerBeat * SAMPLE_RATE) * 4; // for 4/4
     int samplesPerSnap = samplesPerBar / division;
 
-    int snapped =
-        ((sample + samplesPerSnap / 2) / samplesPerSnap) * samplesPerSnap;
-    snapped += offset;
+    int snapped = (((sample + samplesPerSnap / 2) / samplesPerSnap) + offset) *
+                  samplesPerSnap;
 
     return snapped;
 }
