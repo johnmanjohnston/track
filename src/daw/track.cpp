@@ -920,6 +920,29 @@ void track::TrackComponent::mouseDown(const juce::MouseEvent &event) {
                 50, [this] { trackNameLabel.showEditor(); });
         });
 
+        contextMenu.addItem("Copy", [this] {
+            // copy node
+            audioNode *node = new audioNode;
+            utility::copyNode(node, getCorrespondingTrack(), processor);
+            clipboard::setData(node, TYPECODE_NODE);
+        });
+
+        contextMenu.addItem(
+            "Paste node as child",
+            !getCorrespondingTrack()->isTrack &&
+                clipboard::typecode == TYPECODE_NODE,
+            false, [this] {
+                ActionPasteNode *action = new ActionPasteNode(
+                    route, (audioNode *)clipboard::data, processor,
+                    (void *)(Tracklist *)getParentComponent());
+
+                AudioPluginAudioProcessor *p =
+                    (AudioPluginAudioProcessor *)processor;
+                p->undoManager.beginNewTransaction("action paste node");
+                p->undoManager.perform(action);
+                repaint();
+            });
+
         contextMenu.addSeparator();
 
         contextMenu.addItem(
@@ -1388,6 +1411,49 @@ void track::ActionDeleteNode::updateGUI() {
     tracklist->setTrackComponentBounds();
 
     timelineComponent->updateClipComponents();
+}
+
+track::ActionPasteNode::ActionPasteNode(std::vector<int> pRoute,
+                                        track::audioNode *node, void *processor,
+                                        void *tracklist)
+    : juce::UndoableAction() {
+    this->parentRoute = pRoute;
+    this->p = processor;
+    this->tl = tracklist;
+
+    DBG("copying node in constructor...");
+    DBG(node->trackName);
+    this->nodeToPaste = new audioNode;
+    utility::copyNode(this->nodeToPaste, node, p);
+}
+track::ActionPasteNode::~ActionPasteNode() { delete nodeToPaste; }
+bool track::ActionPasteNode::perform() {
+    audioNode *parentNode = utility::getNodeFromRoute(parentRoute, p);
+
+    if (parentNode != nullptr) {
+        pastedNodeRoute = parentRoute;
+        pastedNodeRoute.push_back(parentNode->childNodes.size());
+        audioNode &pastedNode = parentNode->childNodes.emplace_back();
+        utility::copyNode(&pastedNode, nodeToPaste, p);
+    } else {
+        DBG("parentNode = nullptr :(");
+    }
+
+    updateGUI();
+    return true;
+}
+bool track::ActionPasteNode::undo() {
+    utility::deleteNode(pastedNodeRoute, p);
+
+    updateGUI();
+    return true;
+}
+void track::ActionPasteNode::updateGUI() {
+    Tracklist *tracklist = (Tracklist *)tl;
+    tracklist->trackComponents.clear();
+    tracklist->createTrackComponents();
+    tracklist->setTrackComponentBounds();
+    tracklist->repaint();
 }
 
 track::ActionModifyTrivialNodeData::ActionModifyTrivialNodeData(

@@ -4,6 +4,7 @@
 #define TYPECODE_CLIP 0x02
 #define TYPECODE_PLUGIN 0x03
 #define TYPECODE_PLUGIN_CHAIN 0x04
+#define TYPECODE_NODE 0x05
 
 namespace track::clipboard {
 extern void *data;
