@@ -89,6 +89,9 @@ void track::ClipComponent::paint(juce::Graphics &g) {
                                     ? juce::Colour(0xFF'33587F)
                                     : juce::Colour(0x00'2D2D2D);
 
+            if (coolColors)
+                base = juce::Colour(0xFF'8EBCD0);
+
             if (this->hasKeyboardFocus(true))
                 g.setColour(base.brighter(0.3f).withMultipliedSaturation(1.2f));
             else if (isMouseOver(false))
@@ -103,6 +106,9 @@ void track::ClipComponent::paint(juce::Graphics &g) {
             g.setColour(juce::Colour(0xFFAECBED));
         } else
             g.setColour(juce::Colour(0xFF'696969)); // nice
+
+        if (coolColors)
+            g.setColour(juce::Colour(0xFF'16455B));
 
         if (UI_TRACK_HEIGHT > UI_TRACK_HEIGHT_COLLAPSE_BREAKPOINT) {
             int thumbnailTopMargin = 14;
@@ -211,7 +217,7 @@ void track::ClipComponent::mouseDown(const juce::MouseEvent &event) {
 
         contextMenu.addItem(MENU_RENAME_CLIP, "Rename clip");
         contextMenu.addItem(MENU_DUPLICATE_CLIP_IMMEDIATELY_AFTER,
-                            "Duplicate clip immediately after");
+                            "Duplicate clip");
         contextMenu.addItem(MENU_COPY_CLIP, "Copy clip");
         contextMenu.addItem(MENU_CUT_CLIP, "Cut");
         contextMenu.addSeparator();
@@ -222,9 +228,7 @@ void track::ClipComponent::mouseDown(const juce::MouseEvent &event) {
         contextMenu.addItem(MENU_EDIT_CLIP_PROPERTIES, "Edit clip properties");
 
         int splitSample = ((float)event.x / UI_ZOOM_MULTIPLIER) * SAMPLE_RATE;
-        contextMenu.addItem(
-            MENU_SPLIT_CLIP,
-            "split at " + juce::String(splitSample / SAMPLE_RATE) + " seconds");
+        contextMenu.addItem(MENU_SPLIT_CLIP, "Split");
 
         juce::PopupMenu::Options options;
 
@@ -298,6 +302,14 @@ void track::ClipComponent::mouseDown(const juce::MouseEvent &event) {
                 *newClip = *correspondingClip;
 
                 clipboard::setData(newClip, TYPECODE_CLIP);
+
+                coolColors = true;
+                repaint();
+                juce::Timer::callAfterDelay(80, [this] {
+                    this->coolColors = false;
+                    getParentComponent()->grabKeyboardFocus();
+                    repaint();
+                });
             }
 
             else if (result == MENU_SHOW_IN_EXPLORER) {

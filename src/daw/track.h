@@ -79,6 +79,8 @@ class ClipComponent : public juce::Component, public juce::ChangeListener {
     }
 
     juce::Label clipNameLabel;
+
+    bool coolColors = false;
 };
 
 class ActionClipModified : public juce::UndoableAction {

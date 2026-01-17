@@ -7,6 +7,8 @@ void *data;
 int typecode = TYPECODE_NULL;
 
 void setData(void *item, int typehint) {
+    releaseResources();
+
     data = item;
     typecode = typehint;
 }
