@@ -21,6 +21,8 @@ void releaseResources() {
         delete (track::pluginClipboardData *)data;
     else if (typecode == TYPECODE_PLUGIN_CHAIN)
         delete (track::pluginChainClipboardData *)data;
+    else if (typecode == TYPECODE_NODE)
+        delete (track::audioNode *)data;
 
     typecode = TYPECODE_NULL;
     data = nullptr;

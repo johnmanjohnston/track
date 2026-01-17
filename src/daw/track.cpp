@@ -934,7 +934,8 @@ void track::TrackComponent::mouseDown(const juce::MouseEvent &event) {
             false, [this] {
                 ActionPasteNode *action = new ActionPasteNode(
                     route, (audioNode *)clipboard::data, processor,
-                    (void *)(Tracklist *)getParentComponent());
+                    findParentComponentOfClass<
+                        AudioPluginAudioProcessorEditor>());
 
                 AudioPluginAudioProcessor *p =
                     (AudioPluginAudioProcessor *)processor;
@@ -1415,11 +1416,11 @@ void track::ActionDeleteNode::updateGUI() {
 
 track::ActionPasteNode::ActionPasteNode(std::vector<int> pRoute,
                                         track::audioNode *node, void *processor,
-                                        void *tracklist)
+                                        void *editor)
     : juce::UndoableAction() {
     this->parentRoute = pRoute;
     this->p = processor;
-    this->tl = tracklist;
+    this->e = editor;
 
     DBG("copying node in constructor...");
     DBG(node->trackName);
@@ -1449,11 +1450,18 @@ bool track::ActionPasteNode::undo() {
     return true;
 }
 void track::ActionPasteNode::updateGUI() {
-    Tracklist *tracklist = (Tracklist *)tl;
+    AudioPluginAudioProcessorEditor *editor =
+        (AudioPluginAudioProcessorEditor *)e;
+
+    Tracklist *tracklist = &editor->tracklist;
     tracklist->trackComponents.clear();
     tracklist->createTrackComponents();
     tracklist->setTrackComponentBounds();
     tracklist->repaint();
+
+    TimelineComponent *tc = editor->timelineComponent.get();
+    tc->clipComponents.clear();
+    tc->updateClipComponents();
 }
 
 track::ActionModifyTrivialNodeData::ActionModifyTrivialNodeData(

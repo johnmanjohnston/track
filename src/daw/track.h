@@ -299,10 +299,10 @@ class ActionPasteNode : public juce::UndoableAction {
     std::vector<int> parentRoute;
     std::vector<int> pastedNodeRoute;
     void *p = nullptr;
-    void *tl = nullptr;
+    void *e = nullptr;
 
     ActionPasteNode(std::vector<int> pRoute, audioNode *node, void *processor,
-                    void *tracklist);
+                    void *editor);
     ~ActionPasteNode();
 
     audioNode *nodeToPaste = nullptr;
