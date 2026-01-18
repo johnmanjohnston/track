@@ -925,6 +925,39 @@ void track::TrackComponent::mouseDown(const juce::MouseEvent &event) {
             audioNode *node = new audioNode;
             utility::copyNode(node, getCorrespondingTrack(), processor);
             clipboard::setData(node, TYPECODE_NODE);
+
+            // visual feedback
+            // if we're group, find all other nodes whose route starts with this
+            // route and set coolColors = true
+            Tracklist *tl = (Tracklist *)getParentComponent();
+            if (!getCorrespondingTrack()->isTrack) {
+                for (auto &tc : tl->trackComponents) {
+                    std::vector<int> tcRoute = tc->route;
+                    tcRoute.resize(this->route.size());
+
+                    if (this->route == tcRoute) {
+                        tc->coolColors = true;
+                        tc->repaint();
+                    }
+                }
+            } else {
+                // we're not a group so this is simple
+                coolColors = true;
+                repaint();
+            }
+
+            juce::Timer::callAfterDelay(
+                UI_VISUAL_FEEDBACK_FLASH_DURATION_MS, [this, tl] {
+                    if (!getCorrespondingTrack()->isTrack) {
+                        for (auto &tc : tl->trackComponents) {
+                            tc->coolColors = false;
+                            tc->repaint();
+                        }
+                    } else {
+                        coolColors = false;
+                        repaint();
+                    }
+                });
         });
 
         contextMenu.addItem(
@@ -1078,7 +1111,8 @@ void track::TrackComponent::mouseUp(const juce::MouseEvent &event) {
 }
 
 void track::TrackComponent::paint(juce::Graphics &g) {
-    juce::Colour bg = juce::Colour(0xFF'5F5F5F);
+    juce::Colour bg =
+        coolColors ? juce::Colours::white : juce::Colour(0xFF'5F5F5F);
     juce::Colour groupBg = bg.brighter(0.2f);
     juce::Colour outline = juce::Colour(0xFF'535353);
     bool isFirstNodeInGroup = route.size() != 0 && siblingIndex == 0;

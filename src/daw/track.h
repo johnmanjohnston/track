@@ -249,6 +249,8 @@ class TrackComponent : public juce::Component {
     }
 
     juce::Label trackNameLabel;
+
+    bool coolColors = false;
 };
 
 class InsertIndicator : public juce::Component {
