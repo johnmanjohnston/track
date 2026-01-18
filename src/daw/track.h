@@ -220,6 +220,8 @@ class TrackComponent : public juce::Component {
         repaint();
     }
 
+    void copyNodeToClipboard();
+
     // instances of TrackComponent are responsible for only handling the UI for
     // an indiviaul track (only the left section which shows track name, volume
     // controls, mute/soloing control). The actual CLIPS of audio will be

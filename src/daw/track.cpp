@@ -530,7 +530,7 @@ void track::ClipComponent::mouseMove(const juce::MouseEvent &event) {
 }
 
 bool track::ClipComponent::keyStateChanged(bool isKeyDown) {
-    juce::KeyPress curCombo = juce::KeyPress::createFromDescription("s");
+    juce::KeyPress curCombo = juce::KeyPress::createFromDescription("v");
     if (curCombo.isCurrentlyDown()) {
         DBG("curCombo is down");
         DBG(curCombo.getKeyCode());
@@ -573,6 +573,7 @@ bool track::ClipComponent::keyStateChanged(bool isKeyDown) {
         // c
         else if (juce::KeyPress::isKeyCurrentlyDown(67)) {
             copyClip();
+            return true;
         }
     }
 
@@ -935,45 +936,7 @@ void track::TrackComponent::mouseDown(const juce::MouseEvent &event) {
                 50, [this] { trackNameLabel.showEditor(); });
         });
 
-        contextMenu.addItem("Copy", [this] {
-            // copy node
-            audioNode *node = new audioNode;
-            utility::copyNode(node, getCorrespondingTrack(), processor);
-            clipboard::setData(node, TYPECODE_NODE);
-
-            // visual feedback
-            // if we're group, find all other nodes whose route starts with this
-            // route and set coolColors = true
-            Tracklist *tl = (Tracklist *)getParentComponent();
-            if (!getCorrespondingTrack()->isTrack) {
-                for (auto &tc : tl->trackComponents) {
-                    std::vector<int> tcRoute = tc->route;
-                    tcRoute.resize(this->route.size());
-
-                    if (this->route == tcRoute) {
-                        tc->coolColors = true;
-                        tc->repaint();
-                    }
-                }
-            } else {
-                // we're not a group so this is simple
-                coolColors = true;
-                repaint();
-            }
-
-            juce::Timer::callAfterDelay(
-                UI_VISUAL_FEEDBACK_FLASH_DURATION_MS, [this, tl] {
-                    if (!getCorrespondingTrack()->isTrack) {
-                        for (auto &tc : tl->trackComponents) {
-                            tc->coolColors = false;
-                            tc->repaint();
-                        }
-                    } else {
-                        coolColors = false;
-                        repaint();
-                    }
-                });
-        });
+        contextMenu.addItem("Copy", [this] { copyNodeToClipboard(); });
 
         contextMenu.addItem(
             "Paste node as child",
@@ -1136,16 +1099,94 @@ bool track::TrackComponent::keyStateChanged(bool isKeyDown) {
 
             return true;
         }
+
+        // x, backspace, delete
+        // don't allow deletion of node while its name is being edited
+        else if ((juce::KeyPress::isKeyCurrentlyDown(88) ||
+                  juce::KeyPress::isKeyCurrentlyDown(8) ||
+                  juce::KeyPress::isKeyCurrentlyDown(268435711)) &&
+                 !trackNameLabel.isBeingEdited()) {
+
+            Tracklist *tracklist =
+                (Tracklist *)findParentComponentOfClass<Tracklist>();
+            tracklist->deleteTrack(this->route);
+
+            return true;
+        }
+
+        // c
+        else if (juce::KeyPress::isKeyCurrentlyDown(67)) {
+            copyNodeToClipboard();
+            return true;
+        }
+
+        // v
+        else if (juce::KeyPress::isKeyCurrentlyDown(86)) {
+            if (!getCorrespondingTrack()->isTrack) {
+                ActionPasteNode *action = new ActionPasteNode(
+                    route, (audioNode *)clipboard::data, processor,
+                    findParentComponentOfClass<
+                        AudioPluginAudioProcessorEditor>());
+
+                AudioPluginAudioProcessor *p =
+                    (AudioPluginAudioProcessor *)processor;
+                p->undoManager.beginNewTransaction("action paste node");
+                p->undoManager.perform(action);
+                repaint();
+            }
+
+            return true;
+        }
     }
 
     return false;
+}
+
+void track::TrackComponent::copyNodeToClipboard() {
+    // copy node
+    audioNode *node = new audioNode;
+    utility::copyNode(node, getCorrespondingTrack(), processor);
+    clipboard::setData(node, TYPECODE_NODE);
+
+    // visual feedback
+    // if we're group, find all other nodes whose route starts with this
+    // route and set coolColors = true
+    Tracklist *tl = (Tracklist *)getParentComponent();
+    if (!getCorrespondingTrack()->isTrack) {
+        for (auto &tc : tl->trackComponents) {
+            std::vector<int> tcRoute = tc->route;
+            tcRoute.resize(this->route.size());
+
+            if (this->route == tcRoute) {
+                tc->coolColors = true;
+                tc->repaint();
+            }
+        }
+    } else {
+        // we're not a group so this is simple
+        coolColors = true;
+        repaint();
+    }
+
+    juce::Timer::callAfterDelay(UI_VISUAL_FEEDBACK_FLASH_DURATION_MS,
+                                [this, tl] {
+                                    if (!getCorrespondingTrack()->isTrack) {
+                                        for (auto &tc : tl->trackComponents) {
+                                            tc->coolColors = false;
+                                            tc->repaint();
+                                        }
+                                    } else {
+                                        coolColors = false;
+                                        repaint();
+                                    }
+                                });
 }
 
 void track::TrackComponent::paint(juce::Graphics &g) {
     juce::Colour bg = juce::Colour(0xFF'5F5F5F);
 
     if (hasKeyboardFocus(true))
-        bg = bg.brighter(0.1f);
+        bg = bg.brighter(0.14f);
 
     if (coolColors)
         bg = juce::Colours::white;
