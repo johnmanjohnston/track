@@ -4,6 +4,8 @@
 #include "automation_relay.h"
 #include "clipboard.h"
 #include "defs.h"
+#include "juce_graphics/juce_graphics.h"
+#include "juce_gui_basics/juce_gui_basics.h"
 #include "subwindow.h"
 #include "timeline.h"
 #include "utility.h"
@@ -192,6 +194,25 @@ void track::ClipComponent::paint(juce::Graphics &g) {
     }
 }
 
+void track::ClipComponent::copyClip() {
+    // create new clip and set clipboard's data as this new clip
+    // also, by creating a copy of the clip we allow the user to
+    // delete the orginal clip from timeline, and still paste it
+    track::clip *newClip = new track::clip;
+
+    *newClip = *correspondingClip;
+
+    clipboard::setData(newClip, TYPECODE_CLIP);
+
+    coolColors = true;
+    repaint();
+    juce::Timer::callAfterDelay(UI_VISUAL_FEEDBACK_FLASH_DURATION_MS, [this] {
+        this->coolColors = false;
+        getParentComponent()->grabKeyboardFocus();
+        repaint();
+    });
+}
+
 void track::ClipComponent::mouseDown(const juce::MouseEvent &event) {
     if (event.mods.isRightButtonDown()) {
         DBG("rmb down");
@@ -294,23 +315,7 @@ void track::ClipComponent::mouseDown(const juce::MouseEvent &event) {
             }
 
             else if (result == MENU_COPY_CLIP) {
-                // create new clip and set clipboard's data as this new clip
-                // also, by creating a copy of the clip we allow the user to
-                // delete the orginal clip from timeline, and still paste it
-                track::clip *newClip = new track::clip;
-
-                *newClip = *correspondingClip;
-
-                clipboard::setData(newClip, TYPECODE_CLIP);
-
-                coolColors = true;
-                repaint();
-                juce::Timer::callAfterDelay(
-                    UI_VISUAL_FEEDBACK_FLASH_DURATION_MS, [this] {
-                        this->coolColors = false;
-                        getParentComponent()->grabKeyboardFocus();
-                        repaint();
-                    });
+                copyClip();
             }
 
             else if (result == MENU_SHOW_IN_EXPLORER) {
@@ -525,7 +530,7 @@ void track::ClipComponent::mouseMove(const juce::MouseEvent &event) {
 }
 
 bool track::ClipComponent::keyStateChanged(bool isKeyDown) {
-    juce::KeyPress curCombo = juce::KeyPress::createFromDescription("ctrl+y");
+    juce::KeyPress curCombo = juce::KeyPress::createFromDescription("s");
     if (curCombo.isCurrentlyDown()) {
         DBG("curCombo is down");
         DBG(curCombo.getKeyCode());
@@ -563,6 +568,11 @@ bool track::ClipComponent::keyStateChanged(bool isKeyDown) {
                 tc->deleteClip(correspondingClip, nodeDisplayIndex);
 
             return true;
+        }
+
+        // c
+        else if (juce::KeyPress::isKeyCurrentlyDown(67)) {
+            copyClip();
         }
     }
 
@@ -791,6 +801,9 @@ void track::TrackComponent::initializSliders() {
 }
 
 track::TrackComponent::TrackComponent(int trackIndex) : juce::Component() {
+    setWantsKeyboardFocus(true);
+    setMouseClickGrabsKeyboardFocus(true);
+
     // starting text for track name label is set when TrackComponent is
     // created in createTrackComponents()
     trackNameLabel.setFont(
@@ -803,6 +816,8 @@ track::TrackComponent::TrackComponent(int trackIndex) : juce::Component() {
     trackNameLabel.onTextChange = [this] {
         this->getCorrespondingTrack()->trackName = trackNameLabel.getText(true);
     };
+
+    trackNameLabel.onEditorHide = [this] { repaint(); };
 
     this->siblingIndex = trackIndex;
 
@@ -1035,6 +1050,8 @@ void track::TrackComponent::mouseDown(const juce::MouseEvent &event) {
 
         contextMenu.showMenuAsync(juce::PopupMenu::Options());
     }
+
+    repaint();
 }
 
 void track::TrackComponent::mouseDrag(const juce::MouseEvent &event) {
@@ -1110,9 +1127,29 @@ void track::TrackComponent::mouseUp(const juce::MouseEvent &event) {
     }
 }
 
+bool track::TrackComponent::keyStateChanged(bool isKeyDown) {
+    if (isKeyDown) {
+        // r
+        if (juce::KeyPress::isKeyCurrentlyDown(82)) {
+            juce::Timer::callAfterDelay(
+                10, [this] { trackNameLabel.showEditor(); });
+
+            return true;
+        }
+    }
+
+    return false;
+}
+
 void track::TrackComponent::paint(juce::Graphics &g) {
-    juce::Colour bg =
-        coolColors ? juce::Colours::white : juce::Colour(0xFF'5F5F5F);
+    juce::Colour bg = juce::Colour(0xFF'5F5F5F);
+
+    if (hasKeyboardFocus(true))
+        bg = bg.brighter(0.1f);
+
+    if (coolColors)
+        bg = juce::Colours::white;
+
     juce::Colour groupBg = bg.brighter(0.2f);
     juce::Colour outline = juce::Colour(0xFF'535353);
     bool isFirstNodeInGroup = route.size() != 0 && siblingIndex == 0;
@@ -2037,6 +2074,10 @@ void track::Tracklist::mouseDown(const juce::MouseEvent &event) {
 
         contextMenu.showMenuAsync(juce::PopupMenu::Options());
     }
+
+    // DBG("Tracklist::mouseDown()");
+    ((TimelineComponent *)timelineComponent)
+        ->grabKeyboardFocus(); // just rid any track components of focus
 }
 
 int track::Tracklist::findChildren(audioNode *parentNode,

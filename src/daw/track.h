@@ -1,6 +1,7 @@
 #pragma once
 #include "BinaryData.h"
 #include "juce_data_structures/juce_data_structures.h"
+#include "juce_gui_basics/juce_gui_basics.h"
 #include "subwindow.h"
 #include <JuceHeader.h>
 
@@ -38,6 +39,8 @@ class ClipComponent : public juce::Component, public juce::ChangeListener {
     void paint(juce::Graphics &g) override;
     bool stale = true;
     int nodeDisplayIndex = -1;
+
+    void copyClip();
 
     // moving clips
     void mouseDown(const juce::MouseEvent &event) override;
@@ -211,6 +214,11 @@ class TrackComponent : public juce::Component {
     void mouseDown(const juce::MouseEvent &event) override;
     void mouseUp(const juce::MouseEvent &event) override;
     void mouseDrag(const juce::MouseEvent &event) override;
+
+    bool keyStateChanged(bool isKeyDown) override;
+    void focusLost(juce::Component::FocusChangeType /*cause*/) override {
+        repaint();
+    }
 
     // instances of TrackComponent are responsible for only handling the UI for
     // an indiviaul track (only the left section which shows track name, volume
