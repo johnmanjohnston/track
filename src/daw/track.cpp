@@ -2148,18 +2148,20 @@ void track::subplugin::process(juce::AudioBuffer<float> &buffer) {
     juce::AudioBuffer<float> dryBuffer;
     dryBuffer.makeCopyOf(buffer);
 
-    this->plugin->processBlock(buffer, mb);
+    if (this->plugin.get() != nullptr) {
+        this->plugin->processBlock(buffer, mb);
 
-    float dryMix = 1.f - dryWetMix;
-    float wetMix = dryWetMix;
+        float dryMix = 1.f - dryWetMix;
+        float wetMix = dryWetMix;
 
-    for (int ch = 0; ch < buffer.getNumChannels(); ++ch) {
-        auto *dry = dryBuffer.getReadPointer(ch);
-        auto *wet = buffer.getReadPointer(ch);
-        auto *out = buffer.getWritePointer(ch);
+        for (int ch = 0; ch < buffer.getNumChannels(); ++ch) {
+            auto *dry = dryBuffer.getReadPointer(ch);
+            auto *wet = buffer.getReadPointer(ch);
+            auto *out = buffer.getWritePointer(ch);
 
-        for (int i = 0; i < buffer.getNumSamples(); ++i) {
-            out[i] = dry[i] * dryMix + wet[i] * wetMix;
+            for (int i = 0; i < buffer.getNumSamples(); ++i) {
+                out[i] = dry[i] * dryMix + wet[i] * wetMix;
+            }
         }
     }
 }
