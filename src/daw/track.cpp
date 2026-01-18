@@ -1461,7 +1461,7 @@ track::ActionPasteNode::ActionPasteNode(std::vector<int> pRoute,
     this->nodeToPaste = new audioNode;
     utility::copyNode(this->nodeToPaste, node, p);
 }
-track::ActionPasteNode::~ActionPasteNode() { delete nodeToPaste; }
+track::ActionPasteNode::~ActionPasteNode() { delete this->nodeToPaste; }
 bool track::ActionPasteNode::perform() {
     audioNode *parentNode = utility::getNodeFromRoute(parentRoute, p);
 
@@ -1471,7 +1471,11 @@ bool track::ActionPasteNode::perform() {
         audioNode &pastedNode = parentNode->childNodes.emplace_back();
         utility::copyNode(&pastedNode, nodeToPaste, p);
     } else {
-        DBG("parentNode = nullptr :(");
+        AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
+        pastedNodeRoute.clear();
+        pastedNodeRoute.push_back(processor->tracks.size());
+        audioNode &pastedNode = processor->tracks.emplace_back();
+        utility::copyNode(&pastedNode, nodeToPaste, p);
     }
 
     updateGUI();
@@ -2014,6 +2018,19 @@ void track::Tracklist::mouseDown(const juce::MouseEvent &event) {
         juce::PopupMenu contextMenu;
         contextMenu.setLookAndFeel(&getLookAndFeel());
 
+        contextMenu.addItem(
+            "Paste", clipboard::typecode == TYPECODE_NODE, false, [this] {
+                ActionPasteNode *action = new ActionPasteNode(
+                    std::vector<int>(), (audioNode *)clipboard::data, processor,
+                    findParentComponentOfClass<
+                        AudioPluginAudioProcessorEditor>());
+
+                AudioPluginAudioProcessor *p =
+                    (AudioPluginAudioProcessor *)processor;
+                p->undoManager.beginNewTransaction("action paste node");
+                p->undoManager.perform(action);
+                repaint();
+            });
         contextMenu.addItem("Add new track", [this] { this->addNewNode(); });
         contextMenu.addItem("Add new group",
                             [this] { this->addNewNode(false); });
