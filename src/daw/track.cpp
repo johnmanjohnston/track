@@ -818,7 +818,7 @@ track::TrackComponent::TrackComponent(int trackIndex) : juce::Component() {
         this->getCorrespondingTrack()->trackName = trackNameLabel.getText(true);
     };
 
-    trackNameLabel.onEditorHide = [this] { repaint(); };
+    trackNameLabel.onEditorHide = [this] { sendFocusToTimeline(); };
 
     this->siblingIndex = trackIndex;
 
@@ -834,6 +834,8 @@ track::TrackComponent::TrackComponent(int trackIndex) : juce::Component() {
     gainSlider.onDragEnd = [this] {
         DBG("setting new gain for track; " << gainSlider.getValue());
         getCorrespondingTrack()->gain = gainSlider.getValue();
+
+        sendFocusToTimeline();
     };
 
     gainSlider.onValueChange = [this] {
@@ -846,12 +848,11 @@ track::TrackComponent::TrackComponent(int trackIndex) : juce::Component() {
 
     muteBtn.onClick = [this] {
         getCorrespondingTrack()->m = !(getCorrespondingTrack()->m);
-        repaint();
+        sendFocusToTimeline();
     };
 
     soloBtn.onClick = [this] {
         getCorrespondingTrack()->s = !(getCorrespondingTrack()->s);
-        repaint();
 
         AudioPluginAudioProcessor *p = (AudioPluginAudioProcessor *)processor;
 
@@ -875,6 +876,8 @@ track::TrackComponent::TrackComponent(int trackIndex) : juce::Component() {
                 DBG("! SOLO MODE = FALSE");
             }
         }
+
+        sendFocusToTimeline();
     };
 
     panSlider.setTextBoxStyle(juce::Slider::TextEntryBoxPosition::NoTextBox,
@@ -1088,6 +1091,15 @@ void track::TrackComponent::mouseUp(const juce::MouseEvent &event) {
         // clang-format on
         DBG("Finished attempted node movement");
     }
+}
+
+void track::TrackComponent::sendFocusToTimeline() {
+    Tracklist *tracklist = (Tracklist *)getParentComponent();
+
+    ((TimelineComponent *)tracklist->timelineComponent)
+        ->grabKeyboardFocus(); // just rid any track components of focus
+
+    repaint();
 }
 
 bool track::TrackComponent::keyStateChanged(bool isKeyDown) {

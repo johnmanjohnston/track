@@ -215,6 +215,7 @@ class TrackComponent : public juce::Component {
     void mouseUp(const juce::MouseEvent &event) override;
     void mouseDrag(const juce::MouseEvent &event) override;
 
+    void sendFocusToTimeline();
     bool keyStateChanged(bool isKeyDown) override;
     void focusLost(juce::Component::FocusChangeType /*cause*/) override {
         repaint();
