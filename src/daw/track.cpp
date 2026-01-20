@@ -832,6 +832,8 @@ track::TrackComponent::TrackComponent(int trackIndex) : juce::Component() {
     gainSlider.setTextBoxStyle(juce::Slider::TextEntryBoxPosition::NoTextBox,
                                true, 0, 0);
 
+    gainSlider.onDragStart = [this] { repaint(); };
+
     gainSlider.onDragEnd = [this] {
         DBG("setting new gain for track; " << gainSlider.getValue());
         getCorrespondingTrack()->gain = gainSlider.getValue();
@@ -895,11 +897,9 @@ track::TrackComponent::TrackComponent(int trackIndex) : juce::Component() {
     };
     panSlider.onDragStart = [this] {
         panValueAtStartDrag = panSlider.getValue();
+        repaint();
     };
     panSlider.onDragEnd = [this] {
-        DBG("pan slider onDragEnd starting...");
-
-        // now do action
         TrivialNodeData oldState;
         TrivialNodeData newState;
 
@@ -918,8 +918,7 @@ track::TrackComponent::TrackComponent(int trackIndex) : juce::Component() {
         p->undoManager.beginNewTransaction("action modify trivial node data");
         p->undoManager.perform(action);
 
-        DBG("panSlider onDragEnd finishing...");
-        // okay
+        sendFocusToTimeline();
     };
 
     fxBtn.setButtonText("FX");
@@ -1632,11 +1631,6 @@ bool track::ActionModifyTrivialNodeData::undo() {
 void track::ActionModifyTrivialNodeData::updateGUI() {
     AudioPluginAudioProcessorEditor *editor =
         (AudioPluginAudioProcessorEditor *)e;
-
-    /*
-    editor->tracklist.trackComponents.clear();
-    editor->tracklist.createTrackComponents();
-    editor->tracklist.setTrackComponentBounds();*/
 
     editor->tracklist.updateExistingTrackComponents();
 }
