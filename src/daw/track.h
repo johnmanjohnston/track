@@ -434,6 +434,7 @@ class Tracklist : public juce::Component {
     void createTrackComponents();
     void setDisplayIndexes();
     void setTrackComponentBounds();
+    void updateExistingTrackComponents();
 
     InsertIndicator insertIndicator;
     void updateInsertIndicator(int index);

@@ -4,6 +4,7 @@
 #include "automation_relay.h"
 #include "clipboard.h"
 #include "defs.h"
+#include "juce_events/juce_events.h"
 #include "juce_graphics/juce_graphics.h"
 #include "juce_gui_basics/juce_gui_basics.h"
 #include "subwindow.h"
@@ -896,6 +897,8 @@ track::TrackComponent::TrackComponent(int trackIndex) : juce::Component() {
         panValueAtStartDrag = panSlider.getValue();
     };
     panSlider.onDragEnd = [this] {
+        DBG("pan slider onDragEnd starting...");
+
         // now do action
         TrivialNodeData oldState;
         TrivialNodeData newState;
@@ -914,6 +917,9 @@ track::TrackComponent::TrackComponent(int trackIndex) : juce::Component() {
             route, oldState, newState, processor, editor);
         p->undoManager.beginNewTransaction("action modify trivial node data");
         p->undoManager.perform(action);
+
+        DBG("panSlider onDragEnd finishing...");
+        // okay
     };
 
     fxBtn.setButtonText("FX");
@@ -1627,9 +1633,12 @@ void track::ActionModifyTrivialNodeData::updateGUI() {
     AudioPluginAudioProcessorEditor *editor =
         (AudioPluginAudioProcessorEditor *)e;
 
+    /*
     editor->tracklist.trackComponents.clear();
     editor->tracklist.createTrackComponents();
-    editor->tracklist.setTrackComponentBounds();
+    editor->tracklist.setTrackComponentBounds();*/
+
+    editor->tracklist.updateExistingTrackComponents();
 }
 
 track::ActionMoveNodeToGroup::ActionMoveNodeToGroup(std::vector<int> toMove,
@@ -2205,6 +2214,16 @@ void track::Tracklist::createTrackComponents() {
 
     // ee
     // future john here: ee indeed
+}
+
+void track::Tracklist::updateExistingTrackComponents() {
+    for (auto &tc : trackComponents) {
+        audioNode *node = tc->getCorrespondingTrack();
+
+        tc->trackNameLabel.setText(node->trackName, juce::dontSendNotification);
+        tc->panSlider.setValue(node->pan, juce::dontSendNotification);
+        tc->gainSlider.setValue(node->gain, juce::dontSendNotification);
+    }
 }
 
 void track::Tracklist::setTrackComponentBounds() {
