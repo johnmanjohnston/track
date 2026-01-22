@@ -344,6 +344,7 @@ track::PluginNodeComponent::PluginNodeComponent() : juce::Component() {
 track::PluginNodeComponent::~PluginNodeComponent() {}
 track::PluginNodesWrapper::PluginNodesWrapper() : juce::Component() {
     addAndMakeVisible(insertIndicator);
+    setWantsKeyboardFocus(true);
 }
 track::PluginNodesWrapper::~PluginNodesWrapper() {}
 track::PluginNodesViewport::PluginNodesViewport() : juce::Viewport() {}
@@ -1029,7 +1030,7 @@ track::PluginEditorWindow::~PluginEditorWindow() {
 
 void track::PluginEditorWindow::paint(juce::Graphics &g) {
 #if JUCE_LINUX
-    g.setColour(juce::Colours::black);
+    g.setColour(juce::Colour(0xFF'1F1F1F));
     g.drawRect(getLocalBounds(), 2);
 #endif
 
