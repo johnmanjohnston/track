@@ -444,8 +444,13 @@ void track::PluginNodeComponent::removeThisPlugin() {
     editor->closePluginEditorWindow(pcc->route, pluginIndex);
     editor->closeAllRelayMenusWithRouteAndPluginIndex(pcc->route, pluginIndex);
 
+    // FIXME: scroll fucks up before/after removing a plugin and it's annoying
+    float scroll = pcc->nodesViewport.getViewPositionX();
+
     pcc->removePlugin(this->pluginIndex);
     pcc->resized();
+
+    pcc->nodesViewport.setViewPosition(scroll, 0);
 }
 
 void track::PluginNodeComponent::toggleBypass() {
@@ -850,7 +855,7 @@ void track::PluginChainComponent::resized() {
 
     juce::Rectangle<int> nodesViewportBounds =
         juce::Rectangle<int>(1, UI_SUBWINDOW_TITLEBAR_HEIGHT + 5, getWidth(),
-                             getHeight() - UI_SUBWINDOW_TITLEBAR_HEIGHT);
+                             getHeight() - UI_SUBWINDOW_TITLEBAR_HEIGHT - 4);
     nodesViewportBounds.reduce(5, 0);
     nodesViewport.setBounds(nodesViewportBounds);
 
@@ -859,7 +864,7 @@ void track::PluginChainComponent::resized() {
         jmax(getWidth() - 30,
              ((int)this->nodesWrapper.pluginNodeComponents.size() + 1) *
                  (UI_PLUGIN_NODE_WIDTH + UI_PLUGIN_NODE_MARGIN)),
-        getHeight() - UI_SUBWINDOW_TITLEBAR_HEIGHT - 1);
+        getHeight() - UI_SUBWINDOW_TITLEBAR_HEIGHT - 4);
 
     nodesWrapper.setBounds(nodesWrapperBounds);
 }

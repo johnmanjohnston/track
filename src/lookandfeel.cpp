@@ -364,6 +364,23 @@ void track::ui::CustomLookAndFeel::drawLabel(Graphics &g, Label &label) {
     }
 }
 
+void track::ui::CustomLookAndFeel::drawScrollbar(
+    Graphics &g, ScrollBar &scrollbar, int x, int y, int width, int height,
+    bool isScrollbarVertical, int thumbStartPosition, int thumbSize,
+    bool isMouseOver, bool isMouseDown) {
+    Rectangle<int> thumbBounds;
+
+    if (isScrollbarVertical)
+        thumbBounds = {x, thumbStartPosition, width, thumbSize};
+    else
+        thumbBounds = {thumbStartPosition, y, thumbSize, height};
+
+    auto c = scrollbar.findColour(ScrollBar::ColourIds::thumbColourId);
+    g.setColour(isMouseOver ? c.brighter(0.25f) : c);
+    // g.fillRoundedRectangle(thumbBounds.reduced(1).toFloat(), 4.0f);
+    g.fillRect(thumbBounds.reduced(1).toFloat());
+}
+
 void track::ui::CustomLookAndFeel::drawComboBox(Graphics &g, int width,
                                                 int height, bool, int, int, int,
                                                 int, ComboBox &box) {
@@ -443,6 +460,8 @@ Font track::ui::CustomLookAndFeel::getLabelFont(Label &label) {
 
     return LookAndFeel_V2::getLabelFont(label);
 }
+
+int track::ui::CustomLookAndFeel::getDefaultScrollbarWidth() { return 10; }
 
 PopupMenu::Options
 track::ui::CustomLookAndFeel::getOptionsForComboBoxPopupMenu(ComboBox &b,

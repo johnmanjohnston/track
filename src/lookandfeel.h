@@ -8,7 +8,7 @@ class CustomLookAndFeel : public juce::LookAndFeel_V4 {
   public:
     CustomLookAndFeel() {
         // slider track
-        setColour(0x1000400, juce::Colour(0xFF2A2A2A));
+        setColour(0x1000400, juce::Colour(0xFF'5C5C5C));
 
         // button colours
         // https://docs.juce.com/master/classDrawableButton.html
@@ -65,6 +65,11 @@ class CustomLookAndFeel : public juce::LookAndFeel_V4 {
 
     void drawLabel(Graphics &g, Label &label) override;
 
+    void drawScrollbar(Graphics &g, ScrollBar &scrollbar, int x, int y,
+                       int width, int height, bool isScrollbarVertical,
+                       int thumbStartPosition, int thumbSize, bool isMouseOver,
+                       bool isMouseDown) override;
+
     Font getPopupMenuFont() override;
 
     Font getComboBoxFont(ComboBox &) override;
@@ -72,6 +77,7 @@ class CustomLookAndFeel : public juce::LookAndFeel_V4 {
     Font getTextButtonFont(TextButton &button, int buttonHeight) override;
 
     Font getLabelFont(Label &) override;
+    int getDefaultScrollbarWidth() override;
 
     PopupMenu::Options getOptionsForComboBoxPopupMenu(ComboBox &b,
                                                       Label &l) override;

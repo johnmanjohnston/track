@@ -393,7 +393,7 @@ void AudioPluginAudioProcessorEditor::openFxChain(std::vector<int> route) {
     pcc->nodesWrapper.createPluginNodeComponents();
 
     addAndMakeVisible(*pcc);
-    pcc->setBounds(10, 10, 900, 124);
+    pcc->setBounds(10, 10, 900, 128);
     repaint();
 }
 
