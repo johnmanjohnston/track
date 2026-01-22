@@ -408,6 +408,9 @@ void AudioPluginAudioProcessorEditor::closeAllFxChainsWithRoute(
 
 void AudioPluginAudioProcessorEditor::openPluginEditorWindow(
     std::vector<int> route, int pluginIndex) {
+    timelineComponent
+        ->grabKeyboardFocus(); // just take away focus from whatever had it
+
     pluginEditorWindows.emplace_back(new track::PluginEditorWindow());
     std::unique_ptr<track::PluginEditorWindow> &pew =
         pluginEditorWindows.back();

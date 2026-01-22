@@ -322,6 +322,8 @@ track::PluginNodeComponent::PluginNodeComponent() : juce::Component() {
             editor->closePluginEditorWindow(pcc->route, pluginIndex);
 
         editor->openPluginEditorWindow(pcc->route, pluginIndex);
+
+        repaint();
     };
 
     removePluginBtn.onClick = [this] { removeThisPlugin(); };
