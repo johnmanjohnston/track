@@ -2,6 +2,7 @@
 #include "../editor.h"
 #include "../processor.h"
 #include "BinaryData.h"
+#include "juce_gui_basics/juce_gui_basics.h"
 #include "subwindow.h"
 #include "track.h"
 #include <JuceHeader.h>
@@ -114,12 +115,26 @@ class PluginNodeComponent : public juce::Component {
 
     void setDryWetSliderValue();
 
+    void copyPluginToClipboard();
+    void removeThisPlugin();
+    void toggleBypass();
+
     void paint(juce::Graphics &g) override;
     void resized() override;
 
     void mouseDrag(const juce::MouseEvent &event) override;
     void mouseUp(const juce::MouseEvent &event) override;
     void mouseDown(const juce::MouseEvent &event) override;
+
+    void focusGained(juce::Component::FocusChangeType /*cause*/) override {
+        repaint();
+    }
+
+    void focusLost(juce::Component::FocusChangeType /*cause*/) override {
+        repaint();
+    }
+
+    bool keyStateChanged(bool isKeyDown) override;
 
     int pluginIndex = -1;
     std::unique_ptr<track::subplugin> *getPlugin();

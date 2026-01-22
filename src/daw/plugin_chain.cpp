@@ -1,6 +1,8 @@
 #include "plugin_chain.h"
 #include "clipboard.h"
 #include "defs.h"
+#include "juce_graphics/juce_graphics.h"
+#include "juce_gui_basics/juce_gui_basics.h"
 #include "subwindow.h"
 #include "track.h"
 #include "utility.h"
@@ -254,6 +256,8 @@ void track::ActionChangeTrivialPluginData::updateGUI() {
 };
 
 track::PluginNodeComponent::PluginNodeComponent() : juce::Component() {
+    setWantsKeyboardFocus(true);
+
     this->openEditorBtn.setButtonText("EDITOR");
     addAndMakeVisible(openEditorBtn);
 
@@ -320,50 +324,9 @@ track::PluginNodeComponent::PluginNodeComponent() : juce::Component() {
         editor->openPluginEditorWindow(pcc->route, pluginIndex);
     };
 
-    removePluginBtn.onClick = [this] {
-        PluginChainComponent *pcc =
-            findParentComponentOfClass<PluginChainComponent>();
-        jassert(pcc != nullptr);
+    removePluginBtn.onClick = [this] { removeThisPlugin(); };
 
-        // close editor before removing plugin otherwise segfault
-        AudioPluginAudioProcessorEditor *editor =
-            this->findParentComponentOfClass<AudioPluginAudioProcessorEditor>();
-        editor->closePluginEditorWindow(pcc->route, pluginIndex);
-        editor->closeAllRelayMenusWithRouteAndPluginIndex(pcc->route,
-                                                          pluginIndex);
-
-        pcc->removePlugin(this->pluginIndex);
-        pcc->resized();
-    };
-
-    bypassBtn.onClick = [this] {
-        getPlugin()->get()->bypassed = !getPlugin()->get()->bypassed;
-
-        // prepare all this shit man idfk
-        pluginClipboardData pluginData;
-        pluginData.bypassed = getPlugin()->get()->bypassed;
-        pluginData.dryWetMix = getPlugin()->get()->dryWetMix;
-        pluginData.relayParams = getPlugin()->get()->relayParams;
-
-        pluginClipboardData oldPluginData = pluginData;
-        oldPluginData.bypassed = !oldPluginData.bypassed;
-
-        // finally, execute action
-        PluginChainComponent *pcc =
-            findParentComponentOfClass<PluginChainComponent>();
-        AudioPluginAudioProcessorEditor *editor =
-            pcc->findParentComponentOfClass<AudioPluginAudioProcessorEditor>();
-
-        ActionChangeTrivialPluginData *action =
-            new ActionChangeTrivialPluginData(oldPluginData, pluginData,
-                                              pcc->route, pluginIndex,
-                                              pcc->processor, editor);
-        pcc->processor->undoManager.beginNewTransaction(
-            "action change trivial plugin data");
-        pcc->processor->undoManager.perform(action);
-
-        repaint();
-    };
+    bypassBtn.onClick = [this] { toggleBypass(); };
 
     automationButton.onClick = [this] {
         DBG("automation button clicked");
@@ -389,37 +352,7 @@ void track::PluginNodeComponent::mouseDown(const juce::MouseEvent &event) {
         if (event.mods.isRightButtonDown()) {
             juce::PopupMenu menu;
 
-            menu.addItem("Copy plugin", [this] {
-                // create clipboard data
-                pluginClipboardData *data = new pluginClipboardData;
-                std::unique_ptr<juce::AudioPluginInstance> *pluginInstance =
-                    &getPlugin()->get()->plugin;
-
-                // set trivial data
-                data->identifier = pluginInstance->get()
-                                       ->getPluginDescription()
-                                       .fileOrIdentifier;
-                data->bypassed = getPlugin()->get()->bypassed;
-                data->dryWetMix = getPlugin()->get()->dryWetMix;
-                data->relayParams = getPlugin()->get()->relayParams;
-
-                // set plugin data
-                juce::MemoryBlock pluginData;
-                pluginInstance->get()->getStateInformation(pluginData);
-                data->data = pluginData.toBase64Encoding();
-
-                clipboard::setData(data, TYPECODE_PLUGIN);
-
-                // visual feedback
-                coolColors = true;
-                repaint();
-
-                juce::Timer::callAfterDelay(
-                    UI_VISUAL_FEEDBACK_FLASH_DURATION_MS, [this] {
-                        coolColors = false;
-                        repaint();
-                    });
-            });
+            menu.addItem("Copy plugin", [this] { copyPluginToClipboard(); });
 
             menu.setLookAndFeel(&getLookAndFeel());
             menu.showMenuAsync(juce::PopupMenu::Options());
@@ -467,10 +400,84 @@ void track::PluginNodeComponent::setDryWetSliderValue() {
     this->dryWetSlider.setValue(getPlugin()->get()->dryWetMix);
 }
 
+void track::PluginNodeComponent::copyPluginToClipboard() {
+    // create clipboard data
+    pluginClipboardData *data = new pluginClipboardData;
+    std::unique_ptr<juce::AudioPluginInstance> *pluginInstance =
+        &getPlugin()->get()->plugin;
+
+    // set trivial data
+    data->identifier =
+        pluginInstance->get()->getPluginDescription().fileOrIdentifier;
+    data->bypassed = getPlugin()->get()->bypassed;
+    data->dryWetMix = getPlugin()->get()->dryWetMix;
+    data->relayParams = getPlugin()->get()->relayParams;
+
+    // set plugin data
+    juce::MemoryBlock pluginData;
+    pluginInstance->get()->getStateInformation(pluginData);
+    data->data = pluginData.toBase64Encoding();
+
+    clipboard::setData(data, TYPECODE_PLUGIN);
+
+    // visual feedback
+    coolColors = true;
+    repaint();
+
+    juce::Timer::callAfterDelay(UI_VISUAL_FEEDBACK_FLASH_DURATION_MS, [this] {
+        coolColors = false;
+        repaint();
+    });
+}
+
+void track::PluginNodeComponent::removeThisPlugin() {
+    PluginChainComponent *pcc =
+        findParentComponentOfClass<PluginChainComponent>();
+    jassert(pcc != nullptr);
+
+    // close editor before removing plugin otherwise segfault
+    AudioPluginAudioProcessorEditor *editor =
+        this->findParentComponentOfClass<AudioPluginAudioProcessorEditor>();
+    editor->closePluginEditorWindow(pcc->route, pluginIndex);
+    editor->closeAllRelayMenusWithRouteAndPluginIndex(pcc->route, pluginIndex);
+
+    pcc->removePlugin(this->pluginIndex);
+    pcc->resized();
+}
+
+void track::PluginNodeComponent::toggleBypass() {
+    getPlugin()->get()->bypassed = !getPlugin()->get()->bypassed;
+
+    // prepare all this shit man idfk
+    pluginClipboardData pluginData;
+    pluginData.bypassed = getPlugin()->get()->bypassed;
+    pluginData.dryWetMix = getPlugin()->get()->dryWetMix;
+    pluginData.relayParams = getPlugin()->get()->relayParams;
+
+    pluginClipboardData oldPluginData = pluginData;
+    oldPluginData.bypassed = !oldPluginData.bypassed;
+
+    // finally, execute action
+    PluginChainComponent *pcc =
+        findParentComponentOfClass<PluginChainComponent>();
+    AudioPluginAudioProcessorEditor *editor =
+        pcc->findParentComponentOfClass<AudioPluginAudioProcessorEditor>();
+
+    ActionChangeTrivialPluginData *action =
+        new ActionChangeTrivialPluginData(oldPluginData, pluginData, pcc->route,
+                                          pluginIndex, pcc->processor, editor);
+    pcc->processor->undoManager.beginNewTransaction(
+        "action change trivial plugin data");
+    pcc->processor->undoManager.perform(action);
+
+    repaint();
+}
+
 void track::PluginNodeComponent::paint(juce::Graphics &g) {
     if (getPlugin() && getPlugin()->get()) {
         if (!coolColors)
-            g.fillAll(juce::Colour(0xFF'121212));
+            g.fillAll(juce::Colour(hasKeyboardFocus(true) ? 0xFF'292929
+                                                          : 0xFF'121212));
         else
             g.fillAll(juce::Colour(0xFF'FFFFFF));
 
@@ -771,6 +778,32 @@ std::unique_ptr<track::subplugin> *track::PluginNodeComponent::getPlugin() {
     jassert(node != nullptr);
 
     return &node->plugins[(size_t)this->pluginIndex];
+}
+
+bool track::PluginNodeComponent::keyStateChanged(bool isKeyDown) {
+    if (isKeyDown) {
+        // c
+        if (juce::KeyPress::isKeyCurrentlyDown(67)) {
+            copyPluginToClipboard();
+            return true;
+        }
+
+        // x, backspace, delete
+        else if ((juce::KeyPress::isKeyCurrentlyDown(88) ||
+                  juce::KeyPress::isKeyCurrentlyDown(8) ||
+                  juce::KeyPress::isKeyCurrentlyDown(268435711))) {
+            removeThisPlugin();
+            return true;
+        }
+
+        // 0
+        else if (juce::KeyPress::isKeyCurrentlyDown(48)) {
+            toggleBypass();
+            return true;
+        }
+    }
+
+    return false;
 }
 
 bool track::PluginNodeComponent::getPluginBypassedStatus() {

@@ -209,7 +209,6 @@ void track::ClipComponent::copyClip() {
     repaint();
     juce::Timer::callAfterDelay(UI_VISUAL_FEEDBACK_FLASH_DURATION_MS, [this] {
         this->coolColors = false;
-        getParentComponent()->grabKeyboardFocus();
         repaint();
     });
 }
@@ -930,6 +929,7 @@ track::TrackComponent::TrackComponent(int trackIndex) : juce::Component() {
         AudioPluginAudioProcessorEditor *editor =
             this->findParentComponentOfClass<AudioPluginAudioProcessorEditor>();
         editor->openFxChain(route);
+        sendFocusToTimeline();
     };
 }
 track::TrackComponent::~TrackComponent() {}
