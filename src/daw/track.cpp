@@ -4,9 +4,6 @@
 #include "automation_relay.h"
 #include "clipboard.h"
 #include "defs.h"
-#include "juce_events/juce_events.h"
-#include "juce_graphics/juce_graphics.h"
-#include "juce_gui_basics/juce_gui_basics.h"
 #include "subwindow.h"
 #include "timeline.h"
 #include "utility.h"
@@ -226,7 +223,6 @@ void track::ClipComponent::mouseDown(const juce::MouseEvent &event) {
         // clip components will have many items in its popup menus, but not
         // other components' popup menus
 
-#define MENU_REVERSE_CLIP 1
 #define MENU_CUT_CLIP 2
 #define MENU_TOGGLE_CLIP_ACTIVATION 3
 #define MENU_COPY_CLIP 4
@@ -242,7 +238,6 @@ void track::ClipComponent::mouseDown(const juce::MouseEvent &event) {
         contextMenu.addItem(MENU_COPY_CLIP, "Copy clip");
         contextMenu.addItem(MENU_CUT_CLIP, "Cut");
         contextMenu.addSeparator();
-        contextMenu.addItem(MENU_REVERSE_CLIP, "Reverse");
         contextMenu.addItem(MENU_TOGGLE_CLIP_ACTIVATION,
                             "Toggle activate/deactive clip");
         contextMenu.addItem(MENU_SHOW_IN_EXPLORER, "Show in explorer");
@@ -261,13 +256,6 @@ void track::ClipComponent::mouseDown(const juce::MouseEvent &event) {
                     // want to sleep
                     clipNameLabel.showEditor();
                 });
-            }
-
-            else if (result == MENU_REVERSE_CLIP) {
-                this->correspondingClip->reverse();
-                thumbnailCache.clear();
-                thumbnail.setSource(&correspondingClip->buffer, SAMPLE_RATE, 2);
-                repaint();
             }
 
             else if (result == MENU_DUPLICATE_CLIP_IMMEDIATELY_AFTER) {
@@ -2384,8 +2372,6 @@ void track::clip::updateBuffer() {
 
     reader->read(&buffer, 0, buffer.getNumSamples(), 0, true, true);
 }
-
-void track::clip::reverse() { buffer.reverse(0, buffer.getNumSamples()); }
 
 bool track::audioNode::addPlugin(juce::String path) {
     jassert(processor != nullptr);

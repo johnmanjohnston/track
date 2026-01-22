@@ -1,7 +1,5 @@
 #pragma once
 #include "BinaryData.h"
-#include "juce_data_structures/juce_data_structures.h"
-#include "juce_gui_basics/juce_gui_basics.h"
 #include "subwindow.h"
 #include <JuceHeader.h>
 
@@ -21,7 +19,6 @@ class clip {
 
     juce::AudioBuffer<float> buffer;
     void updateBuffer();
-    void reverse();
 };
 
 class ClipComponent : public juce::Component, public juce::ChangeListener {

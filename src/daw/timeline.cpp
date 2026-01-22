@@ -1,7 +1,6 @@
 #include "timeline.h"
 #include "clipboard.h"
 #include "defs.h"
-#include "juce_events/juce_events.h"
 #include "track.h"
 #include "utility.h"
 #include <cmath>
