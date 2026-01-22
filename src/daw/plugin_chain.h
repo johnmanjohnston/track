@@ -118,6 +118,8 @@ class PluginNodeComponent : public juce::Component {
     void copyPluginToClipboard();
     void removeThisPlugin();
     void toggleBypass();
+    void openThisPluginsEditor();
+    void openThisPluginsRelayMenu();
 
     void paint(juce::Graphics &g) override;
     void resized() override;

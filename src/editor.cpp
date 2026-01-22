@@ -6,6 +6,7 @@
 #include "daw/timeline.h"
 #include "daw/track.h"
 #include "lookandfeel.h"
+#include "pluginterfaces/gui/iplugview.h"
 #include "processor.h"
 #include <cmath>
 #include <cstddef>
@@ -331,6 +332,9 @@ void AudioPluginAudioProcessorEditor::resized() {
 
 void AudioPluginAudioProcessorEditor::openRelayMenu(std::vector<int> route,
                                                     int pluginIndex) {
+    timelineComponent
+        ->grabKeyboardFocus(); // rid plugin node component of focus
+
     relayManagerCompnoents.emplace_back(new track::RelayManagerComponent());
     std::unique_ptr<track::RelayManagerComponent> &rmc =
         relayManagerCompnoents.back();

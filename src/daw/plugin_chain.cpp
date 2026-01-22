@@ -7,6 +7,7 @@
 #include "track.h"
 #include "utility.h"
 #include <cstddef>
+#include <fcntl.h>
 
 track::ActionAddPlugin::ActionAddPlugin(std::vector<int> route,
                                         juce::String identifier,
@@ -310,36 +311,13 @@ track::PluginNodeComponent::PluginNodeComponent() : juce::Component() {
         pcc->processor->undoManager.perform(action);
     };
 
-    openEditorBtn.onClick = [this] {
-        PluginChainComponent *pcc =
-            findParentComponentOfClass<PluginChainComponent>();
-        AudioPluginAudioProcessorEditor *editor =
-            this->findParentComponentOfClass<AudioPluginAudioProcessorEditor>();
-
-        DBG("pluginIndex = " << pluginIndex);
-
-        if (editor->isPluginEditorWindowOpen(pcc->route, pluginIndex))
-            editor->closePluginEditorWindow(pcc->route, pluginIndex);
-
-        editor->openPluginEditorWindow(pcc->route, pluginIndex);
-
-        repaint();
-    };
+    openEditorBtn.onClick = [this] { openThisPluginsEditor(); };
 
     removePluginBtn.onClick = [this] { removeThisPlugin(); };
 
     bypassBtn.onClick = [this] { toggleBypass(); };
 
-    automationButton.onClick = [this] {
-        DBG("automation button clicked");
-
-        PluginChainComponent *pcc =
-            findParentComponentOfClass<PluginChainComponent>();
-        jassert(pcc != nullptr);
-        AudioPluginAudioProcessorEditor *editor =
-            this->findParentComponentOfClass<AudioPluginAudioProcessorEditor>();
-        editor->openRelayMenu(pcc->route, this->pluginIndex);
-    };
+    automationButton.onClick = [this] { openThisPluginsRelayMenu(); };
 }
 track::PluginNodeComponent::~PluginNodeComponent() {}
 track::PluginNodesWrapper::PluginNodesWrapper() : juce::Component() {
@@ -353,9 +331,25 @@ track::PluginNodesViewport::~PluginNodesViewport() {}
 void track::PluginNodeComponent::mouseDown(const juce::MouseEvent &event) {
     if (event.mods.isRightButtonDown()) {
         if (event.mods.isRightButtonDown()) {
+            PluginChainComponent *pcc =
+                findParentComponentOfClass<PluginChainComponent>();
+
+            AudioPluginAudioProcessorEditor *editor =
+                pcc->findParentComponentOfClass<
+                    AudioPluginAudioProcessorEditor>();
+            jassert(pcc != nullptr);
+            jassert(editor != nullptr);
+
             juce::PopupMenu menu;
 
             menu.addItem("Copy plugin", [this] { copyPluginToClipboard(); });
+            menu.addSeparator();
+            menu.addItem(
+                "Close editor",
+                editor->isPluginEditorWindowOpen(pcc->route, pluginIndex),
+                false, [this, pcc, editor] {
+                    editor->closePluginEditorWindow(pcc->route, pluginIndex);
+                });
 
             menu.setLookAndFeel(&getLookAndFeel());
             menu.showMenuAsync(juce::PopupMenu::Options());
@@ -477,6 +471,35 @@ void track::PluginNodeComponent::toggleBypass() {
     pcc->processor->undoManager.beginNewTransaction(
         "action change trivial plugin data");
     pcc->processor->undoManager.perform(action);
+
+    repaint();
+}
+
+void track::PluginNodeComponent::openThisPluginsEditor() {
+    PluginChainComponent *pcc =
+        findParentComponentOfClass<PluginChainComponent>();
+    AudioPluginAudioProcessorEditor *editor =
+        this->findParentComponentOfClass<AudioPluginAudioProcessorEditor>();
+
+    DBG("pluginIndex = " << pluginIndex);
+
+    if (editor->isPluginEditorWindowOpen(pcc->route, pluginIndex))
+        editor->closePluginEditorWindow(pcc->route, pluginIndex);
+
+    editor->openPluginEditorWindow(pcc->route, pluginIndex);
+
+    repaint();
+}
+
+void track::PluginNodeComponent::openThisPluginsRelayMenu() {
+    DBG("automation button clicked");
+
+    PluginChainComponent *pcc =
+        findParentComponentOfClass<PluginChainComponent>();
+    jassert(pcc != nullptr);
+    AudioPluginAudioProcessorEditor *editor =
+        this->findParentComponentOfClass<AudioPluginAudioProcessorEditor>();
+    editor->openRelayMenu(pcc->route, this->pluginIndex);
 
     repaint();
 }
@@ -807,6 +830,19 @@ bool track::PluginNodeComponent::keyStateChanged(bool isKeyDown) {
         // 0
         else if (juce::KeyPress::isKeyCurrentlyDown(48)) {
             toggleBypass();
+            return true;
+        }
+
+        // e
+        // also, N I C E
+        else if (juce::KeyPress::isKeyCurrentlyDown(69)) {
+            openThisPluginsEditor();
+            return true;
+        }
+
+        // a
+        else if (juce::KeyPress::isKeyCurrentlyDown(65)) {
+            openThisPluginsRelayMenu();
             return true;
         }
     }

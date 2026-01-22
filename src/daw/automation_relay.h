@@ -52,7 +52,9 @@ class RelayManagerNode : public juce::Component,
 
 class RelayManagerNodesWrapper : public juce::Component {
   public:
-    RelayManagerNodesWrapper() : juce::Component() {}
+    RelayManagerNodesWrapper() : juce::Component() {
+        setWantsKeyboardFocus(true);
+    }
     ~RelayManagerNodesWrapper(){};
 
     void mouseDown(const juce::MouseEvent &event) override;

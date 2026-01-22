@@ -530,7 +530,7 @@ void track::ClipComponent::mouseMove(const juce::MouseEvent &event) {
 }
 
 bool track::ClipComponent::keyStateChanged(bool isKeyDown) {
-    juce::KeyPress curCombo = juce::KeyPress::createFromDescription("v");
+    juce::KeyPress curCombo = juce::KeyPress::createFromDescription("a");
     if (curCombo.isCurrentlyDown()) {
         DBG("curCombo is down");
         DBG(curCombo.getKeyCode());
