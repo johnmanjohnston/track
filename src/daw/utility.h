@@ -44,4 +44,6 @@ void clearSubwindows(void *e);
 juce::String prettyVector(std::vector<int> x);
 bool clipsEqual(track::clip x, track::clip y);
 int snapSample(int sample, int division, int offset = 0);
+
+void setAutoGrid();
 } // namespace track::utility

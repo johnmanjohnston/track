@@ -27,6 +27,7 @@ constexpr int UI_VISUAL_FEEDBACK_FLASH_DURATION_MS = 60;
 
 extern int BPM; // set in playhead
 extern int SNAP_DIVISION;
+extern bool AUTO_GRID;
 
 constexpr int TRIM_REGION_WIDTH = 16;
 

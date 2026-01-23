@@ -8,4 +8,5 @@ int SNAP_DIVISION = 4;
 double SAMPLE_RATE = -1;
 int SAMPLES_PER_BLOCK = -1;
 int MAX_LATENT_SAMPLES = -1;
+bool AUTO_GRID = true;
 } // namespace track

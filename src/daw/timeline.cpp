@@ -292,9 +292,13 @@ void track::TimelineViewport::mouseWheelMove(
         if (mouseWheelDetails.deltaY < 0 &&
             UI_ZOOM_MULTIPLIER > UI_MINIMUM_ZOOM_MULTIPLIER) {
             UI_ZOOM_MULTIPLIER -= zoomIncrement;
+
+            utility::setAutoGrid();
         } else if (mouseWheelDetails.deltaY > 0 &&
                    UI_ZOOM_MULTIPLIER < UI_MAXIMUM_ZOOM_MULTIPLIER) {
             UI_ZOOM_MULTIPLIER += zoomIncrement;
+
+            utility::setAutoGrid();
         }
 
         UI_ZOOM_MULTIPLIER =
@@ -364,13 +368,23 @@ void track::TimelineComponent::mouseDown(const juce::MouseEvent &event) {
         juce::PopupMenu shiftUpMenu;
         juce::PopupMenu shiftDownMenu;
 
+        gridMenu.addItem("Auto", true, track::AUTO_GRID, [this] {
+            track::AUTO_GRID = true;
+            utility::setAutoGrid();
+            repaint();
+        });
+
+        gridMenu.addSeparator();
+
         // 2**5 = 32
         for (int i = 0; i <= 5; ++i) {
             int x = std::pow(2, i);
 
             // snap grid
-            gridMenu.addItem("1/" + juce::String(x), true, SNAP_DIVISION == x,
+            gridMenu.addItem("1/" + juce::String(x), true,
+                             SNAP_DIVISION == x && !track::AUTO_GRID,
                              [this, x] {
+                                 track::AUTO_GRID = false;
                                  SNAP_DIVISION = x;
                                  repaint();
                              });
