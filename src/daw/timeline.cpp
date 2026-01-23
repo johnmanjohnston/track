@@ -145,11 +145,13 @@ void track::ActionCutClip::updateGUI() {
 track::ActionSplitClip::ActionSplitClip(track::clip c,
                                         std::vector<int> nodeRoute,
                                         int sampleToSplit,
-                                        void *timelineComponent) {
+                                        void *timelineComponent,
+                                        bool updateUI = true) {
     this->clipCopy = c;
     this->route = nodeRoute;
     this->splitSample = sampleToSplit;
     this->tc = timelineComponent;
+    this->shouldUpdateGUI = updateUI;
 }
 track::ActionSplitClip::~ActionSplitClip() {}
 
@@ -205,9 +207,11 @@ bool track::ActionSplitClip::undo() {
 }
 
 void track::ActionSplitClip::updateGUI() {
-    TimelineComponent *timelineComponent = (TimelineComponent *)tc;
-    timelineComponent->clipComponents.clear();
-    timelineComponent->updateClipComponents();
+    if (shouldUpdateGUI) {
+        TimelineComponent *timelineComponent = (TimelineComponent *)tc;
+        timelineComponent->clipComponents.clear();
+        timelineComponent->updateClipComponents();
+    }
 }
 
 track::ActionShiftClips::ActionShiftClips(int amount, void *timelineComponent) {
@@ -399,9 +403,11 @@ void track::TimelineComponent::mouseDown(const juce::MouseEvent &event) {
         }
 
 #define MENU_PASTE_CLIP 1
+#define MENU_SPLIT_ALL_CLIPS_HERE 2
 
         contextMenu.addItem(MENU_PASTE_CLIP, "Paste clip",
                             clipboard::typecode == TYPECODE_CLIP);
+        contextMenu.addItem(MENU_SPLIT_ALL_CLIPS_HERE, "Split all clips here");
         contextMenu.addSubMenu("Grid", gridMenu);
 
         contextMenu.addSeparator();
@@ -447,6 +453,63 @@ void track::TimelineComponent::mouseDown(const juce::MouseEvent &event) {
                 }
 
                 updateClipComponents();
+            }
+
+            // sex0
+            else if (result == MENU_SPLIT_ALL_CLIPS_HERE) {
+                int splitSample =
+                    ((float)event.x / UI_ZOOM_MULTIPLIER) * SAMPLE_RATE;
+
+                DBG("splitSample = " << splitSample);
+
+                std::vector<SplitMultipleClipsData> datas;
+
+                for (auto &cc : clipComponents) {
+                    track::clip *c = cc->correspondingClip;
+
+                    int start = c->startPositionSample;
+                    int end = c->startPositionSample +
+                              c->buffer.getNumSamples() - c->trimLeft -
+                              c->trimRight;
+
+                    if (splitSample > start && splitSample < end) {
+                        DBG("clip fits: " << c->name);
+                        auto &d = datas.emplace_back();
+
+                        std::vector<int> route =
+                            viewport->tracklist
+                                ->trackComponents[(size_t)cc->nodeDisplayIndex]
+                                ->route;
+
+                        d.route = route;
+                        d.clipIndex = utility::getIndexOfClip(
+                            utility::getNodeFromRoute(route, processorRef), c);
+                        d.nodeDisplayIndex = cc->nodeDisplayIndex;
+                    }
+                }
+
+                if (datas.size() > 0) {
+                    processorRef->undoManager.beginNewTransaction(
+                        "action split clips here");
+
+                    DBG("dispatching multiple actions...");
+
+                    for (size_t i = 0; i < datas.size(); ++i) {
+                        auto &d = datas[i];
+                        bool updateUI = i == datas.size() - 1 || i == 0;
+
+                        audioNode *n =
+                            utility::getNodeFromRoute(d.route, processorRef);
+                        clip *c = &n->clips[(size_t)d.clipIndex];
+
+                        int localSplitSample =
+                            splitSample - c->startPositionSample;
+
+                        ActionSplitClip *action = new ActionSplitClip(
+                            *c, d.route, localSplitSample, this, updateUI);
+                        processorRef->undoManager.perform(action);
+                    }
+                }
             }
         });
     }

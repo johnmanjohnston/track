@@ -475,6 +475,9 @@ bool track::utility::clipsEqual(track::clip x, track::clip y) {
 }
 
 int track::utility::snapSample(int sample, int division, int offset) {
+    if (division == 0)
+        division = 1;
+
     double secondsPerBeat = 60.f / BPM;
     int samplesPerBar = (secondsPerBeat * SAMPLE_RATE) * 4; // for 4/4
     int samplesPerSnap = samplesPerBar / division;

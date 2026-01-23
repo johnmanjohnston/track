@@ -73,12 +73,14 @@ class ActionSplitClip : public juce::UndoableAction {
     int splitSample = -1;
 
     ActionSplitClip(clip c, std::vector<int> nodeRoute, int sampleToSplit,
-                    void *timelineComponent);
+                    void *timelineComponent, bool updateUI);
     ~ActionSplitClip();
 
     bool perform() override;
     bool undo() override;
     void updateGUI();
+
+    bool shouldUpdateGUI = true;
 
   private:
     int c1Index = -1;
@@ -97,6 +99,12 @@ class ActionShiftClips : public juce::UndoableAction {
 
     void shift(int bars);
     void updateGUI();
+};
+
+struct SplitMultipleClipsData {
+    std::vector<int> route;
+    int nodeDisplayIndex = -1;
+    int clipIndex = -1;
 };
 
 class TimelineComponent : public juce::Component,
