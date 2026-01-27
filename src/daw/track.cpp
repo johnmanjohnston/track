@@ -1636,6 +1636,7 @@ track::ActionMoveNodeToGroup::ActionMoveNodeToGroup(std::vector<int> toMove,
 }
 track::ActionMoveNodeToGroup::~ActionMoveNodeToGroup() {}
 
+// FIXME: ActionMoveNodeToGroup is bugged. rewrite.
 bool track::ActionMoveNodeToGroup::perform() {
     TimelineComponent *timelineComponent = (TimelineComponent *)tc;
     AudioPluginAudioProcessorEditor *editor =
@@ -1643,38 +1644,7 @@ bool track::ActionMoveNodeToGroup::perform() {
             ->findParentComponentOfClass<AudioPluginAudioProcessorEditor>();
     utility::clearSubwindows(editor);
 
-    DBG("perform(): groupRoute = " << utility::prettyVector(groupRoute));
-    DBG("perform(): nodeToMoveRoute = "
-        << utility::prettyVector(nodeToMoveRoute));
-    audioNode *groupNode = utility::getNodeFromRoute(groupRoute, p);
-
-    routeAfterMoving = groupRoute;
-
-    size_t commonGeneration = 0;
-    for (size_t i = 0; i < jmin(nodeToMoveRoute.size(), groupRoute.size());
-         ++i) {
-        if (nodeToMoveRoute[i] != groupRoute[i]) {
-            commonGeneration = i;
-            break;
-        }
-    }
-
-    DBG("commonGeneration = " << commonGeneration);
-
-    if (nodeToMoveRoute[commonGeneration] < groupRoute[commonGeneration]) {
-        routeAfterMoving[(size_t)commonGeneration]--;
-    }
-
-    routeAfterMoving.push_back(groupNode->childNodes.size());
-
-    utility::moveNodeToGroup(nodeToMoveRoute, groupRoute, (Tracklist *)tl, p);
-
-    if (nodeToMoveRoute.size() > 1 &&
-        utility::isSibling(groupRoute, nodeToMoveRoute)) {
-    }
-
     updateGUI();
-
     return true;
 }
 
@@ -1687,82 +1657,7 @@ bool track::ActionMoveNodeToGroup::undo() {
 
     AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
 
-    bool fixEdgeCase = true;
-    bool edgeCase = true;
-
-    if (edgeCase) {
-        if (fixEdgeCase) {
-            DBG("nodeToMoveRoute = " << utility::prettyVector(nodeToMoveRoute));
-            DBG("groupRoute = " << utility::prettyVector(groupRoute));
-            DBG("routeAfterMoving = "
-                << utility::prettyVector(routeAfterMoving));
-
-            // retrieving the node to move uses the same logic, regardless of
-            // that node's parent's existence
-
-            audioNode *nodeToMove =
-                utility::getNodeFromRoute(routeAfterMoving, p);
-            audioNode tmp;
-            utility::copyNode(&tmp, nodeToMove, p);
-
-            if (nodeToMoveRoute.size() == 1) {
-                utility::deleteNode(routeAfterMoving, p);
-                auto &newborn = *processor->tracks.emplace(
-                    processor->tracks.begin() + nodeToMoveRoute.back());
-
-                utility::copyNode(&newborn, &tmp, p);
-
-            } else {
-                audioNode *originalParent =
-                    utility::getParentFromRoute(nodeToMoveRoute, p);
-
-                utility::deleteNode(routeAfterMoving, p);
-
-                auto &newborn = *originalParent->childNodes.emplace(
-                    originalParent->childNodes.begin() +
-                    nodeToMoveRoute.back());
-
-                utility::copyNode(&newborn, &tmp, p);
-            }
-
-            updateGUI();
-            return true;
-        }
-    }
-
-    audioNode *parent = utility::getNodeFromRoute(groupRoute, p);
-
-    if (nodeToMoveRoute.size() == 1) {
-        processor->tracks.emplace(processor->tracks.begin() +
-                                  nodeToMoveRoute[0]);
-
-        utility::copyNode(&processor->tracks[(size_t)nodeToMoveRoute[0]],
-                          &parent->childNodes.back(), p);
-
-        parent->childNodes.erase(parent->childNodes.begin() +
-                                 (long)parent->childNodes.size() - 1);
-    } else {
-        std::vector<int> originalParentRoute = nodeToMoveRoute;
-        originalParentRoute.resize(nodeToMoveRoute.size() - 1);
-
-        // insert slot for node in its old position
-        audioNode *originalParent =
-            utility::getNodeFromRoute(originalParentRoute, p);
-
-        originalParent->childNodes.emplace(originalParent->childNodes.begin() +
-                                           nodeToMoveRoute.back());
-
-        // copy data and remove node from new group
-        utility::copyNode(
-            &originalParent->childNodes[(size_t)nodeToMoveRoute.back()],
-            &parent->childNodes.back(), p);
-
-        parent->childNodes.erase(parent->childNodes.begin() +
-                                 (long)parent->childNodes.size() - 1);
-    }
-
     updateGUI();
-
     return true;
 }
 
