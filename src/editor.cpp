@@ -5,6 +5,7 @@
 #include "daw/plugin_chain.h"
 #include "daw/timeline.h"
 #include "daw/track.h"
+#include "juce_audio_processors/juce_audio_processors.h"
 #include "lookandfeel.h"
 #include "pluginterfaces/gui/iplugview.h"
 #include "processor.h"
@@ -475,7 +476,7 @@ bool AudioPluginAudioProcessorEditor::isPluginEditorWindowOpen(
 
 void AudioPluginAudioProcessorEditor::scan() {
     if (apfm.getNumFormats() < 1)
-        apfm.addDefaultFormats();
+        juce::addDefaultFormatsToManager(apfm);
 
     if (pluginListComponent.get() == nullptr) {
         pluginListComponent = std::make_unique<juce::PluginListComponent>(

@@ -4,6 +4,7 @@
 #include "automation_relay.h"
 #include "clipboard.h"
 #include "defs.h"
+#include "juce_audio_processors/juce_audio_processors.h"
 #include "juce_graphics/fonts/harfbuzz/hb-ft.h"
 #include "subwindow.h"
 #include "timeline.h"
@@ -2308,7 +2309,7 @@ bool track::subplugin::initializePlugin(juce::String path) {
         track::SAMPLE_RATE = 44100;
     }
 
-    apfm.addDefaultFormats();
+    juce::addDefaultFormatsToManager(apfm);
 
     for (int i = 0; i < apfm.getNumFormats(); ++i)
         plist.scanAndAddFile(path, true, pluginDescriptions,
