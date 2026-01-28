@@ -176,6 +176,7 @@ class audioNode {
     float pan = 0.f;
 
     juce::String trackName = "Untitled Node";
+    int stain = -1;
 
     // future john, have fun trying to implement hosting audio plugins :skull:
     // haha screw you past john you old sack of dirt
@@ -396,6 +397,7 @@ class ActionMoveNodeToGroup : public juce::UndoableAction {
     std::vector<int> groupRoute;
 
     std::vector<int> routeAfterMoving;
+    std::vector<int> groupRouteAfterMoving;
 
     void *p = nullptr;
     void *tl = nullptr;
@@ -409,6 +411,9 @@ class ActionMoveNodeToGroup : public juce::UndoableAction {
     bool perform() override;
     bool undo() override;
     void updateGUI();
+
+    void updateOnlyTracklist();
+    std::vector<int> getStainedRoute(int staincode);
 };
 
 class Tracklist : public juce::Component {
@@ -432,6 +437,8 @@ class Tracklist : public juce::Component {
     void setDisplayIndexes();
     void setTrackComponentBounds();
     void updateExistingTrackComponents();
+
+    void clearStains();
 
     InsertIndicator insertIndicator;
     void updateInsertIndicator(int index);

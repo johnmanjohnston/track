@@ -4,6 +4,7 @@
 #include "automation_relay.h"
 #include "clipboard.h"
 #include "defs.h"
+#include "juce_graphics/fonts/harfbuzz/hb-ft.h"
 #include "subwindow.h"
 #include "timeline.h"
 #include "utility.h"
@@ -1636,13 +1637,39 @@ track::ActionMoveNodeToGroup::ActionMoveNodeToGroup(std::vector<int> toMove,
 }
 track::ActionMoveNodeToGroup::~ActionMoveNodeToGroup() {}
 
-// FIXME: ActionMoveNodeToGroup is bugged. rewrite.
+// FIXME: ActionMoveNodeToGroup is bugged if you move a child node into it's
+// parent node. fix later you lazy scallywag
 bool track::ActionMoveNodeToGroup::perform() {
     TimelineComponent *timelineComponent = (TimelineComponent *)tc;
     AudioPluginAudioProcessorEditor *editor =
         timelineComponent
             ->findParentComponentOfClass<AudioPluginAudioProcessorEditor>();
     utility::clearSubwindows(editor);
+
+    // stain nodes
+    audioNode *group = utility::getNodeFromRoute(groupRoute, p);
+    group->stain = STAIN_MOVENODETOGROUP_GROUP;
+
+    audioNode *nodeToMove = utility::getNodeFromRoute(nodeToMoveRoute, p);
+    nodeToMove->stain = STAIN_MOVENODETOGROUP_NODE;
+
+    // copy to temp node
+    audioNode *temp = new audioNode;
+    utility::copyNode(temp, nodeToMove, p);
+
+    // now delete the "original" node that we will move
+    utility::deleteNode(nodeToMoveRoute, p);
+
+    // state mutated; re-get group by using its stain and add "temp" to that
+    groupRouteAfterMoving = getStainedRoute(STAIN_MOVENODETOGROUP_GROUP);
+    group = utility::getNodeFromRoute(groupRouteAfterMoving, p);
+    audioNode &newNode = group->childNodes.emplace_back();
+    utility::copyNode(&newNode, temp, p);
+
+    // now we can get route after moving by STAIN_MOVENODETOGROUP_NODE yay!
+    routeAfterMoving = getStainedRoute(STAIN_MOVENODETOGROUP_NODE);
+
+    delete temp;
 
     updateGUI();
     return true;
@@ -1657,6 +1684,41 @@ bool track::ActionMoveNodeToGroup::undo() {
 
     AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
 
+    // get the node that we moved and copy it to temp
+    audioNode *movedNode = utility::getNodeFromRoute(routeAfterMoving, p);
+    DBG("movedNode name: " << movedNode->trackName);
+
+    audioNode *temp = new audioNode;
+    utility::copyNode(temp, movedNode, p);
+
+    // find the group node and stain it
+    audioNode *group = utility::getNodeFromRoute(groupRouteAfterMoving, p);
+    group->stain = STAIN_MOVENODETOGROUP_GROUP;
+
+    // okay now remove the moved node
+    utility::deleteNode(routeAfterMoving, p);
+
+    group = utility::getNodeFromRoute(
+        getStainedRoute(STAIN_MOVENODETOGROUP_GROUP), p);
+
+    // add a node back to original position
+    audioNode *newNode = nullptr;
+    if (nodeToMoveRoute.size() == 1) {
+        // no parent
+        processor->tracks.emplace(processor->tracks.begin() +
+                                  nodeToMoveRoute.back());
+    } else {
+        // yes parent
+        audioNode *parent = utility::getParentFromRoute(nodeToMoveRoute, p);
+        parent->childNodes.emplace(parent->childNodes.begin() +
+                                   nodeToMoveRoute.back());
+    }
+
+    newNode = utility::getNodeFromRoute(nodeToMoveRoute, p);
+    utility::copyNode(newNode, temp, p);
+
+    delete temp;
+
     updateGUI();
     return true;
 }
@@ -1670,8 +1732,28 @@ void track::ActionMoveNodeToGroup::updateGUI() {
 
     tracklist->createTrackComponents();
     tracklist->setTrackComponentBounds();
+    tracklist->clearStains();
 
     timelineComponent->updateClipComponents();
+}
+
+void track::ActionMoveNodeToGroup::updateOnlyTracklist() {
+    Tracklist *tracklist = (Tracklist *)tl;
+    tracklist->trackComponents.clear();
+    tracklist->createTrackComponents();
+}
+
+std::vector<int> track::ActionMoveNodeToGroup::getStainedRoute(int staincode) {
+    std::vector<int> retval;
+    updateOnlyTracklist();
+
+    Tracklist *tracklist = (Tracklist *)tl;
+    for (auto &x : tracklist->trackComponents) {
+        if (x->getCorrespondingTrack()->stain == staincode)
+            return x->route;
+    }
+
+    return retval;
 }
 
 track::ActionReorderNode::ActionReorderNode(std::vector<int> route1,
@@ -2100,6 +2182,12 @@ void track::Tracklist::updateExistingTrackComponents() {
         tc->trackNameLabel.setText(node->trackName, juce::dontSendNotification);
         tc->panSlider.setValue(node->pan, juce::dontSendNotification);
         tc->gainSlider.setValue(node->gain, juce::dontSendNotification);
+    }
+}
+
+void track::Tracklist::clearStains() {
+    for (auto &x : trackComponents) {
+        x->getCorrespondingTrack()->stain = -1;
     }
 }
 

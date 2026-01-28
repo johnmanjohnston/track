@@ -82,6 +82,7 @@ void track::utility::copyNode(audioNode *dest, audioNode *src,
     dest->s = src->s;
     dest->m = src->m;
     dest->pan = src->pan;
+    dest->stain = src->stain;
 
     if (src->isTrack) {
         dest->clips = src->clips;

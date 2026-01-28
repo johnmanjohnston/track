@@ -38,4 +38,7 @@ extern int MAX_LATENT_SAMPLES;
 
 // must align with internal JUCE modifications
 #define COMMAND_UPDATE_VST3_EMBEDDED_BOUNDS 420
+
+#define STAIN_MOVENODETOGROUP_NODE 0x1
+#define STAIN_MOVENODETOGROUP_GROUP 0x2
 } // namespace track
