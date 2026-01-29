@@ -95,10 +95,7 @@ void track::RelayManagerNodesWrapper::setRelayNodesBounds() {
     RelayManagerComponent *rmc =
         findParentComponentOfClass<RelayManagerComponent>();
 
-    float scrollRatio = (float)rmc->rmViewport.getViewPositionY() /
-                        (getHeight() - rmc->rmViewport.getHeight());
-
-    DBG("scrollRatio is " << scrollRatio);
+    float scroll = rmc->rmViewport.getViewPositionX();
 
     rmc->resized();
 
@@ -109,8 +106,7 @@ void track::RelayManagerNodesWrapper::setRelayNodesBounds() {
                                  nodeHeight - 10);
     }
 
-    rmc->rmViewport.setViewPosition(
-        0, scrollRatio * (getHeight() - rmc->rmViewport.getHeight()));
+    rmc->rmViewport.setViewPosition(0, scroll);
 }
 
 void track::RelayManagerNodesWrapper::mouseDown(const juce::MouseEvent &event) {
@@ -149,6 +145,11 @@ void track::RelayManagerNodesWrapper::mouseDown(const juce::MouseEvent &event) {
             rmc->processor->undoManager.beginNewTransaction(
                 "action change trivial plugin data (relay param change)");
             rmc->processor->undoManager.perform(action);
+
+            float scroll = rmc->rmViewport.getViewHeight();
+            DBG("scroll = " << scroll);
+            // set scroll to very end
+            rmc->rmViewport.setViewPosition(0, scroll);
         });
 
         addRelayParamMenu.setLookAndFeel(&getLookAndFeel());

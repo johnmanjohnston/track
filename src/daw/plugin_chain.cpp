@@ -436,7 +436,6 @@ void track::PluginNodeComponent::removeThisPlugin() {
     editor->closePluginEditorWindow(pcc->route, pluginIndex);
     editor->closeAllRelayMenusWithRouteAndPluginIndex(pcc->route, pluginIndex);
 
-    // FIXME: scroll fucks up before/after removing a plugin and it's annoying
     float scroll = pcc->nodesViewport.getViewPositionX();
 
     pcc->removePlugin(this->pluginIndex);

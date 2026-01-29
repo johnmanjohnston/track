@@ -4,8 +4,6 @@
 #include "automation_relay.h"
 #include "clipboard.h"
 #include "defs.h"
-#include "juce_audio_processors/juce_audio_processors.h"
-#include "juce_graphics/fonts/harfbuzz/hb-ft.h"
 #include "subwindow.h"
 #include "timeline.h"
 #include "utility.h"
