@@ -489,6 +489,18 @@ int track::utility::snapSample(int sample, int division, int offset) {
     return snapped;
 }
 
+std::vector<int> track::utility::rWithPopBack(std::vector<int> r) {
+    std::vector<int> retval = r;
+    retval.pop_back();
+    return retval;
+}
+
+std::vector<int> track::utility::rWithSize(std::vector<int> r, size_t s) {
+    std::vector<int> retval = r;
+    retval.resize(s);
+    return retval;
+}
+
 void track::utility::setAutoGrid() {
     if (track::AUTO_GRID) {
         // set grid depending on UI zoom muls

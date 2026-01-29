@@ -1079,12 +1079,11 @@ void track::TrackComponent::mouseUp(const juce::MouseEvent &event) {
         } else {
             tracklist->moveNodeToGroup(this, displayNodes);
                 
-            track::TimelineComponent* timelineComponent = (TimelineComponent*)tracklist->timelineComponent;
-            timelineComponent->updateClipComponents();
+            // track::TimelineComponent* timelineComponent = (TimelineComponent*)tracklist->timelineComponent;
+            // timelineComponent->updateClipComponents();
         }
 
         // clang-format on
-        DBG("Finished attempted node movement");
     }
 }
 
@@ -1638,9 +1637,24 @@ track::ActionMoveNodeToGroup::ActionMoveNodeToGroup(std::vector<int> toMove,
 }
 track::ActionMoveNodeToGroup::~ActionMoveNodeToGroup() {}
 
-// FIXME: ActionMoveNodeToGroup is bugged if you move a child node into it's
-// parent node. fix later you lazy scallywag
 bool track::ActionMoveNodeToGroup::perform() {
+    bool valid = true;
+
+    if (nodeToMoveRoute == groupRoute) {
+        valid = false;
+    }
+    if (utility::rWithPopBack(nodeToMoveRoute) == groupRoute) {
+        valid = false;
+    }
+    if ((utility::rWithSize(groupRoute, nodeToMoveRoute.size()) ==
+         nodeToMoveRoute) &&
+        nodeToMoveRoute.size() < groupRoute.size()) {
+        valid = false;
+    }
+
+    if (!valid)
+        return false;
+
     TimelineComponent *timelineComponent = (TimelineComponent *)tc;
     AudioPluginAudioProcessorEditor *editor =
         timelineComponent

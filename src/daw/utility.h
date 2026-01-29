@@ -45,5 +45,8 @@ juce::String prettyVector(std::vector<int> x);
 bool clipsEqual(track::clip x, track::clip y);
 int snapSample(int sample, int division, int offset = 0);
 
+std::vector<int> rWithPopBack(std::vector<int> r);
+std::vector<int> rWithSize(std::vector<int> r, size_t s);
+
 void setAutoGrid();
 } // namespace track::utility
