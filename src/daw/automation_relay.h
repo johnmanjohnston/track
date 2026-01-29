@@ -86,6 +86,8 @@ class RelayManagerComponent : public track::Subwindow {
 
     void paint(juce::Graphics &g) override;
     void resized() override;
+
+    void removeRelayParam(size_t index);
 };
 
 class RelayParamInspectorViewport : public juce::Viewport {

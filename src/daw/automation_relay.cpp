@@ -67,6 +67,32 @@ void track::RelayManagerComponent::resized() {
                              juce::jmax(wrapperHeight, rmViewport.getHeight()));
 }
 
+void track::RelayManagerComponent::removeRelayParam(size_t index) {
+    float scroll = rmViewport.getViewPositionY();
+
+    std::unique_ptr<track::subplugin> *plugin = getPlugin();
+
+    // prepare data for action
+    pluginClipboardData oldData;
+    oldData.bypassed = plugin->get()->bypassed;
+    oldData.dryWetMix = plugin->get()->dryWetMix;
+    oldData.relayParams = plugin->get()->relayParams;
+
+    pluginClipboardData newData = oldData;
+    newData.relayParams.erase(newData.relayParams.begin() + (long)index);
+
+    AudioPluginAudioProcessorEditor *editor =
+        findParentComponentOfClass<AudioPluginAudioProcessorEditor>();
+
+    ActionChangeTrivialPluginData *action = new ActionChangeTrivialPluginData(
+        oldData, newData, route, pluginIndex, processor, editor);
+    processor->undoManager.beginNewTransaction(
+        "action change trivial plugin data (relay param change)");
+    processor->undoManager.perform(action);
+
+    rmViewport.setViewPosition(0, scroll);
+}
+
 void track::RelayManagerNodesWrapper::createRelayNodes() {
     relayNodes.clear();
 
@@ -280,25 +306,7 @@ void track::RelayManagerNode::mouseDown(const juce::MouseEvent &event) {
 }
 
 void track::RelayManagerNode::removeThisRelayParam() {
-    std::unique_ptr<track::subplugin> *plugin = rmc->getPlugin();
-
-    // prepare data for action
-    pluginClipboardData oldData;
-    oldData.bypassed = plugin->get()->bypassed;
-    oldData.dryWetMix = plugin->get()->dryWetMix;
-    oldData.relayParams = plugin->get()->relayParams;
-
-    pluginClipboardData newData = oldData;
-    newData.relayParams.erase(newData.relayParams.begin() + paramVectorIndex);
-
-    AudioPluginAudioProcessorEditor *editor =
-        rmc->findParentComponentOfClass<AudioPluginAudioProcessorEditor>();
-
-    ActionChangeTrivialPluginData *action = new ActionChangeTrivialPluginData(
-        oldData, newData, rmc->route, rmc->pluginIndex, rmc->processor, editor);
-    rmc->processor->undoManager.beginNewTransaction(
-        "action change trivial plugin data (relay param change)");
-    rmc->processor->undoManager.perform(action);
+    rmc->removeRelayParam((size_t)paramVectorIndex);
 }
 
 void track::RelayManagerNode::paint(juce::Graphics &g) {
