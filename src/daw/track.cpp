@@ -819,11 +819,32 @@ track::TrackComponent::TrackComponent(int trackIndex) : juce::Component() {
     gainSlider.setTextBoxStyle(juce::Slider::TextEntryBoxPosition::NoTextBox,
                                true, 0, 0);
 
-    gainSlider.onDragStart = [this] { repaint(); };
+    gainSlider.onDragStart = [this] {
+        gainValueAtStartDrag = getCorrespondingTrack()->gain;
+        repaint();
+    };
 
     gainSlider.onDragEnd = [this] {
         DBG("setting new gain for track; " << gainSlider.getValue());
         getCorrespondingTrack()->gain = gainSlider.getValue();
+
+        TrivialNodeData oldState;
+        TrivialNodeData newState;
+
+        utility::getTrivialNodeData(&oldState, this->getCorrespondingTrack());
+        utility::getTrivialNodeData(&newState, this->getCorrespondingTrack());
+        oldState.gain = this->gainValueAtStartDrag;
+
+        this->gainValueAtStartDrag = -1.f;
+
+        AudioPluginAudioProcessorEditor *editor =
+            findParentComponentOfClass<AudioPluginAudioProcessorEditor>();
+
+        AudioPluginAudioProcessor *p = (AudioPluginAudioProcessor *)processor;
+        ActionModifyTrivialNodeData *action = new ActionModifyTrivialNodeData(
+            route, oldState, newState, processor, editor);
+        p->undoManager.beginNewTransaction("action modify trivial node data");
+        p->undoManager.perform(action);
 
         sendFocusToTimeline();
     };
