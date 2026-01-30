@@ -821,6 +821,7 @@ void track::TimelineComponent::filesDropped(const juce::StringArray &files,
                     juce::File resampledFile = juce::File(resampledFilePath);
                     resampledFile.create();
 
+                    // FIXME: test audio resampling for mp3 files
                     juce::WavAudioFormat wavFormat;
                     std::unique_ptr<juce::AudioFormatWriter> writer;
 
@@ -856,18 +857,8 @@ void track::TimelineComponent::addNewClipToTimeline(juce::String path,
     std::unique_ptr<clip> c(new clip());
     c->path = path;
 
-    // TODO: see juce::File().getFileNameWithoutExtension() instead of doing
-    // all this annoying string manipulation thing
-
-    // remove directories leading up to the actual file name we want, and
-    // strip file extension
-    if (path.contains("/")) {
-        c->name = path.fromLastOccurrenceOf(
-            "/", false, true); // for REAL operating systems.
-    } else {
-        c->name = path.fromLastOccurrenceOf("\\", false, true);
-    }
-    c->name = c->name.upToLastOccurrenceOf(".", false, true);
+    juce::File f = juce::File(c->path);
+    c->name = f.getFileNameWithoutExtension();
 
     c->startPositionSample = startSample;
     c->updateBuffer();
@@ -887,12 +878,7 @@ void track::TimelineComponent::addNewClipToTimeline(juce::String path,
         ActionAddClip *action = new ActionAddClip(*c, route, this);
         processorRef->undoManager.beginNewTransaction("action add clip");
 
-        // node->clips.push_back(*c);
-
-        DBG("adding clip using action");
         processorRef->undoManager.perform(action);
-
-        DBG("inserted clip into node");
     }
 
     updateClipComponents();

@@ -1236,9 +1236,13 @@ void track::TrackComponent::paint(juce::Graphics &g) {
     g.drawText(juce::String(displayIndex + 1), 0, 0, UI_TRACK_INDEX_WIDTH,
                UI_TRACK_HEIGHT, juce::Justification::centred);
 
-    // TODO: this isn't scalable. if you move buttons in resized() they
+    // this isn't scalable. if you move buttons in resized() they
     // should be able to automatically reflect over here, but that isn't the
     // case draw mute marker
+    //
+    // okayyy future john here. this is FINEEEE. (probably)
+    // if i run into issues with this not being scalable then suck it future
+    // john you big ol' sack of dirt
     if (getCorrespondingTrack()->m || getCorrespondingTrack()->s) {
         int btnSize =
             UI_TRACK_HEIGHT > UI_TRACK_HEIGHT_COLLAPSE_BREAKPOINT ? 24 : 18;

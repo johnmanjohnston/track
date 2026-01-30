@@ -70,7 +70,7 @@ class ClipComponent : public juce::Component, public juce::ChangeListener {
 
     int finalEndPos = -1;
 
-    // TODO: this function should not be in this class
+    // this function would ideally not be in this class but whatever
     juce::Font getInterSemiBold() {
         static auto typeface = Typeface::createSystemTypefaceFor(
             BinaryData::Inter_18ptSemiBold_ttf,
@@ -135,7 +135,7 @@ class ClipPropertiesWindow : public track::Subwindow {
     void *p = nullptr;
     track::clip *getClip();
 
-    // TODO: this function should not be in this class
+    // this function would ideally not be in this class but whatever
     juce::Font getInterSemiBold() {
         static auto typeface = Typeface::createSystemTypefaceFor(
             BinaryData::Inter_18ptSemiBold_ttf,

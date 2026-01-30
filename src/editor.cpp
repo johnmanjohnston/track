@@ -217,14 +217,6 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
 }
 
 AudioPluginAudioProcessorEditor::~AudioPluginAudioProcessorEditor() {
-    /*
-    DBG("track plugin editor destructor called");
-    DBG("plugin editor window vector size is " <<
-    pluginEditorWindows.size()); DBG("plugin chain coomponents vector size
-    is "
-        << pluginChainComponents.size());
-        */
-
     stopTimer();
 
     setLookAndFeel(nullptr);
@@ -368,8 +360,8 @@ bool AudioPluginAudioProcessorEditor::isRelayMenuOpened(std::vector<int> route,
 void AudioPluginAudioProcessorEditor::closeAllRelayMenusWithRouteAndPluginIndex(
     std::vector<int> route, int pluginIndex) {
     for (int i = relayManagerCompnoents.size() - 1; i >= 0; --i) {
-        if (relayManagerCompnoents[i]->route == route &&
-            relayManagerCompnoents[i]->pluginIndex == pluginIndex) {
+        if (relayManagerCompnoents[(size_t)i]->route == route &&
+            relayManagerCompnoents[(size_t)i]->pluginIndex == pluginIndex) {
             relayManagerCompnoents.erase(relayManagerCompnoents.begin() + i);
         }
     }
@@ -403,7 +395,7 @@ void AudioPluginAudioProcessorEditor::openFxChain(std::vector<int> route) {
 void AudioPluginAudioProcessorEditor::closeAllFxChainsWithRoute(
     std::vector<int> route) {
     for (int i = pluginChainComponents.size() - 1; i >= 0; --i) {
-        if (pluginChainComponents[i]->route == route) {
+        if (pluginChainComponents[(size_t)i]->route == route) {
             pluginChainComponents.erase(pluginChainComponents.begin() + i);
         }
     }
@@ -501,8 +493,6 @@ void AudioPluginAudioProcessorEditor::lazyScan() {
                 juce::FileBrowserComponent::canSelectMultipleItems;
 
     fileChooser->launchAsync(flags, [this](const juce::FileChooser &chooser) {
-        DBG("file chooser deployed KAJSDFJKASDF");
-
         for (auto searchDir : chooser.getResults()) {
             juce::String currentDir = searchDir.getFullPathName();
 
@@ -543,10 +533,12 @@ bool AudioPluginAudioProcessorEditor::keyStateChanged(bool isKeyDown) {
         if (juce::KeyPress::isKeyCurrentlyDown(90)) {
             DBG("");
 
-            // TODO: this is temporary; in the future, implement a toast
+            // this is temporary; in the future, implement a toast
             // system that tells the user smth "please wait, clips are still
             // rendering..." or smth idk bro i'm vibing to south arcade now,
             // bleed out bangs
+            //
+            // future john here: NOPE
             if (!timelineComponent->renderingWaveforms())
                 processorRef.undoManager.undo();
 
