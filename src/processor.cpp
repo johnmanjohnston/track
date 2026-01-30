@@ -350,7 +350,6 @@ juce::AudioProcessorEditor *AudioPluginAudioProcessor::createEditor() {
 
 juce::XmlElement *
 AudioPluginAudioProcessor::serializeNode(track::audioNode *node) {
-    // DBG("serializing node " << node->trackName);
     juce::XmlElement *nodeElement = new juce::XmlElement("node");
     nodeElement->setAttribute("istrack", node->isTrack);
     nodeElement->setAttribute("name", node->trackName);
@@ -384,11 +383,6 @@ AudioPluginAudioProcessor::serializeNode(track::audioNode *node) {
 
             relayParamElement->setAttribute(
                 "relayindex", pluginInstance->relayParams[j].outputParamID);
-
-            DBG("serializing "
-                << node->trackName << " with "
-                << pluginInstance->relayParams[j].pluginParamIndex << ";"
-                << pluginInstance->relayParams[j].outputParamID);
 
             pluginElement->addChildElement(relayParamElement);
         }
@@ -424,7 +418,6 @@ AudioPluginAudioProcessor::serializeNode(track::audioNode *node) {
 
 void AudioPluginAudioProcessor::deserializeNode(juce::XmlElement *nodeElement,
                                                 track::audioNode *node) {
-    // DBG("deserializing - " << nodeElement->getStringAttribute("name"));
     node->isTrack = nodeElement->getBoolAttribute("istrack", true);
     node->trackName = nodeElement->getStringAttribute("name");
     node->gain = (float)nodeElement->getDoubleAttribute("gain", 1.0);
@@ -525,8 +518,6 @@ void AudioPluginAudioProcessor::getStateInformation(
     xml->deleteAllChildElementsWithTagName("projectsettings");
     xml->deleteAllChildElementsWithTagName("knownplugins");
 
-    // DBG("getStateInformation() called");
-
     juce::XmlElement *projectSettings = new juce::XmlElement("projectsettings");
     // relayed params
     for (int i = 0; i < 128; ++i) {
@@ -540,7 +531,6 @@ void AudioPluginAudioProcessor::getStateInformation(
     projectSettings->setAttribute("mastergain", *this->masterGain);
 
     juce::XmlElement *knownPlugins = new juce::XmlElement("knownplugins");
-    DBG("getStateInformation() called. plugins known are: ");
     for (auto &p : knownPluginList.getTypes()) {
         // DBG(p.name << " by " << p.manufacturerName);
         // juce::XmlElement *knownPluginElement = p.createXml().get();
@@ -549,7 +539,6 @@ void AudioPluginAudioProcessor::getStateInformation(
         // ripped from PluginDescription.cpp's PluginDescription::createXml()
         // auto e = std::make_unique<XmlElement>("PLUGIN");
 
-        DBG("serializing " << p.name);
         juce::XmlElement *e =
             new juce::XmlElement("PLUGIN"); // has to be called this otherwise
                                             // loadFromXml() won't work nicely
@@ -618,14 +607,12 @@ void AudioPluginAudioProcessor::setStateInformation(const void *data,
             (float)projectSettings->getDoubleAttribute("mastergain", 1.0);
     }
 
-    DBG("setStateInformation() -- looking for known plugins");
     juce::XmlElement *knownPlugins = xmlState->getChildByName("knownplugins");
     juce::XmlElement *curPluginElement = knownPlugins->getChildByName("PLUGIN");
 
     while (curPluginElement != nullptr) {
         juce::PluginDescription pd;
         pd.loadFromXml(*curPluginElement);
-        DBG("setStateInformation() - found " << pd.name);
         knownPluginList.addType(pd);
 
         curPluginElement =
@@ -657,7 +644,6 @@ void AudioPluginAudioProcessor::updateLatency() {
         totalLatency += node.getTotalLatencySamples();
     }
 
-    DBG("updateLatency() called. new latency is " << totalLatency);
     setLatencySamples(totalLatency);
 }
 

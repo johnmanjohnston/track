@@ -47,9 +47,6 @@ track::ClipComponent::ClipComponent(clip *c, int clipHash)
         correspondingClip->name = clipNameLabel.getText(true);
 
         action->newClip.name = correspondingClip->name;
-        // action->oldClip.name = "beans lmao";
-
-        DBG("calling perform()");
 
         tc->processorRef->undoManager.beginNewTransaction(
             "action clip modified");
@@ -65,7 +62,8 @@ track::ClipComponent::ClipComponent(clip *c, int clipHash)
 }
 track::ClipComponent::~ClipComponent() { thumbnail.removeAllChangeListeners(); }
 
-void track::ClipComponent::changeListenerCallback(ChangeBroadcaster *source) {
+void track::ClipComponent::changeListenerCallback(
+    ChangeBroadcaster * /*source*/) {
     repaint();
 }
 
@@ -212,8 +210,6 @@ void track::ClipComponent::copyClip() {
 
 void track::ClipComponent::mouseDown(const juce::MouseEvent &event) {
     if (event.mods.isRightButtonDown()) {
-        DBG("rmb down");
-
         juce::PopupMenu contextMenu;
         contextMenu.setLookAndFeel(&getLookAndFeel());
 
@@ -374,7 +370,6 @@ void track::ClipComponent::mouseDown(const juce::MouseEvent &event) {
 
 // cs exam tomorrow but fuck it the curriculum is full of shit
 void track::ClipComponent::mouseDrag(const juce::MouseEvent &event) {
-    // DBG("dragging is happening");
     isBeingDragged = true;
 
     int distanceMoved = event.getDistanceFromDragStartX();
@@ -455,10 +450,7 @@ void track::ClipComponent::mouseDrag(const juce::MouseEvent &event) {
 
 void track::ClipComponent::mouseUp(const juce::MouseEvent &event) {
     if (isBeingDragged) {
-        DBG("DRAGGING STOPPED");
         isBeingDragged = false;
-
-        int distanceMovedHorizontally = event.getDistanceFromDragStartX();
 
         TimelineComponent *tc = (TimelineComponent *)getParentComponent();
         jassert(tc != nullptr);
@@ -493,14 +485,11 @@ void track::ClipComponent::mouseUp(const juce::MouseEvent &event) {
     }
     reachedLeft = false;
 
-    DBG(event.getDistanceFromDragStartX());
     repaint();
 }
 
 void track::ClipComponent::mouseMove(const juce::MouseEvent &event) {
-    // DBG("event.x=" << event.x);
     if (event.x <= track::TRIM_REGION_WIDTH) {
-        // DBG("drawTrimHandles = -1");
         drawTrimHandles = -1;
         repaint();
         return;
@@ -591,8 +580,6 @@ track::clip *track::ActionClipModified::getClip() {
 }
 
 bool track::ActionClipModified::perform() {
-    DBG("PERFORM() CALLED");
-
     clip *c = getClip();
     *c = newClip;
 
@@ -613,7 +600,6 @@ bool track::ActionClipModified::undo() {
 }
 
 void track::ActionClipModified::markClipComponentStale() {
-
     // the ClipComponent for this clip is probably not stale;
     // so stalify it here
     TimelineComponent *timelineComponent = (TimelineComponent *)tc;
@@ -756,23 +742,9 @@ track::clip *track::ClipPropertiesWindow::getClip() {
 
 track::audioNode *
 track::TrackComponent::TrackComponent::getCorrespondingTrack() {
-    // DBG("TrackComponent::getCorrespondingTrack() called");
-
-    if (processor == nullptr) {
-        DBG("! TRACK COMPONENT'S getCorrespondingTrack() RETURNED nullptr");
-        DBG("TrackComponent's processor is nullptr");
-        return nullptr;
-    }
-    if (siblingIndex == -1) {
-        DBG("! TRACK COMPONENT'S getCorrespondingTrack() RETURNED nullptr");
-        DBG("TrackComponent's trackIndex is -1");
-        return nullptr;
-    }
-
-    if (route.size() == 0) {
-        DBG("TrackComponent does not have a route");
-        return nullptr;
-    }
+    jassert(processor != nullptr);
+    jassert(siblingIndex != -1);
+    jassert(route.size() != 0);
 
     AudioPluginAudioProcessor *p = (AudioPluginAudioProcessor *)processor;
 
@@ -825,7 +797,6 @@ track::TrackComponent::TrackComponent(int trackIndex) : juce::Component() {
     };
 
     gainSlider.onDragEnd = [this] {
-        DBG("setting new gain for track; " << gainSlider.getValue());
         getCorrespondingTrack()->gain = gainSlider.getValue();
 
         TrivialNodeData oldState;
@@ -869,7 +840,6 @@ track::TrackComponent::TrackComponent(int trackIndex) : juce::Component() {
 
         if (getCorrespondingTrack()->s) {
             p->soloMode = true;
-            DBG("! SOLO MODE = TRUE");
         } else {
             Tracklist *tracklist =
                 (Tracklist *)findParentComponentOfClass<Tracklist>();
@@ -884,7 +854,6 @@ track::TrackComponent::TrackComponent(int trackIndex) : juce::Component() {
 
             if (!foundSolo) {
                 p->soloMode = false;
-                DBG("! SOLO MODE = FALSE");
             }
         }
 
@@ -901,7 +870,6 @@ track::TrackComponent::TrackComponent(int trackIndex) : juce::Component() {
 
     panSlider.onValueChange = [this] {
         getCorrespondingTrack()->pan = panSlider.getValue();
-        DBG("new pan value is " << panSlider.getValue());
     };
     panSlider.onDragStart = [this] {
         panValueAtStartDrag = panSlider.getValue();
@@ -933,8 +901,6 @@ track::TrackComponent::TrackComponent(int trackIndex) : juce::Component() {
     addAndMakeVisible(fxBtn);
 
     fxBtn.onClick = [this] {
-        DBG("FX button clicked");
-
         AudioPluginAudioProcessorEditor *editor =
             this->findParentComponentOfClass<AudioPluginAudioProcessorEditor>();
         editor->openFxChain(route);
@@ -978,8 +944,6 @@ void track::TrackComponent::mouseDown(const juce::MouseEvent &event) {
             "Ungroup",
             !getCorrespondingTrack()->isTrack || this->route.size() >= 2, false,
             [this] {
-                DBG("ungroup track");
-
                 AudioPluginAudioProcessorEditor *editor =
                     findParentComponentOfClass<
                         AudioPluginAudioProcessorEditor>();
@@ -1056,7 +1020,6 @@ void track::TrackComponent::mouseUp(const juce::MouseEvent &event) {
             event.getEventRelativeTo(tracklist).position.getY() -
             (UI_TRACK_HEIGHT / 2.f);
         int displayNodes = (int)(mouseYInTracklist / (float)(UI_TRACK_HEIGHT));
-        DBG("display nodes is " << displayNodes);
 
         // clang-format off
         if ((size_t)displayNodes >= tracklist->trackComponents.size() || displayNodes < 0)
@@ -1077,10 +1040,6 @@ void track::TrackComponent::mouseUp(const juce::MouseEvent &event) {
             std::vector<int> movementRoute = tracklist->trackComponents[(size_t)displayNodes]->route;
 
             if (r1 == r2) {
-                DBG("BOTH ARE SIBLINGS");
-
-                //utility::reorderNode(r1, r2, route, r1End, displayNodes, processor);
-
                 ActionReorderNode *action = new ActionReorderNode(sourceRoute, movementRoute, processor, tracklist, tracklist->timelineComponent);
                 p->undoManager.beginNewTransaction("action reorder node");
                 p->undoManager.perform(action);
@@ -1474,8 +1433,6 @@ bool track::ActionDeleteNode::perform() {
         editor->closeAllRelayMenusWithRouteAndPluginIndex(route, i);
     }
 
-    DBG("ActionDeleteNode::perform() called");
-
     AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
     if (route.size() == 1) {
 
@@ -1518,8 +1475,6 @@ bool track::ActionDeleteNode::perform() {
 }
 
 bool track::ActionDeleteNode::undo() {
-    DBG("ActionDeleteNode::undo() called");
-
     AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
     if (route.size() == 1) {
         processor->tracks.insert(processor->tracks.begin() + route[0],
@@ -1559,8 +1514,6 @@ track::ActionPasteNode::ActionPasteNode(std::vector<int> pRoute,
     this->p = processor;
     this->e = editor;
 
-    DBG("copying node in constructor...");
-    DBG(node->trackName);
     this->nodeToPaste = new audioNode;
     utility::copyNode(this->nodeToPaste, node, p);
 }
@@ -1720,7 +1673,6 @@ bool track::ActionMoveNodeToGroup::undo() {
 
     // get the node that we moved and copy it to temp
     audioNode *movedNode = utility::getNodeFromRoute(routeAfterMoving, p);
-    DBG("movedNode name: " << movedNode->trackName);
 
     audioNode *temp = new audioNode;
     utility::copyNode(temp, movedNode, p);
@@ -1902,24 +1854,22 @@ bool track::ActionUngroup::perform() {
             if (parent == nullptr) {
                 auto &newNode = *processor->tracks.emplace(
                     processor->tracks.begin() + route.back());
-                utility::copyNode(&newNode, &this->nodeCopy.childNodes[i], p);
+                utility::copyNode(&newNode,
+                                  &this->nodeCopy.childNodes[(size_t)i], p);
             } else {
                 auto &newNode = *parent->childNodes.emplace(
                     parent->childNodes.begin() + route.back());
-                utility::copyNode(&newNode, &this->nodeCopy.childNodes[i], p);
+                utility::copyNode(&newNode,
+                                  &this->nodeCopy.childNodes[(size_t)i], p);
             }
         }
     }
-
-    DBG("new route is " << utility::prettyVector(this->trackRouteAfterUngroup));
 
     updateGUI();
     return true;
 }
 
 bool track::ActionUngroup::undo() {
-    DBG("ActionUngroup::undo() not implemented");
-
     AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
 
     Tracklist *tracklist = (Tracklist *)tl;
@@ -2055,8 +2005,6 @@ void track::Tracklist::deleteTrack(std::vector<int> route) {
     ActionDeleteNode *action =
         new ActionDeleteNode(route, processor, this, timelineComponent);
 
-    DBG("perform()ing node deletion");
-
     p->undoManager.beginNewTransaction("action delete node");
     p->undoManager.perform(action);
 }
@@ -2067,7 +2015,6 @@ void track::Tracklist::deepCopyGroupInsideGroup(audioNode *childNode,
         audioNode *newNode = nullptr;
 
         if (parentNode == nullptr) {
-            DBG("parentNode = nullptr");
             AudioPluginAudioProcessor *p =
                 (AudioPluginAudioProcessor *)processor;
             newNode = &p->tracks.emplace_back();
@@ -2084,7 +2031,6 @@ void track::Tracklist::moveNodeToGroup(track::TrackComponent *caller,
 
     if (targetIndex < 0 || (size_t)targetIndex > trackComponents.size() - 1 ||
         caller->displayIndex == targetIndex) {
-        DBG("rejecting node movement");
         return;
     }
 
@@ -2130,7 +2076,6 @@ void track::Tracklist::mouseDown(const juce::MouseEvent &event) {
         contextMenu.showMenuAsync(juce::PopupMenu::Options());
     }
 
-    // DBG("Tracklist::mouseDown()");
     ((TimelineComponent *)timelineComponent)
         ->grabKeyboardFocus(); // just rid any track components of focus
 }
@@ -2193,7 +2138,6 @@ void track::Tracklist::createTrackComponents() {
             t.trackName, juce::NotificationType::dontSendNotification);
         addAndMakeVisible(*trackComponents.back());
 
-        // DBG("found " << t.trackName << " (root node)");
         foundItems = findChildren(&t, route, foundItems, 1);
 
         trackComponents.back().get()->displayIndex = foundItems;
@@ -2248,7 +2192,6 @@ void track::Tracklist::setTrackComponentBounds() {
                            UI_TRACK_VERTICAL_OFFSET);
     unmuteAllBtn.setBounds(xOffset + (3 * (btnWidth + btnMargin)), 0, btnWidth,
                            UI_TRACK_VERTICAL_OFFSET);
-    // DBG("setTrackComponentBounds() called");
 
     if (getParentComponent()) {
         int newTracklistHeight = juce::jmax((counter + 2) * UI_TRACK_HEIGHT,
@@ -2335,9 +2278,6 @@ bool track::subplugin::initializePlugin(juce::String path) {
     juce::AudioPluginFormatManager apfm;
     juce::String errorMsg;
 
-    DBG(track::SAMPLE_RATE);
-    DBG(track::SAMPLES_PER_BLOCK);
-
     if (track::SAMPLE_RATE < 0) {
         track::SAMPLE_RATE = 44100;
     }
@@ -2360,7 +2300,6 @@ bool track::subplugin::initializePlugin(juce::String path) {
     plugin->setPlayConfigDetails(2, 2, track::SAMPLE_RATE,
                                  track::SAMPLES_PER_BLOCK);
     if (track::SAMPLES_PER_BLOCK <= 0) {
-        DBG("setting maxSamplesPerBlock to 512");
         track::SAMPLES_PER_BLOCK = 512;
     }
 
@@ -2393,8 +2332,6 @@ void track::clip::updateBuffer() {
 bool track::audioNode::addPlugin(juce::String path) {
     jassert(processor != nullptr);
     AudioPluginAudioProcessor *p = (AudioPluginAudioProcessor *)processor;
-
-    DBG("calling initializePlugin()");
 
     plugins.push_back(std::make_unique<subplugin>());
     bool success = plugins.back()->initializePlugin(path);

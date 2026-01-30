@@ -114,16 +114,12 @@ bool track::ActionCutClip::perform() {
         }
     }
 
-    DBG("add clip perform() called");
-
     node->clips.erase(node->clips.begin() + (long)clipIndex);
 
     updateGUI();
     return true;
 }
 bool track::ActionCutClip::undo() {
-    DBG("add clip undo() called");
-
     TimelineComponent *timelineComponent = (TimelineComponent *)tc;
     audioNode *node =
         utility::getNodeFromRoute(route, timelineComponent->processorRef);
@@ -182,9 +178,6 @@ bool track::ActionSplitClip::perform() {
     c2.trimLeft += actualSplit;
 
     node->clips.push_back(c2);
-
-    DBG("c1: left=" << c1->trimLeft << "; right=" << c1->trimRight);
-    DBG("c2: left=" << c2.trimLeft << "; right=" << c2.trimRight);
 
     updateGUI();
 
@@ -308,7 +301,6 @@ void track::TimelineViewport::mouseWheelMove(
         UI_ZOOM_MULTIPLIER =
             juce::jlimit(UI_MINIMUM_ZOOM_MULTIPLIER, UI_MAXIMUM_ZOOM_MULTIPLIER,
                          UI_ZOOM_MULTIPLIER);
-        DBG(UI_ZOOM_MULTIPLIER);
 
         tc->resizeTimelineComponent();
 
@@ -363,7 +355,6 @@ void track::TimelineComponent::mouseDown(const juce::MouseEvent &event) {
     grabKeyboardFocus();
 
     if (event.mods.isRightButtonDown()) {
-        DBG("TimelineComponent::mouseDown() for right mouse button down");
         juce::PopupMenu contextMenu;
         contextMenu.setLookAndFeel(&getLookAndFeel());
 
@@ -418,7 +409,6 @@ void track::TimelineComponent::mouseDown(const juce::MouseEvent &event) {
         contextMenu.showMenuAsync(juce::PopupMenu::Options(), [this, event](
                                                                   int result) {
             if (result == MENU_PASTE_CLIP) {
-                DBG("paste clip");
                 if (clipboard::typecode != TYPECODE_CLIP)
                     return;
 
@@ -448,8 +438,6 @@ void track::TimelineComponent::mouseDown(const juce::MouseEvent &event) {
                         ->getCorrespondingTrack();
                 if (node->isTrack) {
                     node->clips.push_back(*newClip);
-                } else {
-                    DBG("reject pasting clip into group");
                 }
 
                 updateClipComponents();
@@ -459,8 +447,6 @@ void track::TimelineComponent::mouseDown(const juce::MouseEvent &event) {
             else if (result == MENU_SPLIT_ALL_CLIPS_HERE) {
                 int splitSample =
                     ((float)event.x / UI_ZOOM_MULTIPLIER) * SAMPLE_RATE;
-
-                DBG("splitSample = " << splitSample);
 
                 std::vector<SplitMultipleClipsData> datas;
 
@@ -473,7 +459,6 @@ void track::TimelineComponent::mouseDown(const juce::MouseEvent &event) {
                               c->trimRight;
 
                     if (splitSample > start && splitSample < end) {
-                        DBG("clip fits: " << c->name);
                         auto &d = datas.emplace_back();
 
                         std::vector<int> route =
@@ -491,8 +476,6 @@ void track::TimelineComponent::mouseDown(const juce::MouseEvent &event) {
                 if (datas.size() > 0) {
                     processorRef->undoManager.beginNewTransaction(
                         "action split clips here");
-
-                    DBG("dispatching multiple actions...");
 
                     for (size_t i = 0; i < datas.size(); ++i) {
                         auto &d = datas[i];
@@ -516,7 +499,6 @@ void track::TimelineComponent::mouseDown(const juce::MouseEvent &event) {
 }
 
 void track::TimelineComponent::paint(juce::Graphics &g) {
-    // DBG("timelineComponent paint called");
     g.fillAll(juce::Colour(0xFF2E2E2E));
 
     // bar markers
@@ -679,11 +661,9 @@ void track::TimelineComponent::resizeTimelineComponent() {
         }
     }
 
-    // DBG("largestEnd is " << largestEnd);
     jassert(UI_ZOOM_MULTIPLIER > 0);
     largestEnd /= (SAMPLE_RATE / UI_ZOOM_MULTIPLIER);
     largestEnd += 2000;
-    // DBG("now, largestEnd is " << largestEnd);
 
     // this->setSize(juce::jmax(getWidth(), largestEnd), getHeight());
     this->setSize(largestEnd, getHeight());
@@ -714,11 +694,8 @@ void track::TimelineComponent::shiftClipByBars(int bars) {
 
 bool track::TimelineComponent::isInterestedInFileDrag(
     const juce::StringArray &files) {
+    juce::ignoreUnused(files);
     return true;
-}
-
-void track::TimelineComponent::handleClipResampling(int modalResult) {
-    DBG("result is " << modalResult);
 }
 
 void track::TimelineComponent::filesDropped(const juce::StringArray &files,
@@ -731,8 +708,6 @@ void track::TimelineComponent::filesDropped(const juce::StringArray &files,
         juce::jlimit(0, (int)viewport->tracklist->trackComponents.size() - 1,
                      nodeDisplayIndex);
 
-    DBG("track index is " << nodeDisplayIndex);
-
     // check if file is valid audio
     juce::File file(files[0]);
     juce::AudioFormatManager afm;
@@ -740,7 +715,6 @@ void track::TimelineComponent::filesDropped(const juce::StringArray &files,
 
     for (int i = 0; i < afm.getNumKnownFormats(); ++i) {
         auto f = afm.getKnownFormat(i);
-        DBG(f->getFormatName());
     }
 
     std::unique_ptr<juce::AudioFormatReader> reader(afm.createReaderFor(file));
@@ -763,12 +737,8 @@ void track::TimelineComponent::filesDropped(const juce::StringArray &files,
                     "audio player program)\n- Verify that another program "
                     "isn't using the file"));
 
-        DBG("INVALID AUDIO FILE DRAGGED");
         return;
     }
-
-    DBG("drag x = " << x);
-    DBG("UI_ZOOM_MULTIPLIER = " << UI_ZOOM_MULTIPLIER);
 
     int startSample = (x * SAMPLE_RATE) / UI_ZOOM_MULTIPLIER;
 
@@ -830,8 +800,6 @@ void track::TimelineComponent::filesDropped(const juce::StringArray &files,
                         DBG("resampled channel " << ch);
                     }
 
-                    DBG("resampling finished");
-
                     // now write resampled file
                     juce::File originalFile = juce::File(path);
                     juce::File parentDir = originalFile.getParentDirectory();
@@ -852,8 +820,6 @@ void track::TimelineComponent::filesDropped(const juce::StringArray &files,
 
                     juce::File resampledFile = juce::File(resampledFilePath);
                     resampledFile.create();
-
-                    DBG("writing to " << resampledFilePath);
 
                     juce::WavAudioFormat wavFormat;
                     std::unique_ptr<juce::AudioFormatWriter> writer;
