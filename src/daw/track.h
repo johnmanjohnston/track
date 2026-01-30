@@ -148,7 +148,7 @@ class ClipPropertiesWindow : public track::Subwindow {
     float gainAtDragStart = -1.f;
 };
 
-class relayParam;
+struct relayParam;
 class subplugin {
   public:
     subplugin();
@@ -324,8 +324,7 @@ class ActionPasteNode : public juce::UndoableAction {
     void updateGUI();
 };
 
-class TrivialNodeData {
-  public:
+struct TrivialNodeData {
     juce::String trackName;
     float pan;
     float gain;

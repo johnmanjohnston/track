@@ -5,11 +5,7 @@
 #include <JuceHeader.h>
 
 namespace track {
-class relayParam {
-  public:
-    relayParam() {}
-    ~relayParam() {}
-
+struct relayParam {
     int pluginParamIndex = -1;
     int outputParamID = -1;
 

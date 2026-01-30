@@ -8,8 +8,7 @@
 
 namespace track {
 
-class pluginClipboardData {
-  public:
+struct pluginClipboardData {
     juce::String identifier = "unset path";
     juce::String data = "unset data";
 
@@ -18,8 +17,7 @@ class pluginClipboardData {
     float dryWetMix = -1.f;
 };
 
-class pluginChainClipboardData {
-  public:
+struct pluginChainClipboardData {
     std::vector<pluginClipboardData> plugins;
 };
 
