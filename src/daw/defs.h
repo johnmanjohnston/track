@@ -57,6 +57,11 @@ inline uiinstruction operator|(uiinstruction a, uiinstruction b) {
                                       static_cast<int>(b));
 }
 
+inline bool operator&(uiinstruction a, uiinstruction b) {
+    return (static_cast<uiinstruction>(static_cast<int>(a) &
+                                       static_cast<int>(b))) != 0;
+}
+
 // must align with internal JUCE modifications
 #define COMMAND_UPDATE_VST3_EMBEDDED_BOUNDS 420
 

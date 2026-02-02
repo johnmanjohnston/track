@@ -652,6 +652,10 @@ void AudioPluginAudioProcessor::updateLatencyAfterDelay() {
     juce::Timer::callAfterDelay(1000, [this] { updateLatency(); });
 }
 
+void AudioPluginAudioProcessor::dispatchGUIInstruction() {
+    sendChangeMessage();
+}
+
 void AudioPluginAudioProcessor::reset() {
     // if (plugin != nullptr) plugin.reset();
 }

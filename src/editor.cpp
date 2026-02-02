@@ -327,10 +327,42 @@ void AudioPluginAudioProcessorEditor::resized() {
 }
 
 void AudioPluginAudioProcessorEditor::changeListenerCallback(
-    ChangeBroadcaster *source) {
+    ChangeBroadcaster * /*source*/) {
     DBG("changeListenerCallback() called from editor");
 
-    track::uiinstruction instruction = processorRef.GUIInstruction;
+    track::uiinstruction x = processorRef.GUIInstruction;
+
+    if (x & track::uiinstruction::ExistingTimeline) {
+        DBG("existing timeline");
+    }
+
+    if (x & track::uiinstruction::FullTimeline) {
+        DBG("full timeline");
+    }
+
+    if (x & track::uiinstruction::TracklistNodeComponents) {
+        DBG("tracklist node components");
+    }
+
+    if (x & track::uiinstruction::InitCPWs) {
+        DBG("init CPWs");
+    }
+
+    if (x & track::uiinstruction::OpenSubwindowType) {
+        DBG("open subwindow type...");
+    }
+
+    if (x & track::uiinstruction::CloseSubwindowType) {
+        DBG("close subwindow type...");
+    }
+
+    if (x & track::uiinstruction::SubwindowTypeEditor) {
+        DBG("subwindow type editor");
+    }
+
+    if (x & track::uiinstruction::SubwindowTypeRelayParamWindows) {
+        DBG("subwindow type relay param windows");
+    }
 }
 
 void AudioPluginAudioProcessorEditor::openRelayMenu(std::vector<int> route,

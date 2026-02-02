@@ -1714,6 +1714,12 @@ bool track::ActionMoveNodeToGroup::undo() {
 }
 
 void track::ActionMoveNodeToGroup::updateGUI() {
+    AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
+    processor->GUIInstruction =
+        uiinstruction::FullTimeline | uiinstruction::TracklistNodeComponents;
+    DBG("raw val is " << processor->GUIInstruction);
+    processor->dispatchGUIInstruction();
+
     TimelineComponent *timelineComponent = (TimelineComponent *)tc;
     Tracklist *tracklist = (Tracklist *)tl;
 
