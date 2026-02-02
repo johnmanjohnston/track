@@ -1,8 +1,10 @@
 #pragma once
+#include "daw/defs.h"
 #include "daw/track.h"
 #include <JuceHeader.h>
 
-class AudioPluginAudioProcessor : public juce::AudioProcessor {
+class AudioPluginAudioProcessor : public juce::AudioProcessor,
+                                  public juce::ChangeBroadcaster {
   public:
     AudioPluginAudioProcessor();
     ~AudioPluginAudioProcessor() override;
@@ -55,6 +57,7 @@ class AudioPluginAudioProcessor : public juce::AudioProcessor {
 
     int automatableParametersIndexOffset = -1;
 
+    track::uiinstruction GUIInstruction;
     juce::UndoManager undoManager;
 
   private:

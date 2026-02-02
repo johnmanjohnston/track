@@ -1,3 +1,5 @@
+#pragma once
+
 namespace track {
 extern int UI_ZOOM_MULTIPLIER;
 constexpr int UI_MINIMUM_ZOOM_MULTIPLIER = 10;
@@ -35,6 +37,25 @@ constexpr int TRIM_REGION_WIDTH = 16;
 extern double SAMPLE_RATE;
 extern int SAMPLES_PER_BLOCK;
 extern int MAX_LATENT_SAMPLES;
+
+enum uiinstruction : long {
+    FullTimeline = 1,
+    ExistingTimeline = 2,
+    TracklistNodeComponents = 4,
+
+    InitCPWs = 8,
+
+    CloseSubwindowType = 16,
+    OpenSubwindowType = 128,
+
+    SubwindowTypeEditor = 32,
+    SubwindowTypeRelayParamWindows = 64
+};
+
+inline uiinstruction operator|(uiinstruction a, uiinstruction b) {
+    return static_cast<uiinstruction>(static_cast<int>(a) |
+                                      static_cast<int>(b));
+}
 
 // must align with internal JUCE modifications
 #define COMMAND_UPDATE_VST3_EMBEDDED_BOUNDS 420

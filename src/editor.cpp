@@ -5,6 +5,7 @@
 #include "daw/plugin_chain.h"
 #include "daw/timeline.h"
 #include "daw/track.h"
+#include "juce_events/juce_events.h"
 #include "lookandfeel.h"
 #include "processor.h"
 #include <cmath>
@@ -13,10 +14,13 @@
 
 AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
     AudioPluginAudioProcessor &p)
-    : AudioProcessorEditor(&p), latencyPoller(&p, this), processorRef(p),
-      masterSliderAttachment(*p.masterGain, masterSlider) {
+    : AudioProcessorEditor(&p), juce::ChangeListener(), latencyPoller(&p, this),
+      processorRef(p), masterSliderAttachment(*p.masterGain, masterSlider) {
 
     juce::ignoreUnused(processorRef);
+
+    // listen for messages from processor (for un/redoable actions UI updates)
+    processorRef.addChangeListener(this);
 
     // sizing
     setResizable(true, true);
@@ -218,6 +222,7 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
 
 AudioPluginAudioProcessorEditor::~AudioPluginAudioProcessorEditor() {
     stopTimer();
+    processorRef.removeChangeListener(this);
 
     setLookAndFeel(nullptr);
     track::clipboard::releaseResources();
@@ -319,6 +324,13 @@ void AudioPluginAudioProcessorEditor::resized() {
     configBtn.setColour(juce::TextButton::ColourIds::textColourOnId,
                         juce::Colours::orange);
     configBtn.setBounds(getWidth() - 66, 25, 62, 20);
+}
+
+void AudioPluginAudioProcessorEditor::changeListenerCallback(
+    ChangeBroadcaster *source) {
+    DBG("changeListenerCallback() called from editor");
+
+    track::uiinstruction instruction = processorRef.GUIInstruction;
 }
 
 void AudioPluginAudioProcessorEditor::openRelayMenu(std::vector<int> route,

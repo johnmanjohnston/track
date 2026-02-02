@@ -38,13 +38,16 @@ class LatencyPoller : public juce::Timer {
 };
 
 class AudioPluginAudioProcessorEditor : public juce::AudioProcessorEditor,
-                                        public juce::Timer {
+                                        public juce::Timer,
+                                        public juce::ChangeListener {
   public:
     explicit AudioPluginAudioProcessorEditor(AudioPluginAudioProcessor &);
     ~AudioPluginAudioProcessorEditor() override;
 
     void paint(juce::Graphics &) override;
     void resized() override;
+
+    void changeListenerCallback(ChangeBroadcaster *source) override;
 
     // scanning
     juce::AudioPluginFormatManager apfm;

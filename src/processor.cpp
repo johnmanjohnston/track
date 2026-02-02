@@ -13,7 +13,8 @@ AudioPluginAudioProcessor::AudioPluginAudioProcessor()
 #endif
               .withOutput("Output", juce::AudioChannelSet::stereo(), true)
 #endif
-      ) {
+              ),
+      juce::ChangeBroadcaster() {
     addParameter(masterGain = new juce::AudioParameterFloat("master", "Master",
                                                             0.f, 6.f, 1.f));
 
