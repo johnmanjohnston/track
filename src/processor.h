@@ -57,7 +57,8 @@ class AudioPluginAudioProcessor : public juce::AudioProcessor,
 
     int automatableParametersIndexOffset = -1;
 
-    void dispatchGUIInstruction();
+    void *guiData = nullptr;
+    void dispatchGUIInstruction(void *data = nullptr);
     track::uiinstruction GUIInstruction;
     juce::UndoManager undoManager;
 

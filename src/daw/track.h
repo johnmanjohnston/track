@@ -21,6 +21,11 @@ class clip {
     void updateBuffer();
 };
 
+struct clipCoordinate {
+    std::vector<int> route;
+    int pluginIndex = -1;
+};
+
 class ClipComponent : public juce::Component, public juce::ChangeListener {
   public:
     ClipComponent(clip *c, int clipHash);

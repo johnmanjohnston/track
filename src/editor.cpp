@@ -337,11 +337,15 @@ void AudioPluginAudioProcessorEditor::changeListenerCallback(
     }
 
     if (x & track::uiinstruction::FullTimeline) {
-        DBG("full timeline");
+        timelineComponent->clipComponents.clear();
+        timelineComponent->updateClipComponents();
     }
 
     if (x & track::uiinstruction::TracklistNodeComponents) {
-        DBG("tracklist node components");
+        tracklist.trackComponents.clear();
+        tracklist.createTrackComponents();
+        tracklist.setTrackComponentBounds();
+        tracklist.clearStains();
     }
 
     if (x & track::uiinstruction::InitCPWs) {
