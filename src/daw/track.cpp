@@ -1653,12 +1653,17 @@ bool track::ActionMoveNodeToGroup::perform() {
 
     // state mutated; re-get group by using its stain and add "temp" to that
     groupRouteAfterMoving = getStainedRoute(STAIN_MOVENODETOGROUP_GROUP);
+
+    DBG("group route after moving is "
+        << utility::prettyVector(groupRouteAfterMoving));
+
     group = utility::getNodeFromRoute(groupRouteAfterMoving, p);
     audioNode &newNode = group->childNodes.emplace_back();
     utility::copyNode(&newNode, temp, p);
 
     // now we can get route after moving by STAIN_MOVENODETOGROUP_NODE yay!
     routeAfterMoving = getStainedRoute(STAIN_MOVENODETOGROUP_NODE);
+    AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
 
     delete temp;
 
@@ -1714,13 +1719,13 @@ bool track::ActionMoveNodeToGroup::undo() {
 }
 
 void track::ActionMoveNodeToGroup::updateGUI() {
+    /*
     AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
     processor->GUIInstruction =
         uiinstruction::FullTimeline | uiinstruction::TracklistNodeComponents;
 
-    processor->dispatchGUIInstruction();
+    processor->dispatchGUIInstruction();*/
 
-    /*
     TimelineComponent *timelineComponent = (TimelineComponent *)tc;
     Tracklist *tracklist = (Tracklist *)tl;
 
@@ -1731,7 +1736,7 @@ void track::ActionMoveNodeToGroup::updateGUI() {
     tracklist->setTrackComponentBounds();
     tracklist->clearStains();
 
-    timelineComponent->updateClipComponents();*/
+    timelineComponent->updateClipComponents();
 }
 
 void track::ActionMoveNodeToGroup::updateOnlyTracklist() {
@@ -1742,12 +1747,56 @@ void track::ActionMoveNodeToGroup::updateOnlyTracklist() {
 
 std::vector<int> track::ActionMoveNodeToGroup::getStainedRoute(int staincode) {
     std::vector<int> retval;
-    updateOnlyTracklist();
+    AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
 
-    Tracklist *tracklist = (Tracklist *)tl;
-    for (auto &x : tracklist->trackComponents) {
-        if (x->getCorrespondingTrack()->stain == staincode)
-            return x->route;
+    for (size_t i = 0; i < processor->tracks.size(); ++i) {
+        std::vector<int> tmp;
+        tmp.push_back(i);
+
+        audioNode *n = &processor->tracks[i];
+
+        if (n->stain == staincode) {
+            DBG("MATCH FOUND (TLD): " << utility::prettyVector(tmp));
+            return tmp;
+        }
+
+        DBG("found: " << n->trackName);
+
+        auto x = traverseStain(staincode, n, tmp, 0);
+        DBG("TLD x = " << utility::prettyVector(x));
+
+        if (x.size() > 1)
+            return x;
+    }
+
+    return retval;
+}
+
+std::vector<int> track::ActionMoveNodeToGroup::traverseStain(
+    int staincode, audioNode *parentNode, std::vector<int> r, int depth = 0) {
+    // sex1
+    std::vector<int> retval = r;
+
+    for (size_t i = 0; i < parentNode->childNodes.size(); ++i) {
+        r.push_back(i);
+
+        audioNode *n = &parentNode->childNodes[i];
+        if (n->stain == staincode) {
+            DBG("MATCH FOUND: " << utility::prettyVector(r));
+            return r;
+        }
+
+        DBG("found: " << n->trackName);
+
+        if (!n->isTrack) {
+            auto x = traverseStain(staincode, n, r, depth + 1);
+            DBG("x = " << utility::prettyVector(x));
+
+            if (x.size() > r.size())
+                return x;
+        }
+
+        r.pop_back();
     }
 
     return retval;

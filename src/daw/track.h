@@ -419,6 +419,8 @@ class ActionMoveNodeToGroup : public juce::UndoableAction {
 
     void updateOnlyTracklist();
     std::vector<int> getStainedRoute(int staincode);
+    std::vector<int> traverseStain(int staincode, audioNode *parentNode,
+                                   std::vector<int> r, int depth);
 };
 
 class Tracklist : public juce::Component {
