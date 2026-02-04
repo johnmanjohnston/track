@@ -38,29 +38,12 @@ extern double SAMPLE_RATE;
 extern int SAMPLES_PER_BLOCK;
 extern int MAX_LATENT_SAMPLES;
 
-enum uiinstruction : long {
-    FullTimeline = 1,
-    ExistingTimeline = 2,
-    TracklistNodeComponents = 4,
-
-    InitCPWs = 8,
-
-    CloseSubwindowType = 16,
-    OpenSubwindowType = 128,
-
-    SubwindowTypeEditor = 32,
-    SubwindowTypeRelayParamWindows = 64
+struct uiinstruction {
+    int command = -1;
+    void *metadata = nullptr;
 };
 
-inline uiinstruction operator|(uiinstruction a, uiinstruction b) {
-    return static_cast<uiinstruction>(static_cast<int>(a) |
-                                      static_cast<int>(b));
-}
-
-inline bool operator&(uiinstruction a, uiinstruction b) {
-    return (static_cast<uiinstruction>(static_cast<int>(a) &
-                                       static_cast<int>(b))) != 0;
-}
+#define UI_INSTRUCTION_UPDATE_CORE 0x01
 
 // must align with internal JUCE modifications
 #define COMMAND_UPDATE_VST3_EMBEDDED_BOUNDS 420

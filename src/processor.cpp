@@ -652,8 +652,7 @@ void AudioPluginAudioProcessor::updateLatencyAfterDelay() {
     juce::Timer::callAfterDelay(1000, [this] { updateLatency(); });
 }
 
-void AudioPluginAudioProcessor::dispatchGUIInstruction(void *data) {
-    this->guiData = data;
+void AudioPluginAudioProcessor::dispatchGUIInstruction() {
     sendChangeMessage();
 }
 

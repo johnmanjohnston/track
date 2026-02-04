@@ -332,40 +332,15 @@ void AudioPluginAudioProcessorEditor::changeListenerCallback(
 
     track::uiinstruction x = processorRef.GUIInstruction;
 
-    if (x & track::uiinstruction::ExistingTimeline) {
-        DBG("existing timeline");
-    }
-
-    if (x & track::uiinstruction::FullTimeline) {
+    if (x.command == UI_INSTRUCTION_UPDATE_CORE) {
         timelineComponent->clipComponents.clear();
-        timelineComponent->updateClipComponents();
-    }
-
-    if (x & track::uiinstruction::TracklistNodeComponents) {
         tracklist.trackComponents.clear();
+
         tracklist.createTrackComponents();
         tracklist.setTrackComponentBounds();
         tracklist.clearStains();
-    }
 
-    if (x & track::uiinstruction::InitCPWs) {
-        DBG("init CPWs");
-    }
-
-    if (x & track::uiinstruction::OpenSubwindowType) {
-        DBG("open subwindow type...");
-    }
-
-    if (x & track::uiinstruction::CloseSubwindowType) {
-        DBG("close subwindow type...");
-    }
-
-    if (x & track::uiinstruction::SubwindowTypeEditor) {
-        DBG("subwindow type editor");
-    }
-
-    if (x & track::uiinstruction::SubwindowTypeRelayParamWindows) {
-        DBG("subwindow type relay param windows");
+        timelineComponent->updateClipComponents();
     }
 }
 

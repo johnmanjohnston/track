@@ -1719,6 +1719,12 @@ bool track::ActionMoveNodeToGroup::undo() {
 }
 
 void track::ActionMoveNodeToGroup::updateGUI() {
+    AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
+    uiinstruction x;
+    x.command = UI_INSTRUCTION_UPDATE_CORE;
+    processor->GUIInstruction = x;
+    processor->dispatchGUIInstruction();
+
     /*
     AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
     processor->GUIInstruction =
@@ -1726,6 +1732,7 @@ void track::ActionMoveNodeToGroup::updateGUI() {
 
     processor->dispatchGUIInstruction();*/
 
+    /*
     TimelineComponent *timelineComponent = (TimelineComponent *)tc;
     Tracklist *tracklist = (Tracklist *)tl;
 
@@ -1736,7 +1743,7 @@ void track::ActionMoveNodeToGroup::updateGUI() {
     tracklist->setTrackComponentBounds();
     tracklist->clearStains();
 
-    timelineComponent->updateClipComponents();
+    timelineComponent->updateClipComponents();*/
 }
 
 void track::ActionMoveNodeToGroup::updateOnlyTracklist() {
