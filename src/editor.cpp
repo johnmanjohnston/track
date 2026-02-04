@@ -342,6 +342,21 @@ void AudioPluginAudioProcessorEditor::changeListenerCallback(
 
         timelineComponent->updateClipComponents();
     }
+
+    else if (x.command == UI_INSTRUCTION_MARK_CC_STALE) {
+        track::clip *c = (track::clip *)x.metadata;
+        for (auto &cc : timelineComponent->clipComponents) {
+            if (cc->correspondingClip == c) {
+                DBG("stale match found!");
+                cc->stale = true;
+            }
+        }
+    }
+
+    else if (x.command == UI_INSTRUCTION_UPDATE_STALE_TIMELINE) {
+        timelineComponent->updateOnlyStaleClipComponents();
+        timelineComponent->repaint();
+    }
 }
 
 void AudioPluginAudioProcessorEditor::openRelayMenu(std::vector<int> route,

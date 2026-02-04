@@ -44,6 +44,9 @@ struct uiinstruction {
 };
 
 #define UI_INSTRUCTION_UPDATE_CORE 0x01
+#define UI_INSTRUCTION_MARK_CC_STALE 0x02
+#define UI_INSTRUCTION_UPDATE_STALE_TIMELINE 0x03
+#define UI_INSTRUCTION_INIT_CPWS 0x04
 
 // must align with internal JUCE modifications
 #define COMMAND_UPDATE_VST3_EMBEDDED_BOUNDS 420

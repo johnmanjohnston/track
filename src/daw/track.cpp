@@ -602,15 +602,29 @@ bool track::ActionClipModified::undo() {
 void track::ActionClipModified::markClipComponentStale() {
     // the ClipComponent for this clip is probably not stale;
     // so stalify it here
-    TimelineComponent *timelineComponent = (TimelineComponent *)tc;
+
+    DBG("markClipComponentStale() called");
+
+    AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
+    processor->dispatchGUIInstruction(UI_INSTRUCTION_MARK_CC_STALE, getClip());
+
+    /*TimelineComponent *timelineComponent = (TimelineComponent *)tc;
     for (auto &clipComponent : timelineComponent->clipComponents) {
         if (clipComponent->correspondingClip == getClip()) {
             clipComponent->stale = true;
         }
-    }
+    }*/
 }
 
 void track::ActionClipModified::updateGUI() {
+    AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
+
+    DBG("udpateGUI() called");
+
+    processor->dispatchGUIInstruction(UI_INSTRUCTION_UPDATE_STALE_TIMELINE);
+    processor->dispatchGUIInstruction(UI_INSTRUCTION_INIT_CPWS);
+
+    /*
     jassert(tc != nullptr);
 
     TimelineComponent *timelineComponent = (TimelineComponent *)tc;
@@ -623,7 +637,7 @@ void track::ActionClipModified::updateGUI() {
 
     for (auto &cpw : editor->clipPropertiesWindows) {
         cpw->init();
-    }
+    }*/
 }
 
 track::ClipPropertiesWindow::ClipPropertiesWindow() : track::Subwindow() {
@@ -1720,30 +1734,7 @@ bool track::ActionMoveNodeToGroup::undo() {
 
 void track::ActionMoveNodeToGroup::updateGUI() {
     AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
-    uiinstruction x;
-    x.command = UI_INSTRUCTION_UPDATE_CORE;
-    processor->GUIInstruction = x;
-    processor->dispatchGUIInstruction();
-
-    /*
-    AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
-    processor->GUIInstruction =
-        uiinstruction::FullTimeline | uiinstruction::TracklistNodeComponents;
-
-    processor->dispatchGUIInstruction();*/
-
-    /*
-    TimelineComponent *timelineComponent = (TimelineComponent *)tc;
-    Tracklist *tracklist = (Tracklist *)tl;
-
-    timelineComponent->clipComponents.clear();
-    tracklist->trackComponents.clear();
-
-    tracklist->createTrackComponents();
-    tracklist->setTrackComponentBounds();
-    tracklist->clearStains();
-
-    timelineComponent->updateClipComponents();*/
+    processor->dispatchGUIInstruction(UI_INSTRUCTION_UPDATE_CORE);
 }
 
 void track::ActionMoveNodeToGroup::updateOnlyTracklist() {
