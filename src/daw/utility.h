@@ -23,6 +23,11 @@ void reorderNode(std::vector<int> r1, std::vector<int> r2,
 void reorderNodeAlt(std::vector<int> r1, std::vector<int> r2, void *p);
 bool isSibling(std::vector<int> r1, std::vector<int> r2);
 void deleteNode(std::vector<int> route, void *p);
+
+std::vector<audioNode *> getFlattenedNodes(void *p);
+void traverseAndFlattenNodes(std::vector<audioNode *> *vec, audioNode *parent,
+                             void *p);
+
 // plugins
 void reorderPlugin(int srcIndex, int destIndex, audioNode *node);
 void closeOpenedEditors(std::vector<int> nodeRoute,

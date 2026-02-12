@@ -136,7 +136,6 @@ void track::ActionCutClip::updateGUI() {
     timelineComponent->updateClipComponents();*/
 
     AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
-    processor->dispatchGUIInstruction(UI_INSTRUCTION_CLEAR_CLIP_COMPONENTS);
     processor->dispatchGUIInstruction(UI_INSTRUCTION_UPDATE_CLIP_COMPONENTS);
 }
 
@@ -204,7 +203,6 @@ void track::ActionSplitClip::updateGUI() {
         timelineComponent->updateClipComponents();*/
 
         AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
-        processor->dispatchGUIInstruction(UI_INSTRUCTION_CLEAR_CLIP_COMPONENTS);
         processor->dispatchGUIInstruction(
             UI_INSTRUCTION_UPDATE_CLIP_COMPONENTS);
     }
@@ -244,7 +242,15 @@ void track::ActionShiftClips::shift(int bars) {
         }
     }*/
 
-    // FIXME: this
+    std::vector<audioNode *> nodes = utility::getFlattenedNodes(p);
+
+    for (size_t i = 0; i < nodes.size(); ++i) {
+        if (nodes[i]->isTrack) {
+            for (size_t j = 0; j < nodes[i]->clips.size(); ++j) {
+                nodes[i]->clips[j].startPositionSample += samplesPerBar * bars;
+            }
+        }
+    }
 }
 
 void track::ActionShiftClips::updateGUI() {
@@ -697,7 +703,7 @@ void track::TimelineComponent::splitClip(clip *c, int splitSample,
 }
 
 void track::TimelineComponent::shiftClipByBars(int bars) {
-    ActionShiftClips *action = new ActionShiftClips(bars, this);
+    ActionShiftClips *action = new ActionShiftClips(bars, this->processorRef);
     processorRef->undoManager.beginNewTransaction("action shift clips");
     processorRef->undoManager.perform(action);
 }

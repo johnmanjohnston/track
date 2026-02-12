@@ -342,6 +342,31 @@ void track::utility::deleteNode(std::vector<int> route, void *p) {
     parent->childNodes.erase(parent->childNodes.begin() + route.back());
 }
 
+std::vector<track::audioNode *> track::utility::getFlattenedNodes(void *p) {
+    std::vector<track::audioNode *> retval;
+
+    AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
+
+    for (size_t i = 0; i < processor->tracks.size(); ++i) {
+        retval.push_back(&processor->tracks[i]);
+
+        if (!processor->tracks[i].isTrack)
+            traverseAndFlattenNodes(&retval, &processor->tracks[i], p);
+    }
+
+    return retval;
+}
+
+void track::utility::traverseAndFlattenNodes(std::vector<audioNode *> *vec,
+                                             audioNode *parent, void *p) {
+    for (size_t i = 0; i < parent->childNodes.size(); ++i) {
+        vec->push_back(&parent->childNodes[i]);
+
+        if (!parent->childNodes[i].isTrack)
+            traverseAndFlattenNodes(vec, &parent->childNodes[i], p);
+    }
+}
+
 void track::utility::reorderPlugin(int srcIndex, int destIndex,
                                    audioNode *node) {
     // std::move is absolute magic how have i not known of this sooner

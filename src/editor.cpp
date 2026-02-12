@@ -399,10 +399,6 @@ void AudioPluginAudioProcessorEditor::changeListenerCallback(
     else if (x.command == UI_INSTRUCTION_UPDATE_CLIP_COMPONENTS) {
         timelineComponent->updateClipComponents();
     }
-
-    else if (x.command == UI_INSTRUCTION_CLEAR_CLIP_COMPONENTS) {
-        timelineComponent->clipComponents.clear();
-    }
 }
 
 void AudioPluginAudioProcessorEditor::openRelayMenu(std::vector<int> route,
