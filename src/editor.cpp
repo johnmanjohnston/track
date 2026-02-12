@@ -357,6 +357,43 @@ void AudioPluginAudioProcessorEditor::changeListenerCallback(
         timelineComponent->updateOnlyStaleClipComponents();
         timelineComponent->repaint();
     }
+
+    else if (x.command == UI_INSTRUCTION_RECREATE_PCC) {
+        std::vector<int> nodeRoute = x.r;
+
+        for (size_t i = 0; i < pluginChainComponents.size(); ++i) {
+            if (pluginChainComponents[i]->route == nodeRoute) {
+                // recreate plugin node components
+
+                pluginChainComponents[i]
+                    ->nodesWrapper.pluginNodeComponents.clear();
+                pluginChainComponents[i]
+                    ->nodesWrapper.createPluginNodeComponents();
+            }
+        }
+    }
+
+    else if (x.command == UI_INSTRUCTION_RECREATE_ALL_PNCS) {
+        std::vector<int> route = x.r;
+
+        for (size_t i = 0; i < pluginChainComponents.size(); ++i) {
+            if (pluginChainComponents[i]->route == route) {
+                pluginChainComponents[i]
+                    ->nodesWrapper.pluginNodeComponents.clear();
+                pluginChainComponents[i]
+                    ->nodesWrapper.createPluginNodeComponents();
+            }
+        }
+    }
+
+    else if (x.command == UI_INSTRUCTION_RECREATE_RELAY_NODES) {
+        for (size_t i = 0; i < relayManagerCompnoents.size(); ++i) {
+            std::vector<int> route = x.r;
+
+            if (relayManagerCompnoents[i]->route == route)
+                relayManagerCompnoents[i]->rmNodesWrapper.createRelayNodes();
+        }
+    }
 }
 
 void AudioPluginAudioProcessorEditor::openRelayMenu(std::vector<int> route,

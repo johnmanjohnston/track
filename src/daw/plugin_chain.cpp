@@ -46,9 +46,10 @@ bool track::ActionAddPlugin::undo() {
 }
 
 void track::ActionAddPlugin::updateGUI() {
-    AudioPluginAudioProcessorEditor *editor =
-        (AudioPluginAudioProcessorEditor *)e;
-
+    AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
+    processor->dispatchGUIInstruction(UI_INSTRUCTION_RECREATE_PCC, nullptr,
+                                      nodeRoute);
+    /*
     for (size_t i = 0; i < editor->pluginChainComponents.size(); ++i) {
         if (editor->pluginChainComponents[i]->route == nodeRoute) {
             // recreate plugin node components
@@ -58,7 +59,7 @@ void track::ActionAddPlugin::updateGUI() {
             editor->pluginChainComponents[i]
                 ->nodesWrapper.createPluginNodeComponents();
         }
-    }
+    }*/
 }
 
 track::ActionRemovePlugin::ActionRemovePlugin(track::pluginClipboardData data,
@@ -120,6 +121,11 @@ bool track::ActionRemovePlugin::undo() {
 }
 
 void track::ActionRemovePlugin::updateGUI() {
+    AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
+    processor->dispatchGUIInstruction(UI_INSTRUCTION_RECREATE_PCC, nullptr,
+                                      nodeRoute);
+
+    /*
     AudioPluginAudioProcessorEditor *editor =
         (AudioPluginAudioProcessorEditor *)e;
 
@@ -130,7 +136,7 @@ void track::ActionRemovePlugin::updateGUI() {
             editor->pluginChainComponents[i]
                 ->nodesWrapper.createPluginNodeComponents();
         }
-    }
+    }*/
 }
 
 track::ActionReorderPlugin::ActionReorderPlugin(std::vector<int> nodeRoute,
@@ -183,6 +189,11 @@ bool track::ActionReorderPlugin::undo() {
 }
 
 void track::ActionReorderPlugin::updateGUI() {
+    AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
+    processor->dispatchGUIInstruction(UI_INSTRUCTION_RECREATE_ALL_PNCS, nullptr,
+                                      route);
+
+    /*
     AudioPluginAudioProcessorEditor *editor =
         (AudioPluginAudioProcessorEditor *)e;
 
@@ -193,7 +204,7 @@ void track::ActionReorderPlugin::updateGUI() {
             editor->pluginChainComponents[i]
                 ->nodesWrapper.createPluginNodeComponents();
         }
-    }
+    }*/
 }
 
 track::ActionChangeTrivialPluginData::ActionChangeTrivialPluginData(
@@ -237,6 +248,14 @@ void track::ActionChangeTrivialPluginData::updateGUI() {
     AudioPluginAudioProcessorEditor *editor =
         (AudioPluginAudioProcessorEditor *)e;
 
+    AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
+    processor->dispatchGUIInstruction(UI_INSTRUCTION_RECREATE_ALL_PNCS, nullptr,
+                                      route);
+
+    processor->dispatchGUIInstruction(UI_INSTRUCTION_RECREATE_RELAY_NODES,
+                                      nullptr, route);
+
+    /*
     for (size_t i = 0; i < editor->pluginChainComponents.size(); ++i) {
         if (editor->pluginChainComponents[i]->route == route) {
             editor->pluginChainComponents[i]
@@ -251,7 +270,7 @@ void track::ActionChangeTrivialPluginData::updateGUI() {
         if (editor->relayManagerCompnoents[i]->route == route)
             editor->relayManagerCompnoents[i]
                 ->rmNodesWrapper.createRelayNodes();
-    }
+    }*/
 };
 
 track::PluginNodeComponent::PluginNodeComponent() : juce::Component() {

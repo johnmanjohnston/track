@@ -36,7 +36,7 @@ class ActionAddPlugin : public juce::UndoableAction {
 
     bool perform() override;
     bool undo() override;
-    void updateGUI();
+    void updateGUI(); // y
 };
 
 class ActionRemovePlugin : public juce::UndoableAction {
@@ -53,7 +53,7 @@ class ActionRemovePlugin : public juce::UndoableAction {
 
     bool perform() override;
     bool undo() override;
-    void updateGUI();
+    void updateGUI(); // y
 
     std::vector<track::subplugin *> openedPlugins;
 };
@@ -75,7 +75,7 @@ class ActionReorderPlugin : public juce::UndoableAction {
 
     bool perform() override;
     bool undo() override;
-    void updateGUI();
+    void updateGUI(); // y
 };
 
 class ActionChangeTrivialPluginData : public juce::UndoableAction {
@@ -95,7 +95,7 @@ class ActionChangeTrivialPluginData : public juce::UndoableAction {
 
     bool perform() override;
     bool undo() override;
-    void updateGUI();
+    void updateGUI(); // y
 };
 
 class PluginNodeComponent : public juce::Component {

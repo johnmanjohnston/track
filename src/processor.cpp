@@ -652,13 +652,14 @@ void AudioPluginAudioProcessor::updateLatencyAfterDelay() {
     juce::Timer::callAfterDelay(1000, [this] { updateLatency(); });
 }
 
-void AudioPluginAudioProcessor::dispatchGUIInstruction(int commandID,
-                                                       void *data) {
+void AudioPluginAudioProcessor::dispatchGUIInstruction(
+    int commandID, void *data, std::vector<int> routeData) {
     if (commandID != -1) {
         this->GUIInstruction.command = commandID;
     }
 
     this->GUIInstruction.metadata = data;
+    this->GUIInstruction.r = routeData;
 
     sendSynchronousChangeMessage();
 }

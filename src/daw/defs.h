@@ -1,4 +1,5 @@
 #pragma once
+#include <vector>
 
 namespace track {
 extern int UI_ZOOM_MULTIPLIER;
@@ -41,12 +42,16 @@ extern int MAX_LATENT_SAMPLES;
 struct uiinstruction {
     int command = -1;
     void *metadata = nullptr;
+    std::vector<int> r;
 };
 
 #define UI_INSTRUCTION_UPDATE_CORE 0x01
 #define UI_INSTRUCTION_MARK_CC_STALE 0x02
 #define UI_INSTRUCTION_UPDATE_STALE_TIMELINE 0x03
 #define UI_INSTRUCTION_INIT_CPWS 0x04
+#define UI_INSTRUCTION_RECREATE_PCC 0x05
+#define UI_INSTRUCTION_RECREATE_ALL_PNCS 0x06
+#define UI_INSTRUCTION_RECREATE_RELAY_NODES 0x07
 
 // must align with internal JUCE modifications
 #define COMMAND_UPDATE_VST3_EMBEDDED_BOUNDS 420
