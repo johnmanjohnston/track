@@ -119,7 +119,7 @@ class ActionClipModified : public juce::UndoableAction {
     bool perform() override;
     bool undo() override;
     void markClipComponentStale();
-    void updateGUI(); // GUI sounds cooler than UI here, idk man
+    void updateGUI(); // GUI sounds cooler than UI here, idk man // y
 };
 
 class ClipPropertiesWindow : public track::Subwindow {
@@ -290,7 +290,7 @@ class ActionCreateNode : public juce::UndoableAction {
 
     bool perform() override;
     bool undo() override;
-    void updateGUI();
+    void updateGUI(); // y
 };
 
 class ActionDeleteNode : public juce::UndoableAction {
@@ -308,7 +308,7 @@ class ActionDeleteNode : public juce::UndoableAction {
 
     bool perform() override;
     bool undo() override;
-    void updateGUI();
+    void updateGUI(); // y
 };
 
 class ActionPasteNode : public juce::UndoableAction {
@@ -326,7 +326,7 @@ class ActionPasteNode : public juce::UndoableAction {
 
     bool perform() override;
     bool undo() override;
-    void updateGUI();
+    void updateGUI(); // y
 };
 
 struct TrivialNodeData {
@@ -356,7 +356,7 @@ class ActionModifyTrivialNodeData : public juce::UndoableAction {
 
     bool perform() override;
     bool undo() override;
-    void updateGUI();
+    void updateGUI(); // y
 };
 
 class ActionReorderNode : public juce::UndoableAction {
@@ -375,7 +375,7 @@ class ActionReorderNode : public juce::UndoableAction {
 
     bool perform() override;
     bool undo() override;
-    void updateGUI();
+    void updateGUI(); // y
 };
 
 class ActionUngroup : public juce::UndoableAction {
@@ -393,7 +393,7 @@ class ActionUngroup : public juce::UndoableAction {
 
     bool perform() override;
     bool undo() override;
-    void updateGUI();
+    void updateGUI(); // y
 };
 
 class ActionMoveNodeToGroup : public juce::UndoableAction {
@@ -415,7 +415,7 @@ class ActionMoveNodeToGroup : public juce::UndoableAction {
 
     bool perform() override;
     bool undo() override;
-    void updateGUI();
+    void updateGUI(); // y
 
     void updateOnlyTracklist();
     std::vector<int> getStainedRoute(int staincode);

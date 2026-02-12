@@ -1416,11 +1416,15 @@ bool track::ActionCreateNode::undo() {
 }
 
 void track::ActionCreateNode::updateGUI() {
+    /*
     Tracklist *tracklist = (Tracklist *)tl;
     tracklist->trackComponents.clear();
     tracklist->createTrackComponents();
     tracklist->setTrackComponentBounds();
-    tracklist->repaint();
+    tracklist->repaint();*/
+
+    AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
+    processor->dispatchGUIInstruction(UI_INSTRUCTION_UPDATE_NODE_COMPONENTS);
 }
 
 track::ActionDeleteNode::ActionDeleteNode(std::vector<int> nodeRoute,
@@ -1512,6 +1516,7 @@ bool track::ActionDeleteNode::undo() {
 }
 
 void track::ActionDeleteNode::updateGUI() {
+    /*
     TimelineComponent *timelineComponent = (TimelineComponent *)tc;
     Tracklist *tracklist = (Tracklist *)tl;
 
@@ -1521,7 +1526,10 @@ void track::ActionDeleteNode::updateGUI() {
     tracklist->createTrackComponents();
     tracklist->setTrackComponentBounds();
 
-    timelineComponent->updateClipComponents();
+    timelineComponent->updateClipComponents();*/
+
+    AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
+    processor->dispatchGUIInstruction(UI_INSTRUCTION_UPDATE_CORE);
 }
 
 track::ActionPasteNode::ActionPasteNode(std::vector<int> pRoute,
@@ -1562,6 +1570,7 @@ bool track::ActionPasteNode::undo() {
     return true;
 }
 void track::ActionPasteNode::updateGUI() {
+    /*
     AudioPluginAudioProcessorEditor *editor =
         (AudioPluginAudioProcessorEditor *)e;
 
@@ -1573,7 +1582,10 @@ void track::ActionPasteNode::updateGUI() {
 
     TimelineComponent *tc = editor->timelineComponent.get();
     tc->clipComponents.clear();
-    tc->updateClipComponents();
+    tc->updateClipComponents();*/
+
+    AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
+    processor->dispatchGUIInstruction(UI_INSTRUCTION_UPDATE_CORE);
 }
 
 track::ActionModifyTrivialNodeData::ActionModifyTrivialNodeData(
@@ -1608,10 +1620,15 @@ bool track::ActionModifyTrivialNodeData::undo() {
 }
 
 void track::ActionModifyTrivialNodeData::updateGUI() {
+    /*
     AudioPluginAudioProcessorEditor *editor =
         (AudioPluginAudioProcessorEditor *)e;
 
-    editor->tracklist.updateExistingTrackComponents();
+    editor->tracklist.updateExistingTrackComponents();*/
+
+    AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
+    processor->dispatchGUIInstruction(
+        UI_INSTRUCTION_UPDATE_EXISTING_NODE_COMPONENTS);
 }
 
 track::ActionMoveNodeToGroup::ActionMoveNodeToGroup(std::vector<int> toMove,
@@ -1838,6 +1855,7 @@ bool track::ActionReorderNode::undo() {
 }
 
 void track::ActionReorderNode::updateGUI() {
+    /*
     TimelineComponent *timelineComponent = (TimelineComponent *)tc;
     Tracklist *tracklist = (Tracklist *)tl;
 
@@ -1847,7 +1865,10 @@ void track::ActionReorderNode::updateGUI() {
     tracklist->createTrackComponents();
     tracklist->setTrackComponentBounds();
 
-    timelineComponent->updateClipComponents();
+    timelineComponent->updateClipComponents();*/
+
+    AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
+    processor->dispatchGUIInstruction(UI_INSTRUCTION_UPDATE_CORE);
 }
 
 track::ActionUngroup::ActionUngroup(std::vector<int> nodeRoute, void *processor,
@@ -1970,6 +1991,7 @@ bool track::ActionUngroup::undo() {
 }
 
 void track::ActionUngroup::updateGUI() {
+    /*
     Tracklist *tracklist = (Tracklist *)tl;
     TimelineComponent *timelineComponent =
         (TimelineComponent *)tracklist->timelineComponent;
@@ -1978,7 +2000,10 @@ void track::ActionUngroup::updateGUI() {
     timelineComponent->clipComponents.clear();
 
     tracklist->createTrackComponents();
-    timelineComponent->updateClipComponents();
+    timelineComponent->updateClipComponents();*/
+
+    AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
+    processor->dispatchGUIInstruction(UI_INSTRUCTION_UPDATE_CORE);
 }
 
 track::Tracklist::Tracklist() : juce::Component() {
