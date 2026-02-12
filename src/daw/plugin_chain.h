@@ -26,10 +26,9 @@ class ActionAddPlugin : public juce::UndoableAction {
     std::vector<int> nodeRoute;
     juce::String pluginIdentifier = "unset identifier";
     void *p = nullptr;
-    void *e = nullptr;
 
     ActionAddPlugin(std::vector<int> route, juce::String identifier,
-                    void *processor, void *editor);
+                    void *processor);
     ~ActionAddPlugin();
 
     bool validPlugin = false;
@@ -42,20 +41,17 @@ class ActionAddPlugin : public juce::UndoableAction {
 class ActionRemovePlugin : public juce::UndoableAction {
   public:
     ActionRemovePlugin(pluginClipboardData data, std::vector<int> route,
-                       int index, void *processor, void *editor);
+                       int index, void *processor);
     ~ActionRemovePlugin();
 
     pluginClipboardData subpluginData;
     std::vector<int> nodeRoute;
     void *p = nullptr;
-    void *e = nullptr;
     int pluginIndex = -1;
 
     bool perform() override;
     bool undo() override;
     void updateGUI(); // y
-
-    std::vector<track::subplugin *> openedPlugins;
 };
 
 class ActionReorderPlugin : public juce::UndoableAction {

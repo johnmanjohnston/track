@@ -5,16 +5,16 @@
 #include "track.h"
 #include "utility.h"
 #include <cstddef>
+#include <cstdint>
 #include <fcntl.h>
 
 track::ActionAddPlugin::ActionAddPlugin(std::vector<int> route,
                                         juce::String identifier,
-                                        void *processor, void *editor)
+                                        void *processor)
     : juce::UndoableAction() {
     this->nodeRoute = route;
     this->pluginIdentifier = identifier;
     this->p = processor;
-    this->e = editor;
 }
 track::ActionAddPlugin::~ActionAddPlugin() {}
 
@@ -31,12 +31,13 @@ bool track::ActionAddPlugin::undo() {
     if (!validPlugin)
         return false;
 
-    // close editor, then remove plugin
-    AudioPluginAudioProcessorEditor *editor =
-        (AudioPluginAudioProcessorEditor *)e;
-
     audioNode *node = utility::getNodeFromRoute(nodeRoute, p);
-    editor->closePluginEditorWindow(nodeRoute, node->plugins.size() - 1);
+
+    // close editor, then remove plugin
+    AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
+    processor->dispatchGUIInstruction(
+        UI_INSTRUCTION_CLOSE_PEW, (void *)(uintptr_t)(node->plugins.size() - 1),
+        nodeRoute);
 
     node->removePlugin(node->plugins.size() - 1);
 
@@ -64,30 +65,35 @@ void track::ActionAddPlugin::updateGUI() {
 
 track::ActionRemovePlugin::ActionRemovePlugin(track::pluginClipboardData data,
                                               std::vector<int> route, int index,
-                                              void *processor, void *editor)
+                                              void *processor)
     : juce::UndoableAction() {
     this->subpluginData = data;
     this->nodeRoute = route;
     this->p = processor;
-    this->e = editor;
     this->pluginIndex = index;
 };
 track::ActionRemovePlugin::~ActionRemovePlugin(){};
 
 bool track::ActionRemovePlugin::perform() {
-    utility::closeOpenedEditors(nodeRoute, &openedPlugins, p, e);
+    AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
+    processor->dispatchGUIInstruction(UI_INSTRUCTION_CLOSE_OPENED_EDITORS,
+                                      nullptr, nodeRoute);
 
     audioNode *node = utility::getNodeFromRoute(nodeRoute, p);
     node->removePlugin(pluginIndex);
 
     updateGUI();
-    utility::openEditors(nodeRoute, openedPlugins, p, e);
+
+    processor->dispatchGUIInstruction(UI_INSTRUCTION_OPEN_CLOSED_EDITORS,
+                                      nullptr, nodeRoute);
 
     return true;
 }
 
 bool track::ActionRemovePlugin::undo() {
-    utility::closeOpenedEditors(nodeRoute, &openedPlugins, p, e);
+    AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
+    processor->dispatchGUIInstruction(UI_INSTRUCTION_CLOSE_OPENED_EDITORS,
+                                      nullptr, nodeRoute);
 
     audioNode *node = utility::getNodeFromRoute(nodeRoute, p);
 
@@ -115,7 +121,9 @@ bool track::ActionRemovePlugin::undo() {
 
     // plugin is readded, how handle UI stuff
     updateGUI();
-    utility::openEditors(nodeRoute, openedPlugins, p, e);
+
+    processor->dispatchGUIInstruction(UI_INSTRUCTION_OPEN_CLOSED_EDITORS,
+                                      nullptr, nodeRoute);
 
     return true;
 }
@@ -640,7 +648,7 @@ void track::PluginNodesWrapper::mouseDown(const juce::MouseEvent &event) {
                     // add plugin using action
                     ActionAddPlugin *action = new ActionAddPlugin(
                         pcc->route, pluginDescription.fileOrIdentifier,
-                        pcc->processor, editor);
+                        pcc->processor);
                     pcc->processor->undoManager.beginNewTransaction(
                         "action add plugin");
                     pcc->processor->undoManager.perform(action);
@@ -1008,9 +1016,8 @@ void track::PluginChainComponent::removePlugin(int pluginIndex) {
     data.data = pluginData.toBase64Encoding();
 
     // now remove with action
-    ActionRemovePlugin *action = new ActionRemovePlugin(
-        data, route, pluginIndex, processor,
-        findParentComponentOfClass<AudioPluginAudioProcessorEditor>());
+    ActionRemovePlugin *action =
+        new ActionRemovePlugin(data, route, pluginIndex, processor);
     processor->undoManager.beginNewTransaction("action remove plugin");
     processor->undoManager.perform(action);
 

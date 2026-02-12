@@ -10,6 +10,7 @@
 #include "processor.h"
 #include <cmath>
 #include <cstddef>
+#include <cstdint>
 #include <ctime>
 #include <signal.h>
 
@@ -360,10 +361,8 @@ void AudioPluginAudioProcessorEditor::changeListenerCallback(
     }
 
     else if (x.command == UI_INSTRUCTION_RECREATE_PCC) {
-        std::vector<int> nodeRoute = x.r;
-
         for (size_t i = 0; i < pluginChainComponents.size(); ++i) {
-            if (pluginChainComponents[i]->route == nodeRoute) {
+            if (pluginChainComponents[i]->route == x.r) {
                 // recreate plugin node components
 
                 pluginChainComponents[i]
@@ -375,10 +374,8 @@ void AudioPluginAudioProcessorEditor::changeListenerCallback(
     }
 
     else if (x.command == UI_INSTRUCTION_RECREATE_ALL_PNCS) {
-        std::vector<int> route = x.r;
-
         for (size_t i = 0; i < pluginChainComponents.size(); ++i) {
-            if (pluginChainComponents[i]->route == route) {
+            if (pluginChainComponents[i]->route == x.r) {
                 pluginChainComponents[i]
                     ->nodesWrapper.pluginNodeComponents.clear();
                 pluginChainComponents[i]
@@ -389,9 +386,7 @@ void AudioPluginAudioProcessorEditor::changeListenerCallback(
 
     else if (x.command == UI_INSTRUCTION_RECREATE_RELAY_NODES) {
         for (size_t i = 0; i < relayManagerCompnoents.size(); ++i) {
-            std::vector<int> route = x.r;
-
-            if (relayManagerCompnoents[i]->route == route)
+            if (relayManagerCompnoents[i]->route == x.r)
                 relayManagerCompnoents[i]->rmNodesWrapper.createRelayNodes();
         }
     }
@@ -409,6 +404,10 @@ void AudioPluginAudioProcessorEditor::changeListenerCallback(
 
     else if (x.command == UI_INSTRUCTION_UPDATE_EXISTING_NODE_COMPONENTS) {
         tracklist.updateExistingTrackComponents();
+    }
+
+    else if (x.command == UI_INSTRUCTION_CLOSE_PEW) {
+        closePluginEditorWindow(x.r, (int)(uintptr_t)x.metadata);
     }
 }
 

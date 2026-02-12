@@ -107,6 +107,10 @@ class AudioPluginAudioProcessorEditor : public juce::AudioProcessorEditor,
     juce::Slider masterSlider;
     juce::SliderParameterAttachment masterSliderAttachment;
 
+    std::vector<track::subplugin *> tmpOpenedEditors;
+    std::vector<track::subplugin *> tmpOpenedPCCs;
+    std::vector<track::subplugin *> tmpOpenedRMCs;
+
     void timerCallback() override {
         transportStatus.repaint();
         playhead.updateBounds();
