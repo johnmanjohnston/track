@@ -37,28 +37,28 @@ class ActionAddClip : public juce::UndoableAction {
   public:
     clip addedClip;
     std::vector<int> route;
-    void *tc = nullptr;
+    void *p = nullptr;
 
-    ActionAddClip(clip c, std::vector<int> nodeRoute, void *timelineComponent);
+    ActionAddClip(clip c, std::vector<int> nodeRoute, void *processor);
     ~ActionAddClip();
 
     bool perform() override;
     bool undo() override;
-    void updateGUI();
+    void updateGUI(); // y
 };
 
 class ActionCutClip : public juce::UndoableAction {
   public:
     clip addedClip;
     std::vector<int> route;
-    void *tc = nullptr;
+    void *p = nullptr;
 
-    ActionCutClip(clip c, std::vector<int> nodeRoute, void *timelineComponent);
+    ActionCutClip(clip c, std::vector<int> nodeRoute, void *processor);
     ~ActionCutClip();
 
     bool perform() override;
     bool undo() override;
-    void updateGUI();
+    void updateGUI(); // y
 
   private:
     int clipIndex = -1;
@@ -68,17 +68,17 @@ class ActionSplitClip : public juce::UndoableAction {
   public:
     clip clipCopy;
     std::vector<int> route;
-    void *tc = nullptr;
+    void *p = nullptr;
 
     int splitSample = -1;
 
     ActionSplitClip(clip c, std::vector<int> nodeRoute, int sampleToSplit,
-                    void *timelineComponent, bool updateUI);
+                    void *processor, bool updateUI);
     ~ActionSplitClip();
 
     bool perform() override;
     bool undo() override;
-    void updateGUI();
+    void updateGUI(); // y
 
     bool shouldUpdateGUI = true;
 
@@ -88,17 +88,17 @@ class ActionSplitClip : public juce::UndoableAction {
 
 class ActionShiftClips : public juce::UndoableAction {
   public:
-    ActionShiftClips(int amount, void *timelineComponent);
+    ActionShiftClips(int amount, void *processor);
     ~ActionShiftClips();
 
     int shiftAmount = -1;
-    void *tc;
+    void *p;
 
     bool perform() override;
     bool undo() override;
 
     void shift(int bars);
-    void updateGUI();
+    void updateGUI(); // y
 };
 
 struct SplitMultipleClipsData {

@@ -51,29 +51,26 @@ void track::BarNumbersComponent::paint(juce::Graphics &g) {
 }
 
 track::ActionAddClip::ActionAddClip(clip c, std::vector<int> nodeRoute,
-                                    void *timelineComponent)
+                                    void *processor)
     : juce::UndoableAction() {
     this->addedClip = c;
     this->route = nodeRoute;
-    this->tc = timelineComponent;
+    this->p = processor;
 };
 track::ActionAddClip::~ActionAddClip() {}
 
 bool track::ActionAddClip::perform() {
-    TimelineComponent *timelineComponent = (TimelineComponent *)tc;
-    audioNode *node =
-        utility::getNodeFromRoute(route, timelineComponent->processorRef);
+    audioNode *node = utility::getNodeFromRoute(route, p);
 
     node->clips.push_back(addedClip);
+
     updateGUI();
 
     return true;
 }
 
 bool track::ActionAddClip::undo() {
-    TimelineComponent *timelineComponent = (TimelineComponent *)tc;
-    audioNode *node =
-        utility::getNodeFromRoute(route, timelineComponent->processorRef);
+    audioNode *node = utility::getNodeFromRoute(route, p);
 
     node->clips.erase(node->clips.begin() + (long)node->clips.size() - 1);
     updateGUI();
@@ -82,8 +79,12 @@ bool track::ActionAddClip::undo() {
 }
 
 void track::ActionAddClip::updateGUI() {
+    /*
     TimelineComponent *timelineComponent = (TimelineComponent *)tc;
-    timelineComponent->updateClipComponents();
+    timelineComponent->updateClipComponents();*/
+
+    AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
+    processor->dispatchGUIInstruction(UI_INSTRUCTION_UPDATE_CLIP_COMPONENTS);
 }
 
 track::TimelineComponent::TimelineComponent() : juce::Component() {
@@ -93,17 +94,15 @@ track::TimelineComponent::TimelineComponent() : juce::Component() {
 };
 
 track::ActionCutClip::ActionCutClip(clip c, std::vector<int> nodeRoute,
-                                    void *timelineComponent) {
+                                    void *processor) {
     this->addedClip = c;
     this->route = nodeRoute;
-    this->tc = timelineComponent;
+    this->p = processor;
 }
 track::ActionCutClip::~ActionCutClip() {}
 
 bool track::ActionCutClip::perform() {
-    TimelineComponent *timelineComponent = (TimelineComponent *)tc;
-    audioNode *node =
-        utility::getNodeFromRoute(route, timelineComponent->processorRef);
+    audioNode *node = utility::getNodeFromRoute(route, p);
 
     if (clipIndex == -1) {
         for (size_t i = 0; i < node->clips.size(); ++i) {
@@ -120,9 +119,7 @@ bool track::ActionCutClip::perform() {
     return true;
 }
 bool track::ActionCutClip::undo() {
-    TimelineComponent *timelineComponent = (TimelineComponent *)tc;
-    audioNode *node =
-        utility::getNodeFromRoute(route, timelineComponent->processorRef);
+    audioNode *node = utility::getNodeFromRoute(route, p);
 
     auto &newClip = *node->clips.emplace(node->clips.begin() + clipIndex);
     newClip = addedClip;
@@ -132,29 +129,31 @@ bool track::ActionCutClip::undo() {
 }
 
 void track::ActionCutClip::updateGUI() {
+    /*
     TimelineComponent *timelineComponent = (TimelineComponent *)tc;
 
     timelineComponent->clipComponents.clear();
-    timelineComponent->updateClipComponents();
+    timelineComponent->updateClipComponents();*/
+
+    AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
+    processor->dispatchGUIInstruction(UI_INSTRUCTION_CLEAR_CLIP_COMPONENTS);
+    processor->dispatchGUIInstruction(UI_INSTRUCTION_UPDATE_CLIP_COMPONENTS);
 }
 
 track::ActionSplitClip::ActionSplitClip(track::clip c,
                                         std::vector<int> nodeRoute,
-                                        int sampleToSplit,
-                                        void *timelineComponent,
+                                        int sampleToSplit, void *processor,
                                         bool updateUI = true) {
     this->clipCopy = c;
     this->route = nodeRoute;
     this->splitSample = sampleToSplit;
-    this->tc = timelineComponent;
+    this->p = processor;
     this->shouldUpdateGUI = updateUI;
 }
 track::ActionSplitClip::~ActionSplitClip() {}
 
 bool track::ActionSplitClip::perform() {
-    TimelineComponent *timelineComponent = (TimelineComponent *)tc;
-    audioNode *node =
-        utility::getNodeFromRoute(route, timelineComponent->processorRef);
+    audioNode *node = utility::getNodeFromRoute(route, p);
 
     // handle split 1
     c1Index = utility::getIndexOfClipByValue(node, clipCopy);
@@ -185,9 +184,7 @@ bool track::ActionSplitClip::perform() {
 }
 
 bool track::ActionSplitClip::undo() {
-    TimelineComponent *timelineComponent = (TimelineComponent *)tc;
-    audioNode *node =
-        utility::getNodeFromRoute(route, timelineComponent->processorRef);
+    audioNode *node = utility::getNodeFromRoute(route, p);
 
     clip *c1 = &node->clips[(size_t)c1Index];
     *c1 = clipCopy;
@@ -201,15 +198,21 @@ bool track::ActionSplitClip::undo() {
 
 void track::ActionSplitClip::updateGUI() {
     if (shouldUpdateGUI) {
+        /*
         TimelineComponent *timelineComponent = (TimelineComponent *)tc;
         timelineComponent->clipComponents.clear();
-        timelineComponent->updateClipComponents();
+        timelineComponent->updateClipComponents();*/
+
+        AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
+        processor->dispatchGUIInstruction(UI_INSTRUCTION_CLEAR_CLIP_COMPONENTS);
+        processor->dispatchGUIInstruction(
+            UI_INSTRUCTION_UPDATE_CLIP_COMPONENTS);
     }
 }
 
-track::ActionShiftClips::ActionShiftClips(int amount, void *timelineComponent) {
+track::ActionShiftClips::ActionShiftClips(int amount, void *processor) {
     this->shiftAmount = amount;
-    this->tc = timelineComponent;
+    this->p = processor;
 }
 track::ActionShiftClips::~ActionShiftClips() {}
 
@@ -226,12 +229,11 @@ bool track::ActionShiftClips::undo() {
 }
 
 void track::ActionShiftClips::shift(int bars) {
-    TimelineComponent *timelineComponent = (TimelineComponent *)tc;
-
     int beatsPerBar = 4;
     double secondsPerBar = (60.0 / track::BPM) * beatsPerBar;
     int samplesPerBar = secondsPerBar * track::SAMPLE_RATE;
 
+    /*
     Tracklist *tracklist = timelineComponent->viewport->tracklist;
 
     for (auto &trc : tracklist->trackComponents) {
@@ -240,12 +242,18 @@ void track::ActionShiftClips::shift(int bars) {
                 clip.startPositionSample += samplesPerBar * bars;
             }
         }
-    }
+    }*/
+
+    // FIXME: this
 }
 
 void track::ActionShiftClips::updateGUI() {
+    /*
     TimelineComponent *timelineComponent = (TimelineComponent *)tc;
-    timelineComponent->updateClipComponents();
+    timelineComponent->updateClipComponents();*/
+
+    AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
+    processor->dispatchGUIInstruction(UI_INSTRUCTION_UPDATE_CLIP_COMPONENTS);
 }
 
 track::TimelineComponent::~TimelineComponent(){};
@@ -488,8 +496,9 @@ void track::TimelineComponent::mouseDown(const juce::MouseEvent &event) {
                         int localSplitSample =
                             splitSample - c->startPositionSample;
 
-                        ActionSplitClip *action = new ActionSplitClip(
-                            *c, d.route, localSplitSample, this, updateUI);
+                        ActionSplitClip *action =
+                            new ActionSplitClip(*c, d.route, localSplitSample,
+                                                this->processorRef, updateUI);
                         processorRef->undoManager.perform(action);
                     }
                 }
@@ -672,7 +681,7 @@ void track::TimelineComponent::resizeTimelineComponent() {
 void track::TimelineComponent::deleteClip(clip *c, int trackIndex) {
     std::vector<int> route =
         viewport->tracklist->trackComponents[(size_t)trackIndex]->route;
-    ActionCutClip *action = new ActionCutClip(*c, route, this);
+    ActionCutClip *action = new ActionCutClip(*c, route, this->processorRef);
     processorRef->undoManager.beginNewTransaction("action cut clip");
     processorRef->undoManager.perform(action);
 }
@@ -681,7 +690,8 @@ void track::TimelineComponent::splitClip(clip *c, int splitSample,
                                          int nodeDisplayIndex) {
     std::vector<int> route =
         viewport->tracklist->trackComponents[(size_t)nodeDisplayIndex]->route;
-    ActionSplitClip *action = new ActionSplitClip(*c, route, splitSample, this);
+    ActionSplitClip *action =
+        new ActionSplitClip(*c, route, splitSample, this->processorRef);
     processorRef->undoManager.beginNewTransaction("action split clip");
     processorRef->undoManager.perform(action);
 }
@@ -875,7 +885,8 @@ void track::TimelineComponent::addNewClipToTimeline(juce::String path,
         DBG("Rejecting file drop onto group");
     } else {
 
-        ActionAddClip *action = new ActionAddClip(*c, route, this);
+        ActionAddClip *action =
+            new ActionAddClip(*c, route, this->processorRef);
         processorRef->undoManager.beginNewTransaction("action add clip");
 
         processorRef->undoManager.perform(action);

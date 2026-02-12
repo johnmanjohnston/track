@@ -10,6 +10,7 @@
 #include "processor.h"
 #include <cmath>
 #include <cstddef>
+#include <ctime>
 #include <signal.h>
 
 AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
@@ -393,6 +394,14 @@ void AudioPluginAudioProcessorEditor::changeListenerCallback(
             if (relayManagerCompnoents[i]->route == route)
                 relayManagerCompnoents[i]->rmNodesWrapper.createRelayNodes();
         }
+    }
+
+    else if (x.command == UI_INSTRUCTION_UPDATE_CLIP_COMPONENTS) {
+        timelineComponent->updateClipComponents();
+    }
+
+    else if (x.command == UI_INSTRUCTION_CLEAR_CLIP_COMPONENTS) {
+        timelineComponent->clipComponents.clear();
     }
 }
 
