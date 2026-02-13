@@ -57,17 +57,13 @@ class ActionRemovePlugin : public juce::UndoableAction {
 class ActionReorderPlugin : public juce::UndoableAction {
   public:
     ActionReorderPlugin(std::vector<int> nodeRoute, int sourceIndex,
-                        int destinationIndex, void *processor, void *editor);
+                        int destinationIndex, void *processor);
     ~ActionReorderPlugin();
 
     int srcIndex = -1;
     int destIndex = -1;
     std::vector<int> route;
     void *p = nullptr;
-    void *e = nullptr;
-
-    std::vector<track::subplugin *> openEditorsPlugins;
-    std::vector<track::subplugin *> openRelayMenuPlugins;
 
     bool perform() override;
     bool undo() override;
@@ -79,7 +75,7 @@ class ActionChangeTrivialPluginData : public juce::UndoableAction {
     ActionChangeTrivialPluginData(pluginClipboardData oldData,
                                   pluginClipboardData newData,
                                   std::vector<int> nodeRoute, int pluginIndex,
-                                  void *processor, void *editor);
+                                  void *processor);
     ~ActionChangeTrivialPluginData();
 
     pluginClipboardData oldPluginData;
@@ -87,7 +83,6 @@ class ActionChangeTrivialPluginData : public juce::UndoableAction {
     std::vector<int> route;
     int index = -1;
     void *p = nullptr;
-    void *e = nullptr;
 
     bool perform() override;
     bool undo() override;

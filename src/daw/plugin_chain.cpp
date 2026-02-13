@@ -150,48 +150,51 @@ void track::ActionRemovePlugin::updateGUI() {
 track::ActionReorderPlugin::ActionReorderPlugin(std::vector<int> nodeRoute,
                                                 int sourceIndex,
                                                 int destinationIndex,
-                                                void *processor, void *editor)
+                                                void *processor)
     : juce::UndoableAction() {
     this->route = nodeRoute;
     this->srcIndex = sourceIndex;
     this->destIndex = destinationIndex;
     this->p = processor;
-    this->e = editor;
 }
 track::ActionReorderPlugin::~ActionReorderPlugin(){};
 
 bool track::ActionReorderPlugin::perform() {
-    utility::closeOpenedEditors(route, &openEditorsPlugins, p, e);
-    utility::closeOpenedRelayParamWindows(route, &openRelayMenuPlugins, p, e);
+    AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
+    processor->dispatchGUIInstruction(UI_INSTRUCTION_CLOSE_OPENED_EDITORS,
+                                      nullptr, route);
+    processor->dispatchGUIInstruction(
+        UI_INSTRUCTION_CLOSE_OPENED_RELAY_PARAM_WINDOWS, nullptr, route);
 
     audioNode *node = utility::getNodeFromRoute(route, p);
     utility::reorderPlugin(srcIndex, destIndex, node);
 
     updateGUI();
 
-    utility::openEditors(route, openEditorsPlugins, p, e);
-    utility::openRelayParamWindows(route, openRelayMenuPlugins, p, e);
-
-    this->openEditorsPlugins.clear();
-    this->openRelayMenuPlugins.clear();
+    processor->dispatchGUIInstruction(UI_INSTRUCTION_OPEN_CLOSED_EDITORS,
+                                      nullptr, route);
+    processor->dispatchGUIInstruction(
+        UI_INSTRUCTION_OPEN_CLOSED_RELAY_PARAM_WINDOWS, nullptr, route);
 
     return true;
 }
 
 bool track::ActionReorderPlugin::undo() {
-    utility::closeOpenedEditors(route, &openEditorsPlugins, p, e);
-    utility::closeOpenedRelayParamWindows(route, &openRelayMenuPlugins, p, e);
+    AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
+    processor->dispatchGUIInstruction(UI_INSTRUCTION_CLOSE_OPENED_EDITORS,
+                                      nullptr, route);
+    processor->dispatchGUIInstruction(
+        UI_INSTRUCTION_CLOSE_OPENED_RELAY_PARAM_WINDOWS, nullptr, route);
 
     audioNode *node = utility::getNodeFromRoute(route, p);
     utility::reorderPlugin(srcIndex, destIndex, node);
 
     updateGUI();
 
-    utility::openEditors(route, openEditorsPlugins, p, e);
-    utility::openRelayParamWindows(route, openRelayMenuPlugins, p, e);
-
-    this->openEditorsPlugins.clear();
-    this->openRelayMenuPlugins.clear();
+    processor->dispatchGUIInstruction(UI_INSTRUCTION_OPEN_CLOSED_EDITORS,
+                                      nullptr, route);
+    processor->dispatchGUIInstruction(
+        UI_INSTRUCTION_OPEN_CLOSED_RELAY_PARAM_WINDOWS, nullptr, route);
 
     return true;
 }
@@ -217,14 +220,13 @@ void track::ActionReorderPlugin::updateGUI() {
 
 track::ActionChangeTrivialPluginData::ActionChangeTrivialPluginData(
     pluginClipboardData oldData, pluginClipboardData newData,
-    std::vector<int> nodeRoute, int pluginIndex, void *processor, void *editor)
+    std::vector<int> nodeRoute, int pluginIndex, void *processor)
     : juce::UndoableAction() {
     this->oldPluginData = oldData;
     this->newPluginData = newData;
     this->route = nodeRoute;
     this->index = pluginIndex;
     this->p = processor;
-    this->e = editor;
 }
 track::ActionChangeTrivialPluginData::~ActionChangeTrivialPluginData() {}
 
@@ -253,9 +255,6 @@ bool track::ActionChangeTrivialPluginData::undo() {
     return true;
 }
 void track::ActionChangeTrivialPluginData::updateGUI() {
-    AudioPluginAudioProcessorEditor *editor =
-        (AudioPluginAudioProcessorEditor *)e;
-
     AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
     processor->dispatchGUIInstruction(UI_INSTRUCTION_RECREATE_ALL_PNCS, nullptr,
                                       route);
@@ -324,13 +323,11 @@ track::PluginNodeComponent::PluginNodeComponent() : juce::Component() {
         // finally, execute action
         PluginChainComponent *pcc =
             findParentComponentOfClass<PluginChainComponent>();
-        AudioPluginAudioProcessorEditor *editor =
-            pcc->findParentComponentOfClass<AudioPluginAudioProcessorEditor>();
 
         ActionChangeTrivialPluginData *action =
             new ActionChangeTrivialPluginData(oldPluginData, pluginData,
                                               pcc->route, pluginIndex,
-                                              pcc->processor, editor);
+                                              pcc->processor);
         pcc->processor->undoManager.beginNewTransaction(
             "action change trivial plugin data");
         pcc->processor->undoManager.perform(action);
@@ -486,12 +483,9 @@ void track::PluginNodeComponent::toggleBypass() {
     // finally, execute action
     PluginChainComponent *pcc =
         findParentComponentOfClass<PluginChainComponent>();
-    AudioPluginAudioProcessorEditor *editor =
-        pcc->findParentComponentOfClass<AudioPluginAudioProcessorEditor>();
 
-    ActionChangeTrivialPluginData *action =
-        new ActionChangeTrivialPluginData(oldPluginData, pluginData, pcc->route,
-                                          pluginIndex, pcc->processor, editor);
+    ActionChangeTrivialPluginData *action = new ActionChangeTrivialPluginData(
+        oldPluginData, pluginData, pcc->route, pluginIndex, pcc->processor);
     pcc->processor->undoManager.beginNewTransaction(
         "action change trivial plugin data");
     pcc->processor->undoManager.perform(action);
@@ -1043,14 +1037,11 @@ void track::PluginChainComponent::updateInsertIndicator(int index) {
 }
 
 void track::PluginChainComponent::reorderPlugin(int srcIndex, int destIndex) {
-    AudioPluginAudioProcessorEditor *editor =
-        this->findParentComponentOfClass<AudioPluginAudioProcessorEditor>();
-
     destIndex = juce::jlimit(
         0, (int)getCorrespondingTrack()->plugins.size() - 1, destIndex);
 
     ActionReorderPlugin *action =
-        new ActionReorderPlugin(route, srcIndex, destIndex, processor, editor);
+        new ActionReorderPlugin(route, srcIndex, destIndex, processor);
     processor->undoManager.beginNewTransaction("action reorder plugin");
     processor->undoManager.perform(action);
 }

@@ -81,11 +81,8 @@ void track::RelayManagerComponent::removeRelayParam(size_t index) {
     pluginClipboardData newData = oldData;
     newData.relayParams.erase(newData.relayParams.begin() + (long)index);
 
-    AudioPluginAudioProcessorEditor *editor =
-        findParentComponentOfClass<AudioPluginAudioProcessorEditor>();
-
     ActionChangeTrivialPluginData *action = new ActionChangeTrivialPluginData(
-        oldData, newData, route, pluginIndex, processor, editor);
+        oldData, newData, route, pluginIndex, processor);
     processor->undoManager.beginNewTransaction(
         "action change trivial plugin data (relay param change)");
     processor->undoManager.perform(action);
@@ -160,14 +157,10 @@ void track::RelayManagerNodesWrapper::mouseDown(const juce::MouseEvent &event) {
             pluginClipboardData newData = oldData;
             oldData.relayParams.pop_back();
 
-            AudioPluginAudioProcessorEditor *editor =
-                rmc->findParentComponentOfClass<
-                    AudioPluginAudioProcessorEditor>();
-
             ActionChangeTrivialPluginData *action =
                 new ActionChangeTrivialPluginData(oldData, newData, rmc->route,
                                                   rmc->pluginIndex,
-                                                  rmc->processor, editor);
+                                                  rmc->processor);
             rmc->processor->undoManager.beginNewTransaction(
                 "action change trivial plugin data (relay param change)");
             rmc->processor->undoManager.perform(action);
@@ -282,11 +275,8 @@ void track::RelayManagerNode::comboBoxChanged(juce::ComboBox *box) {
             relaySelector.getSelectedId();
     }
 
-    AudioPluginAudioProcessorEditor *editor =
-        rmc->findParentComponentOfClass<AudioPluginAudioProcessorEditor>();
-
     ActionChangeTrivialPluginData *action = new ActionChangeTrivialPluginData(
-        oldData, newData, rmc->route, rmc->pluginIndex, rmc->processor, editor);
+        oldData, newData, rmc->route, rmc->pluginIndex, rmc->processor);
     rmc->processor->undoManager.beginNewTransaction(
         "action change trivial plugin data (relay param change)");
     rmc->processor->undoManager.perform(action);

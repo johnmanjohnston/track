@@ -5,7 +5,7 @@
 #include "daw/plugin_chain.h"
 #include "daw/timeline.h"
 #include "daw/track.h"
-#include "juce_events/juce_events.h"
+#include "daw/utility.h"
 #include "lookandfeel.h"
 #include "processor.h"
 #include <cmath>
@@ -408,6 +408,29 @@ void AudioPluginAudioProcessorEditor::changeListenerCallback(
 
     else if (x.command == UI_INSTRUCTION_CLOSE_PEW) {
         closePluginEditorWindow(x.r, (int)(uintptr_t)x.metadata);
+    }
+
+    // close/opens
+    else if (x.command == UI_INSTRUCTION_CLOSE_OPENED_EDITORS) {
+        track::utility::closeOpenedEditors(x.r, &this->tmpOpenedEditors,
+                                           &processorRef, this);
+    }
+
+    else if (x.command == UI_INSTRUCTION_OPEN_CLOSED_EDITORS) {
+        track::utility::openEditors(x.r, this->tmpOpenedEditors, &processorRef,
+                                    this);
+        this->tmpOpenedEditors.clear();
+    }
+
+    else if (x.command == UI_INSTRUCTION_CLOSE_OPENED_RELAY_PARAM_WINDOWS) {
+        track::utility::closeOpenedRelayParamWindows(x.r, &this->tmpOpenedRMCs,
+                                                     &processorRef, this);
+    }
+
+    else if (x.command == UI_INSTRUCTION_OPEN_CLOSED_RELAY_PARAM_WINDOWS) {
+        track::utility::openRelayParamWindows(x.r, this->tmpOpenedRMCs,
+                                              &processorRef, this);
+        this->tmpOpenedRMCs.clear();
     }
 }
 
