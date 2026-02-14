@@ -782,11 +782,32 @@ track::TrackComponent::TrackComponent(int trackIndex) : juce::Component() {
     trackNameLabel.setEditable(true);
     addAndMakeVisible(trackNameLabel);
 
-    trackNameLabel.onTextChange = [this] {
-        this->getCorrespondingTrack()->trackName = trackNameLabel.getText(true);
+    trackNameLabel.onEditorShow = [this] {
+        nameValueAtStartChange = getCorrespondingTrack()->trackName;
     };
 
-    trackNameLabel.onEditorHide = [this] { sendFocusToTimeline(); };
+    trackNameLabel.onEditorHide = [this] {
+        this->getCorrespondingTrack()->trackName = trackNameLabel.getText(true);
+
+        TrivialNodeData oldState;
+        TrivialNodeData newState;
+
+        utility::getTrivialNodeData(&oldState, this->getCorrespondingTrack());
+        utility::getTrivialNodeData(&newState, this->getCorrespondingTrack());
+        oldState.trackName = this->nameValueAtStartChange;
+
+        this->nameValueAtStartChange = "";
+
+        AudioPluginAudioProcessor *p = (AudioPluginAudioProcessor *)processor;
+        ActionModifyTrivialNodeData *action = new ActionModifyTrivialNodeData(
+            route, oldState, newState, processor);
+        p->undoManager.beginNewTransaction("action modify trivial node data");
+        p->undoManager.perform(action);
+
+        repaint();
+
+        sendFocusToTimeline();
+    };
 
     this->siblingIndex = trackIndex;
 
@@ -815,9 +836,6 @@ track::TrackComponent::TrackComponent(int trackIndex) : juce::Component() {
         oldState.gain = this->gainValueAtStartDrag;
 
         this->gainValueAtStartDrag = -1.f;
-
-        AudioPluginAudioProcessorEditor *editor =
-            findParentComponentOfClass<AudioPluginAudioProcessorEditor>();
 
         AudioPluginAudioProcessor *p = (AudioPluginAudioProcessor *)processor;
         ActionModifyTrivialNodeData *action = new ActionModifyTrivialNodeData(

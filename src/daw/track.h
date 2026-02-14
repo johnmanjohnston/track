@@ -235,6 +235,7 @@ class TrackComponent : public juce::Component {
 
     float panValueAtStartDrag = -1.f;
     float gainValueAtStartDrag = -1.f;
+    juce::String nameValueAtStartChange = "";
 
     juce::Font getAudioNodeLabelFont() {
         static auto typeface = Typeface::createSystemTypefaceFor(
