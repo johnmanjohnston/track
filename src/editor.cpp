@@ -410,6 +410,15 @@ void AudioPluginAudioProcessorEditor::changeListenerCallback(
         closePluginEditorWindow(x.r, (int)(uintptr_t)x.metadata);
     }
 
+    else if (x.command == UI_INSTRUCTION_CLOSE_ALL_FX_CHAINS_WITH_ROUTE) {
+        closeAllFxChainsWithRoute(x.r);
+    }
+
+    else if (x.command == UI_INSTRUCTION_CLOSE_ALL_RMC_WITH_ROUTE_AND_INDEX) {
+        closeAllRelayMenusWithRouteAndPluginIndex(x.r,
+                                                  (int)(uintptr_t)x.metadata);
+    }
+
     // close/opens
     else if (x.command == UI_INSTRUCTION_CLOSE_OPENED_EDITORS) {
         track::utility::closeOpenedEditors(x.r, &this->tmpOpenedEditors,

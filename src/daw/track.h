@@ -102,16 +102,6 @@ class ActionClipModified : public juce::UndoableAction {
     clip newClip;
     clip oldClip;
 
-    // ui
-    // FIXME: if you're storing pointers to UI components, they might be
-    // invalidated if:
-    // - you move a clip
-    // - you close the editor
-    // - open the editor again
-    // - try to undo the moving of that clip
-    // so make sure to check that and fix it you moron
-    void *tc = nullptr;
-
     ActionClipModified(void *processor, std::vector<int> nodeRoute,
                        int indexOfClip, clip c);
     ~ActionClipModified();
@@ -281,11 +271,9 @@ class ActionCreateNode : public juce::UndoableAction {
     bool isTrack = true;
     std::vector<int> parentRoute;
 
-    void *tl = nullptr;
     void *p = nullptr;
 
-    ActionCreateNode(std::vector<int> pRoute, bool isATrack, void *tlist,
-                     void *processor);
+    ActionCreateNode(std::vector<int> pRoute, bool isATrack, void *processor);
     ~ActionCreateNode();
 
     bool perform() override;
@@ -297,11 +285,8 @@ class ActionDeleteNode : public juce::UndoableAction {
   public:
     std::vector<int> route;
     void *p = nullptr;
-    void *tl = nullptr;
-    void *tc = nullptr;
 
-    ActionDeleteNode(std::vector<int> nodeRoute, void *processor,
-                     void *tracklist, void *timelineComponent);
+    ActionDeleteNode(std::vector<int> nodeRoute, void *processor);
     ~ActionDeleteNode();
 
     audioNode nodeCopy;
@@ -316,10 +301,8 @@ class ActionPasteNode : public juce::UndoableAction {
     std::vector<int> parentRoute;
     std::vector<int> pastedNodeRoute;
     void *p = nullptr;
-    void *e = nullptr;
 
-    ActionPasteNode(std::vector<int> pRoute, audioNode *node, void *processor,
-                    void *editor);
+    ActionPasteNode(std::vector<int> pRoute, audioNode *node, void *processor);
     ~ActionPasteNode();
 
     audioNode *nodeToPaste = nullptr;
@@ -344,15 +327,13 @@ class ActionModifyTrivialNodeData : public juce::UndoableAction {
 
     ActionModifyTrivialNodeData(std::vector<int> nodeRoute,
                                 TrivialNodeData oldData,
-                                TrivialNodeData newData, void *processor,
-                                void *editor);
+                                TrivialNodeData newData, void *processor);
     ~ActionModifyTrivialNodeData();
 
     TrivialNodeData oldState;
     TrivialNodeData newState;
 
     void *p = nullptr;
-    void *e = nullptr;
 
     bool perform() override;
     bool undo() override;
@@ -365,13 +346,10 @@ class ActionReorderNode : public juce::UndoableAction {
     std::vector<int> r2;
 
     ActionReorderNode(std::vector<int> route1, std::vector<int> route2,
-                      void *processor, void *tracklist,
-                      void *timelineComponent);
+                      void *processor);
     ~ActionReorderNode();
 
     void *p = nullptr;
-    void *tl = nullptr;
-    void *tc = nullptr;
 
     bool perform() override;
     bool undo() override;
@@ -380,14 +358,13 @@ class ActionReorderNode : public juce::UndoableAction {
 
 class ActionUngroup : public juce::UndoableAction {
   public:
-    ActionUngroup(std::vector<int> nodeRoute, void *processor, void *tracklist);
+    ActionUngroup(std::vector<int> nodeRoute, void *processor);
     ~ActionUngroup();
 
     std::vector<int> route;
     std::vector<int> trackRouteAfterUngroup;
 
     void *p = nullptr;
-    void *tl = nullptr;
 
     audioNode nodeCopy;
 
@@ -405,12 +382,9 @@ class ActionMoveNodeToGroup : public juce::UndoableAction {
     std::vector<int> groupRouteAfterMoving;
 
     void *p = nullptr;
-    void *tl = nullptr;
-    void *tc = nullptr;
 
     ActionMoveNodeToGroup(std::vector<int> toMove, std::vector<int> group,
-                          void *processor, void *tracklist,
-                          void *timelineComponent);
+                          void *processor);
     ~ActionMoveNodeToGroup();
 
     bool perform() override;

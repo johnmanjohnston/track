@@ -42,8 +42,6 @@ track::ClipComponent::ClipComponent(clip *c, int clipHash)
             tracklist->trackComponents[(size_t)nodeDisplayIndex]->route, index,
             *this->correspondingClip);
 
-        action->tc = tc;
-
         correspondingClip->name = clipNameLabel.getText(true);
 
         action->newClip.name = correspondingClip->name;
@@ -469,8 +467,6 @@ void track::ClipComponent::mouseUp(const juce::MouseEvent &event) {
             tracklist->trackComponents[(size_t)nodeDisplayIndex]->route, index,
             *this->correspondingClip);
 
-        action->tc = tc;
-
         action->oldClip.startPositionSample = startDragStartPositionSample;
         action->oldClip.trimLeft = startTrimLeftPositionSample;
         action->oldClip.trimRight = startTrimRightPositionSample;
@@ -658,7 +654,6 @@ track::ClipPropertiesWindow::ClipPropertiesWindow() : track::Subwindow() {
 
         ActionClipModified *action =
             new ActionClipModified(p, route, clipIndex, *getClip());
-        action->tc = tc;
 
         action->oldClip.name = this->oldName;
 
@@ -683,7 +678,6 @@ track::ClipPropertiesWindow::ClipPropertiesWindow() : track::Subwindow() {
 
         ActionClipModified *action =
             new ActionClipModified(p, route, clipIndex, *getClip());
-        action->tc = tc;
 
         action->oldClip.gain = gainAtDragStart;
 
@@ -827,7 +821,7 @@ track::TrackComponent::TrackComponent(int trackIndex) : juce::Component() {
 
         AudioPluginAudioProcessor *p = (AudioPluginAudioProcessor *)processor;
         ActionModifyTrivialNodeData *action = new ActionModifyTrivialNodeData(
-            route, oldState, newState, processor, editor);
+            route, oldState, newState, processor);
         p->undoManager.beginNewTransaction("action modify trivial node data");
         p->undoManager.perform(action);
 
@@ -904,7 +898,7 @@ track::TrackComponent::TrackComponent(int trackIndex) : juce::Component() {
 
         AudioPluginAudioProcessor *p = (AudioPluginAudioProcessor *)processor;
         ActionModifyTrivialNodeData *action = new ActionModifyTrivialNodeData(
-            route, oldState, newState, processor, editor);
+            route, oldState, newState, processor);
         p->undoManager.beginNewTransaction("action modify trivial node data");
         p->undoManager.perform(action);
 
@@ -941,9 +935,7 @@ void track::TrackComponent::mouseDown(const juce::MouseEvent &event) {
                 clipboard::typecode == TYPECODE_NODE,
             false, [this] {
                 ActionPasteNode *action = new ActionPasteNode(
-                    route, (audioNode *)clipboard::data, processor,
-                    findParentComponentOfClass<
-                        AudioPluginAudioProcessorEditor>());
+                    route, (audioNode *)clipboard::data, processor);
 
                 AudioPluginAudioProcessor *p =
                     (AudioPluginAudioProcessor *)processor;
@@ -958,14 +950,10 @@ void track::TrackComponent::mouseDown(const juce::MouseEvent &event) {
             "Ungroup",
             !getCorrespondingTrack()->isTrack || this->route.size() >= 2, false,
             [this] {
-                AudioPluginAudioProcessorEditor *editor =
-                    findParentComponentOfClass<
-                        AudioPluginAudioProcessorEditor>();
                 AudioPluginAudioProcessor *p =
                     (AudioPluginAudioProcessor *)processor;
 
-                ActionUngroup *action = new ActionUngroup(
-                    route, processor, findParentComponentOfClass<Tracklist>());
+                ActionUngroup *action = new ActionUngroup(route, processor);
                 p->undoManager.beginNewTransaction("action ungroup");
                 p->undoManager.perform(action);
             });
@@ -1054,7 +1042,7 @@ void track::TrackComponent::mouseUp(const juce::MouseEvent &event) {
             std::vector<int> movementRoute = tracklist->trackComponents[(size_t)displayNodes]->route;
 
             if (r1 == r2) {
-                ActionReorderNode *action = new ActionReorderNode(sourceRoute, movementRoute, processor, tracklist, tracklist->timelineComponent);
+                ActionReorderNode *action = new ActionReorderNode(sourceRoute, movementRoute, processor);
                 p->undoManager.beginNewTransaction("action reorder node");
                 p->undoManager.perform(action);
 
@@ -1122,9 +1110,7 @@ bool track::TrackComponent::keyStateChanged(bool isKeyDown) {
         else if (juce::KeyPress::isKeyCurrentlyDown(86)) {
             if (!getCorrespondingTrack()->isTrack) {
                 ActionPasteNode *action = new ActionPasteNode(
-                    route, (audioNode *)clipboard::data, processor,
-                    findParentComponentOfClass<
-                        AudioPluginAudioProcessorEditor>());
+                    route, (audioNode *)clipboard::data, processor);
 
                 AudioPluginAudioProcessor *p =
                     (AudioPluginAudioProcessor *)processor;
@@ -1368,12 +1354,10 @@ void track::TrackViewport::scrollBarMoved(juce::ScrollBar *bar,
 }
 
 track::ActionCreateNode::ActionCreateNode(std::vector<int> pRoute,
-                                          bool isATrack, void *tlist,
-                                          void *processor)
+                                          bool isATrack, void *processor)
     : juce::UndoableAction() {
     this->parentRoute = pRoute;
     this->isTrack = isATrack;
-    this->tl = tlist;
     this->p = processor;
 }
 track::ActionCreateNode::~ActionCreateNode() {}
@@ -1390,9 +1374,9 @@ bool track::ActionCreateNode::perform() {
     x->isTrack = isTrack;
     x->processor = p;
 
-    Tracklist *tracklist = (Tracklist *)tl;
     x->trackName = isTrack ? "Track" : "Group";
-    x->trackName += " " + juce::String(tracklist->trackComponents.size() + 1);
+    x->trackName +=
+        " " + juce::String(utility::getFlattenedNodes(p).size() + 1);
 
     updateGUI();
 
@@ -1428,34 +1412,29 @@ void track::ActionCreateNode::updateGUI() {
 }
 
 track::ActionDeleteNode::ActionDeleteNode(std::vector<int> nodeRoute,
-                                          void *processor, void *tracklist,
-                                          void *timelineComponent)
+                                          void *processor)
     : juce::UndoableAction() {
     this->route = nodeRoute;
     this->p = processor;
-    this->tl = tracklist;
-    this->tc = timelineComponent;
 }
 track::ActionDeleteNode::~ActionDeleteNode() {}
 
 bool track::ActionDeleteNode::perform() {
+    AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
+
     // close subwindows relevant to this node
-    TimelineComponent *timelineComponent = (TimelineComponent *)tc;
-    AudioPluginAudioProcessorEditor *editor =
-        timelineComponent
-            ->findParentComponentOfClass<AudioPluginAudioProcessorEditor>();
-    editor->closeAllFxChainsWithRoute(route);
+    processor->dispatchGUIInstruction(
+        UI_INSTRUCTION_CLOSE_ALL_FX_CHAINS_WITH_ROUTE, nullptr, route);
 
     audioNode *node = utility::getNodeFromRoute(route, p);
     for (size_t i = 0; i < node->plugins.size(); ++i) {
-        if (editor->isPluginEditorWindowOpen(route, i)) {
-            editor->closePluginEditorWindow(route, i);
-        }
-
-        editor->closeAllRelayMenusWithRouteAndPluginIndex(route, i);
+        processor->dispatchGUIInstruction(UI_INSTRUCTION_CLOSE_PEW,
+                                          (void *)(uintptr_t)i, route);
+        processor->dispatchGUIInstruction(
+            UI_INSTRUCTION_CLOSE_ALL_RMC_WITH_ROUTE_AND_INDEX,
+            (void *)(uintptr_t)i, route);
     }
 
-    AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
     if (route.size() == 1) {
 
         // recursivelyDeleteNodePlugins(&processor->tracks[(size_t)route[0]]);
@@ -1533,12 +1512,10 @@ void track::ActionDeleteNode::updateGUI() {
 }
 
 track::ActionPasteNode::ActionPasteNode(std::vector<int> pRoute,
-                                        track::audioNode *node, void *processor,
-                                        void *editor)
+                                        track::audioNode *node, void *processor)
     : juce::UndoableAction() {
     this->parentRoute = pRoute;
     this->p = processor;
-    this->e = editor;
 
     this->nodeToPaste = new audioNode;
     utility::copyNode(this->nodeToPaste, node, p);
@@ -1590,12 +1567,11 @@ void track::ActionPasteNode::updateGUI() {
 
 track::ActionModifyTrivialNodeData::ActionModifyTrivialNodeData(
     std::vector<int> nodeRoute, TrivialNodeData oldData,
-    TrivialNodeData newData, void *processor, void *editor)
+    TrivialNodeData newData, void *processor)
     : juce::UndoableAction() {
 
     this->route = nodeRoute;
     this->p = processor;
-    this->e = editor;
     this->oldState = oldData;
     this->newState = newData;
 }
@@ -1633,14 +1609,10 @@ void track::ActionModifyTrivialNodeData::updateGUI() {
 
 track::ActionMoveNodeToGroup::ActionMoveNodeToGroup(std::vector<int> toMove,
                                                     std::vector<int> group,
-                                                    void *processor,
-                                                    void *tracklist,
-                                                    void *timelineComponent) {
+                                                    void *processor) {
     this->nodeToMoveRoute = toMove;
     this->groupRoute = group;
     this->p = processor;
-    this->tl = tracklist;
-    this->tc = timelineComponent;
 }
 track::ActionMoveNodeToGroup::~ActionMoveNodeToGroup() {}
 
@@ -1662,11 +1634,8 @@ bool track::ActionMoveNodeToGroup::perform() {
     if (!valid)
         return false;
 
-    TimelineComponent *timelineComponent = (TimelineComponent *)tc;
-    AudioPluginAudioProcessorEditor *editor =
-        timelineComponent
-            ->findParentComponentOfClass<AudioPluginAudioProcessorEditor>();
-    utility::clearSubwindows(editor);
+    AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
+    processor->dispatchGUIInstruction(UI_INSTRUCTION_CLEAR_SUBWINDOWS);
 
     // stain nodes
     audioNode *group = utility::getNodeFromRoute(groupRoute, p);
@@ -1694,7 +1663,6 @@ bool track::ActionMoveNodeToGroup::perform() {
 
     // now we can get route after moving by STAIN_MOVENODETOGROUP_NODE yay!
     routeAfterMoving = getStainedRoute(STAIN_MOVENODETOGROUP_NODE);
-    AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
 
     delete temp;
 
@@ -1703,13 +1671,8 @@ bool track::ActionMoveNodeToGroup::perform() {
 }
 
 bool track::ActionMoveNodeToGroup::undo() {
-    TimelineComponent *timelineComponent = (TimelineComponent *)tc;
-    AudioPluginAudioProcessorEditor *editor =
-        timelineComponent
-            ->findParentComponentOfClass<AudioPluginAudioProcessorEditor>();
-    utility::clearSubwindows(editor);
-
     AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
+    processor->dispatchGUIInstruction(UI_INSTRUCTION_CLEAR_SUBWINDOWS);
 
     // get the node that we moved and copy it to temp
     audioNode *movedNode = utility::getNodeFromRoute(routeAfterMoving, p);
@@ -1755,9 +1718,8 @@ void track::ActionMoveNodeToGroup::updateGUI() {
 }
 
 void track::ActionMoveNodeToGroup::updateOnlyTracklist() {
-    Tracklist *tracklist = (Tracklist *)tl;
-    tracklist->trackComponents.clear();
-    tracklist->createTrackComponents();
+    AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
+    processor->dispatchGUIInstruction(UI_INSTRUCTION_RECREATE_RELAY_NODES);
 }
 
 std::vector<int> track::ActionMoveNodeToGroup::getStainedRoute(int staincode) {
@@ -1819,23 +1781,17 @@ std::vector<int> track::ActionMoveNodeToGroup::traverseStain(
 
 track::ActionReorderNode::ActionReorderNode(std::vector<int> route1,
                                             std::vector<int> route2,
-                                            void *processor, void *tracklist,
-                                            void *timelineComponent) {
+                                            void *processor) {
     this->r1 = route1;
     this->r2 = route2;
 
     this->p = processor;
-    this->tl = tracklist;
-    this->tc = timelineComponent;
 }
 track::ActionReorderNode::~ActionReorderNode() {}
 
 bool track::ActionReorderNode::perform() {
-    TimelineComponent *timelineComponent = (TimelineComponent *)tc;
-    AudioPluginAudioProcessorEditor *editor =
-        timelineComponent
-            ->findParentComponentOfClass<AudioPluginAudioProcessorEditor>();
-    utility::clearSubwindows(editor);
+    AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
+    processor->dispatchGUIInstruction(UI_INSTRUCTION_CLEAR_SUBWINDOWS);
 
     utility::reorderNodeAlt(r1, r2, p);
     updateGUI();
@@ -1843,11 +1799,9 @@ bool track::ActionReorderNode::perform() {
 }
 
 bool track::ActionReorderNode::undo() {
-    TimelineComponent *timelineComponent = (TimelineComponent *)tc;
-    AudioPluginAudioProcessorEditor *editor =
-        timelineComponent
-            ->findParentComponentOfClass<AudioPluginAudioProcessorEditor>();
-    utility::clearSubwindows(editor);
+
+    AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
+    processor->dispatchGUIInstruction(UI_INSTRUCTION_CLEAR_SUBWINDOWS);
 
     utility::reorderNodeAlt(r1, r2, p);
     updateGUI();
@@ -1871,11 +1825,10 @@ void track::ActionReorderNode::updateGUI() {
     processor->dispatchGUIInstruction(UI_INSTRUCTION_UPDATE_CORE);
 }
 
-track::ActionUngroup::ActionUngroup(std::vector<int> nodeRoute, void *processor,
-                                    void *tracklist) {
+track::ActionUngroup::ActionUngroup(std::vector<int> nodeRoute,
+                                    void *processor) {
     this->route = nodeRoute;
     this->p = processor;
-    this->tl = tracklist;
 
     audioNode *node = utility::getNodeFromRoute(route, p);
     utility::copyNode(&this->nodeCopy, node, p);
@@ -1885,12 +1838,7 @@ track::ActionUngroup::~ActionUngroup(){};
 bool track::ActionUngroup::perform() {
     audioNode *node = utility::getNodeFromRoute(route, p);
     AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
-
-    Tracklist *tracklist = (Tracklist *)tl;
-    AudioPluginAudioProcessorEditor *editor =
-        tracklist
-            ->findParentComponentOfClass<AudioPluginAudioProcessorEditor>();
-    utility::clearSubwindows(editor);
+    processor->dispatchGUIInstruction(UI_INSTRUCTION_CLEAR_SUBWINDOWS);
 
     if (node->isTrack) {
         // move this node to grapdparent
@@ -1950,12 +1898,7 @@ bool track::ActionUngroup::perform() {
 
 bool track::ActionUngroup::undo() {
     AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
-
-    Tracklist *tracklist = (Tracklist *)tl;
-    AudioPluginAudioProcessorEditor *editor =
-        tracklist
-            ->findParentComponentOfClass<AudioPluginAudioProcessorEditor>();
-    utility::clearSubwindows(editor);
+    processor->dispatchGUIInstruction(UI_INSTRUCTION_CLEAR_SUBWINDOWS);
 
     audioNode *originalParent = utility::getParentFromRoute(route, p);
     if (nodeCopy.isTrack) {
@@ -2051,8 +1994,7 @@ void track::Tracklist::copyNode(audioNode *dest, audioNode *src) {
 void track::Tracklist::addNewNode(bool isTrack, std::vector<int> parentRoute) {
     AudioPluginAudioProcessor *p = (AudioPluginAudioProcessor *)this->processor;
 
-    ActionCreateNode *action =
-        new ActionCreateNode(parentRoute, isTrack, this, p);
+    ActionCreateNode *action = new ActionCreateNode(parentRoute, isTrack, p);
     p->undoManager.beginNewTransaction("action create node");
     p->undoManager.perform(action);
 }
@@ -2085,8 +2027,7 @@ void track::Tracklist::recursivelyDeleteNodePlugins(audioNode *node) {
 // vokd track::Tracklist::deleteTrack(int trackIndex) {
 void track::Tracklist::deleteTrack(std::vector<int> route) {
     AudioPluginAudioProcessor *p = (AudioPluginAudioProcessor *)processor;
-    ActionDeleteNode *action =
-        new ActionDeleteNode(route, processor, this, timelineComponent);
+    ActionDeleteNode *action = new ActionDeleteNode(route, processor);
 
     p->undoManager.beginNewTransaction("action delete node");
     p->undoManager.perform(action);
@@ -2126,8 +2067,8 @@ void track::Tracklist::moveNodeToGroup(track::TrackComponent *caller,
         return;
     }
 
-    ActionMoveNodeToGroup *action = new ActionMoveNodeToGroup(
-        toMove, group, processor, this, timelineComponent);
+    ActionMoveNodeToGroup *action =
+        new ActionMoveNodeToGroup(toMove, group, processor);
 
     AudioPluginAudioProcessor *p = (AudioPluginAudioProcessor *)processor;
     p->undoManager.beginNewTransaction("action move node to group");
@@ -2142,9 +2083,8 @@ void track::Tracklist::mouseDown(const juce::MouseEvent &event) {
         contextMenu.addItem(
             "Paste", clipboard::typecode == TYPECODE_NODE, false, [this] {
                 ActionPasteNode *action = new ActionPasteNode(
-                    std::vector<int>(), (audioNode *)clipboard::data, processor,
-                    findParentComponentOfClass<
-                        AudioPluginAudioProcessorEditor>());
+                    std::vector<int>(), (audioNode *)clipboard::data,
+                    processor);
 
                 AudioPluginAudioProcessor *p =
                     (AudioPluginAudioProcessor *)processor;
