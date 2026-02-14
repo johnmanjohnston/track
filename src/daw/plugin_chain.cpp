@@ -48,7 +48,7 @@ bool track::ActionAddPlugin::undo() {
 
 void track::ActionAddPlugin::updateGUI() {
     AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
-    processor->dispatchGUIInstruction(UI_INSTRUCTION_RECREATE_PCC, nullptr,
+    processor->dispatchGUIInstruction(UI_INSTRUCTION_RECREATE_ALL_PNCS, nullptr,
                                       nodeRoute);
     /*
     for (size_t i = 0; i < editor->pluginChainComponents.size(); ++i) {
@@ -130,7 +130,7 @@ bool track::ActionRemovePlugin::undo() {
 
 void track::ActionRemovePlugin::updateGUI() {
     AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
-    processor->dispatchGUIInstruction(UI_INSTRUCTION_RECREATE_PCC, nullptr,
+    processor->dispatchGUIInstruction(UI_INSTRUCTION_RECREATE_ALL_PNCS, nullptr,
                                       nodeRoute);
 
     /*

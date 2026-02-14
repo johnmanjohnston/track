@@ -360,19 +360,6 @@ void AudioPluginAudioProcessorEditor::changeListenerCallback(
         timelineComponent->repaint();
     }
 
-    else if (x.command == UI_INSTRUCTION_RECREATE_PCC) {
-        for (size_t i = 0; i < pluginChainComponents.size(); ++i) {
-            if (pluginChainComponents[i]->route == x.r) {
-                // recreate plugin node components
-
-                pluginChainComponents[i]
-                    ->nodesWrapper.pluginNodeComponents.clear();
-                pluginChainComponents[i]
-                    ->nodesWrapper.createPluginNodeComponents();
-            }
-        }
-    }
-
     else if (x.command == UI_INSTRUCTION_RECREATE_ALL_PNCS) {
         for (size_t i = 0; i < pluginChainComponents.size(); ++i) {
             if (pluginChainComponents[i]->route == x.r) {
@@ -440,6 +427,12 @@ void AudioPluginAudioProcessorEditor::changeListenerCallback(
         track::utility::openRelayParamWindows(x.r, this->tmpOpenedRMCs,
                                               &processorRef, this);
         this->tmpOpenedRMCs.clear();
+    }
+
+    else if (x.command == UI_INSTRUCTION_CLEAR_SUBWINDOWS) {
+        pluginChainComponents.clear();
+        pluginEditorWindows.clear();
+        relayManagerCompnoents.clear();
     }
 }
 
