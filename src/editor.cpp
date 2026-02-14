@@ -406,6 +406,12 @@ void AudioPluginAudioProcessorEditor::changeListenerCallback(
                                                   (int)(uintptr_t)x.metadata);
     }
 
+    else if (x.command == UI_INSTRUCTION_INIT_CPWS) {
+        for (auto &cpw : clipPropertiesWindows) {
+            cpw->init();
+        }
+    }
+
     // close/opens
     else if (x.command == UI_INSTRUCTION_CLOSE_OPENED_EDITORS) {
         track::utility::closeOpenedEditors(x.r, &this->tmpOpenedEditors,
