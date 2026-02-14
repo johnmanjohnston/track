@@ -32,8 +32,8 @@ int track::utility::getIndexOfClipByValue(audioNode *node, clip c) {
     return retval;
 }
 
-track::audioNode *track::utility::getNodeFromRoute(std::vector<int> route,
-                                                   void *p) {
+inline track::audioNode *
+track::utility::getNodeFromRoute(std::vector<int> route, void *p) {
     if (route.size() == 0)
         return nullptr;
 
