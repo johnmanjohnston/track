@@ -462,18 +462,26 @@ void track::ClipComponent::mouseUp(const juce::MouseEvent &event) {
                               ->getCorrespondingTrack();
         int index = track::utility::getIndexOfClip(node, correspondingClip);
 
-        ActionClipModified *action = new ActionClipModified(
-            tc->processorRef,
-            tracklist->trackComponents[(size_t)nodeDisplayIndex]->route, index,
-            *this->correspondingClip);
+        bool noChange =
+            this->correspondingClip->startPositionSample ==
+                startDragStartPositionSample &&
+            this->correspondingClip->trimLeft == startTrimLeftPositionSample &&
+            this->correspondingClip->trimRight == startTrimRightPositionSample;
 
-        action->oldClip.startPositionSample = startDragStartPositionSample;
-        action->oldClip.trimLeft = startTrimLeftPositionSample;
-        action->oldClip.trimRight = startTrimRightPositionSample;
+        if (!noChange) {
+            ActionClipModified *action = new ActionClipModified(
+                tc->processorRef,
+                tracklist->trackComponents[(size_t)nodeDisplayIndex]->route,
+                index, *this->correspondingClip);
 
-        tc->processorRef->undoManager.beginNewTransaction(
-            "action clip modified");
-        tc->processorRef->undoManager.perform(action);
+            action->oldClip.startPositionSample = startDragStartPositionSample;
+            action->oldClip.trimLeft = startTrimLeftPositionSample;
+            action->oldClip.trimRight = startTrimRightPositionSample;
+
+            tc->processorRef->undoManager.beginNewTransaction(
+                "action clip modified");
+            tc->processorRef->undoManager.perform(action);
+        }
     }
 
     if (!event.mods.isLeftButtonDown()) {
