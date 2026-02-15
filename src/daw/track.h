@@ -216,11 +216,6 @@ class TrackComponent : public juce::Component {
 
     void copyNodeToClipboard();
 
-    // instances of TrackComponent are responsible for only handling the UI for
-    // an indiviaul track (only the left section which shows track name, volume
-    // controls, mute/soloing control). The actual CLIPS of audio will be
-    // handles in the TimelineComponent class
-    // track *correspondingTrack = nullptr;
     audioNode *getCorrespondingTrack();
     void *processor = nullptr;
     int siblingIndex = -1;
@@ -424,10 +419,6 @@ class Tracklist : public juce::Component {
 
     InsertIndicator insertIndicator;
     void updateInsertIndicator(int index);
-    /*int insertIndicatorIndex = -1; // when trying to reorder nodes, which
-       index
-                                   // should we highlight to show user?
-*/
 
     void mouseDown(const juce::MouseEvent &event) override;
 

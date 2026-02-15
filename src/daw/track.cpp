@@ -211,12 +211,6 @@ void track::ClipComponent::mouseDown(const juce::MouseEvent &event) {
         juce::PopupMenu contextMenu;
         contextMenu.setLookAndFeel(&getLookAndFeel());
 
-        // future john: if you're wondering why for clips you define item result
-        // IDs like this, but only for clips and not other popup menus, it's
-        // because defining item result IDs make it easier to reorder items, and
-        // clip components will have many items in its popup menus, but not
-        // other components' popup menus
-
 #define MENU_CUT_CLIP 2
 #define MENU_TOGGLE_CLIP_ACTIVATION 3
 #define MENU_COPY_CLIP 4
@@ -236,9 +230,6 @@ void track::ClipComponent::mouseDown(const juce::MouseEvent &event) {
                             "Toggle activate/deactive clip");
         contextMenu.addItem(MENU_SHOW_IN_EXPLORER, "Show in explorer");
         contextMenu.addItem(MENU_EDIT_CLIP_PROPERTIES, "Edit clip properties");
-
-        int splitSample = ((float)event.x / UI_ZOOM_MULTIPLIER) * SAMPLE_RATE;
-        contextMenu.addItem(MENU_SPLIT_CLIP, "Split");
 
         juce::PopupMenu::Options options;
 
@@ -604,20 +595,8 @@ bool track::ActionClipModified::undo() {
 }
 
 void track::ActionClipModified::markClipComponentStale() {
-    // the ClipComponent for this clip is probably not stale;
-    // so stalify it here
-
-    DBG("markClipComponentStale() called");
-
     AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
     processor->dispatchGUIInstruction(UI_INSTRUCTION_MARK_CC_STALE, getClip());
-
-    /*TimelineComponent *timelineComponent = (TimelineComponent *)tc;
-    for (auto &clipComponent : timelineComponent->clipComponents) {
-        if (clipComponent->correspondingClip == getClip()) {
-            clipComponent->stale = true;
-        }
-    }*/
 }
 
 void track::ActionClipModified::updateGUI() {
@@ -627,21 +606,6 @@ void track::ActionClipModified::updateGUI() {
 
     processor->dispatchGUIInstruction(UI_INSTRUCTION_UPDATE_STALE_TIMELINE);
     processor->dispatchGUIInstruction(UI_INSTRUCTION_INIT_CPWS);
-
-    /*
-    jassert(tc != nullptr);
-
-    TimelineComponent *timelineComponent = (TimelineComponent *)tc;
-    timelineComponent->updateOnlyStaleClipComponents();
-
-    // hunt for clip editor windows for this clip and update
-    AudioPluginAudioProcessorEditor *editor =
-        (AudioPluginAudioProcessorEditor *)timelineComponent
-            ->findParentComponentOfClass<AudioPluginAudioProcessorEditor>();
-
-    for (auto &cpw : editor->clipPropertiesWindows) {
-        cpw->init();
-    }*/
 }
 
 track::ClipPropertiesWindow::ClipPropertiesWindow() : track::Subwindow() {
@@ -919,9 +883,6 @@ track::TrackComponent::TrackComponent(int trackIndex) : juce::Component() {
 
         this->panValueAtStartDrag = -1.f;
 
-        AudioPluginAudioProcessorEditor *editor =
-            findParentComponentOfClass<AudioPluginAudioProcessorEditor>();
-
         AudioPluginAudioProcessor *p = (AudioPluginAudioProcessor *)processor;
         ActionModifyTrivialNodeData *action = new ActionModifyTrivialNodeData(
             route, oldState, newState, processor);
@@ -1058,7 +1019,6 @@ void track::TrackComponent::mouseUp(const juce::MouseEvent &event) {
       
             // check if both tracks belong to the same parent 
             std::vector<int> r1 = tracklist->trackComponents[(size_t)displayNodes]->route;
-            int r1End = r1.back();
             r1.pop_back();
 
             std::vector<int> r2 = this->route;
@@ -1084,9 +1044,6 @@ void track::TrackComponent::mouseUp(const juce::MouseEvent &event) {
 
         } else {
             tracklist->moveNodeToGroup(this, displayNodes);
-                
-            // track::TimelineComponent* timelineComponent = (TimelineComponent*)tracklist->timelineComponent;
-            // timelineComponent->updateClipComponents();
         }
 
         // clang-format on
@@ -1291,10 +1248,6 @@ void track::TrackComponent::paint(juce::Graphics &g) {
 }
 
 void track::TrackComponent::resized() {
-
-    // trackNameLabel.setBounds((route.size() - 1) * 10, 0, getWidth(), 20);
-    // return;
-
     int xOffset = (route.size() - 1) * UI_TRACK_DEPTH_INCREMENTS;
     juce::Rectangle<int> trackNameLabelBounds = juce::Rectangle<int>(
         UI_TRACK_INDEX_WIDTH + getLocalBounds().getX() + 5 + xOffset,
@@ -1410,7 +1363,6 @@ bool track::ActionCreateNode::perform() {
 }
 
 bool track::ActionCreateNode::undo() {
-    // parent->childNodes.pop_back(); // wow pop_back() exists?
     AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
     audioNode *parent = track::utility::getNodeFromRoute(parentRoute, p);
 
@@ -1426,13 +1378,6 @@ bool track::ActionCreateNode::undo() {
 }
 
 void track::ActionCreateNode::updateGUI() {
-    /*
-    Tracklist *tracklist = (Tracklist *)tl;
-    tracklist->trackComponents.clear();
-    tracklist->createTrackComponents();
-    tracklist->setTrackComponentBounds();
-    tracklist->repaint();*/
-
     AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
     processor->dispatchGUIInstruction(UI_INSTRUCTION_UPDATE_NODE_COMPONENTS);
     processor->dispatchGUIInstruction(UI_INSTRUCTION_UPDATE_CORE_SCROLLS);
@@ -1463,9 +1408,6 @@ bool track::ActionDeleteNode::perform() {
     }
 
     if (route.size() == 1) {
-
-        // recursivelyDeleteNodePlugins(&processor->tracks[(size_t)route[0]]);
-
         if ((size_t)route[0] > processor->tracks.size()) {
             DBG("refusla to perform() action delete node");
         } else {
@@ -1480,9 +1422,6 @@ bool track::ActionDeleteNode::perform() {
         for (size_t i = 1; i < route.size() - 1; ++i) {
             head = &head->childNodes[(size_t)route[i]];
         }
-
-        // recursivelyDeleteNodePlugins(
-        //&head->childNodes[route[route.size() - 1]]);
 
         if ((size_t)route.back() + 1 > head->childNodes.size()) {
             DBG("refusl to perform() action delete node");
@@ -1522,18 +1461,6 @@ bool track::ActionDeleteNode::undo() {
 }
 
 void track::ActionDeleteNode::updateGUI() {
-    /*
-    TimelineComponent *timelineComponent = (TimelineComponent *)tc;
-    Tracklist *tracklist = (Tracklist *)tl;
-
-    timelineComponent->clipComponents.clear();
-    tracklist->trackComponents.clear();
-
-    tracklist->createTrackComponents();
-    tracklist->setTrackComponentBounds();
-
-    timelineComponent->updateClipComponents();*/
-
     AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
     processor->dispatchGUIInstruction(UI_INSTRUCTION_UPDATE_CORE);
 }
@@ -1574,20 +1501,6 @@ bool track::ActionPasteNode::undo() {
     return true;
 }
 void track::ActionPasteNode::updateGUI() {
-    /*
-    AudioPluginAudioProcessorEditor *editor =
-        (AudioPluginAudioProcessorEditor *)e;
-
-    Tracklist *tracklist = &editor->tracklist;
-    tracklist->trackComponents.clear();
-    tracklist->createTrackComponents();
-    tracklist->setTrackComponentBounds();
-    tracklist->repaint();
-
-    TimelineComponent *tc = editor->timelineComponent.get();
-    tc->clipComponents.clear();
-    tc->updateClipComponents();*/
-
     AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
     processor->dispatchGUIInstruction(UI_INSTRUCTION_UPDATE_CORE);
 }
@@ -1623,12 +1536,6 @@ bool track::ActionModifyTrivialNodeData::undo() {
 }
 
 void track::ActionModifyTrivialNodeData::updateGUI() {
-    /*
-    AudioPluginAudioProcessorEditor *editor =
-        (AudioPluginAudioProcessorEditor *)e;
-
-    editor->tracklist.updateExistingTrackComponents();*/
-
     AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
     processor->dispatchGUIInstruction(
         UI_INSTRUCTION_UPDATE_EXISTING_NODE_COMPONENTS);
@@ -1643,6 +1550,7 @@ track::ActionMoveNodeToGroup::ActionMoveNodeToGroup(std::vector<int> toMove,
 }
 track::ActionMoveNodeToGroup::~ActionMoveNodeToGroup() {}
 
+// future john here; man i was LOCKED IN WHEN WRITING THIS SHIT
 bool track::ActionMoveNodeToGroup::perform() {
     bool valid = true;
 
@@ -1760,14 +1668,10 @@ std::vector<int> track::ActionMoveNodeToGroup::getStainedRoute(int staincode) {
         audioNode *n = &processor->tracks[i];
 
         if (n->stain == staincode) {
-            DBG("MATCH FOUND (TLD): " << utility::prettyVector(tmp));
             return tmp;
         }
 
-        DBG("found: " << n->trackName);
-
         auto x = traverseStain(staincode, n, tmp, 0);
-        DBG("TLD x = " << utility::prettyVector(x));
 
         if (x.size() > 1)
             return x;
@@ -1778,7 +1682,6 @@ std::vector<int> track::ActionMoveNodeToGroup::getStainedRoute(int staincode) {
 
 std::vector<int> track::ActionMoveNodeToGroup::traverseStain(
     int staincode, audioNode *parentNode, std::vector<int> r, int depth = 0) {
-    // sex1
     std::vector<int> retval = r;
 
     for (size_t i = 0; i < parentNode->childNodes.size(); ++i) {
@@ -1786,15 +1689,11 @@ std::vector<int> track::ActionMoveNodeToGroup::traverseStain(
 
         audioNode *n = &parentNode->childNodes[i];
         if (n->stain == staincode) {
-            DBG("MATCH FOUND: " << utility::prettyVector(r));
             return r;
         }
 
-        DBG("found: " << n->trackName);
-
         if (!n->isTrack) {
             auto x = traverseStain(staincode, n, r, depth + 1);
-            DBG("x = " << utility::prettyVector(x));
 
             if (x.size() > r.size())
                 return x;
@@ -1836,18 +1735,6 @@ bool track::ActionReorderNode::undo() {
 }
 
 void track::ActionReorderNode::updateGUI() {
-    /*
-    TimelineComponent *timelineComponent = (TimelineComponent *)tc;
-    Tracklist *tracklist = (Tracklist *)tl;
-
-    timelineComponent->clipComponents.clear();
-    tracklist->trackComponents.clear();
-
-    tracklist->createTrackComponents();
-    tracklist->setTrackComponentBounds();
-
-    timelineComponent->updateClipComponents();*/
-
     AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
     processor->dispatchGUIInstruction(UI_INSTRUCTION_UPDATE_CORE);
 }
@@ -1961,17 +1848,6 @@ bool track::ActionUngroup::undo() {
 }
 
 void track::ActionUngroup::updateGUI() {
-    /*
-    Tracklist *tracklist = (Tracklist *)tl;
-    TimelineComponent *timelineComponent =
-        (TimelineComponent *)tracklist->timelineComponent;
-
-    tracklist->trackComponents.clear();
-    timelineComponent->clipComponents.clear();
-
-    tracklist->createTrackComponents();
-    timelineComponent->updateClipComponents();*/
-
     AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
     processor->dispatchGUIInstruction(UI_INSTRUCTION_UPDATE_CORE);
 }
@@ -2535,7 +2411,6 @@ void track::audioNode::process(int numSamples, int currentSample) {
         if (this->plugins[i]->bypassed == true)
             continue;
 
-        juce::MidiBuffer mb;
         this->plugins[i]->relayParamsToPlugin();
         this->plugins[i]->process(this->buffer);
     }
