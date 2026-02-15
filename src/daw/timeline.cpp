@@ -79,10 +79,6 @@ bool track::ActionAddClip::undo() {
 }
 
 void track::ActionAddClip::updateGUI() {
-    /*
-    TimelineComponent *timelineComponent = (TimelineComponent *)tc;
-    timelineComponent->updateClipComponents();*/
-
     AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
     processor->dispatchGUIInstruction(UI_INSTRUCTION_UPDATE_CLIP_COMPONENTS);
 }
@@ -129,12 +125,6 @@ bool track::ActionCutClip::undo() {
 }
 
 void track::ActionCutClip::updateGUI() {
-    /*
-    TimelineComponent *timelineComponent = (TimelineComponent *)tc;
-
-    timelineComponent->clipComponents.clear();
-    timelineComponent->updateClipComponents();*/
-
     AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
     processor->dispatchGUIInstruction(UI_INSTRUCTION_UPDATE_CLIP_COMPONENTS);
 }
@@ -197,11 +187,6 @@ bool track::ActionSplitClip::undo() {
 
 void track::ActionSplitClip::updateGUI() {
     if (shouldUpdateGUI) {
-        /*
-        TimelineComponent *timelineComponent = (TimelineComponent *)tc;
-        timelineComponent->clipComponents.clear();
-        timelineComponent->updateClipComponents();*/
-
         AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
         processor->dispatchGUIInstruction(
             UI_INSTRUCTION_UPDATE_CLIP_COMPONENTS);
@@ -231,17 +216,6 @@ void track::ActionShiftClips::shift(int bars) {
     double secondsPerBar = (60.0 / track::BPM) * beatsPerBar;
     int samplesPerBar = secondsPerBar * track::SAMPLE_RATE;
 
-    /*
-    Tracklist *tracklist = timelineComponent->viewport->tracklist;
-
-    for (auto &trc : tracklist->trackComponents) {
-        if (trc->getCorrespondingTrack()->isTrack) {
-            for (auto &clip : trc->getCorrespondingTrack()->clips) {
-                clip.startPositionSample += samplesPerBar * bars;
-            }
-        }
-    }*/
-
     std::vector<audioNode *> nodes = utility::getFlattenedNodes(p);
 
     for (size_t i = 0; i < nodes.size(); ++i) {
@@ -254,10 +228,6 @@ void track::ActionShiftClips::shift(int bars) {
 }
 
 void track::ActionShiftClips::updateGUI() {
-    /*
-    TimelineComponent *timelineComponent = (TimelineComponent *)tc;
-    timelineComponent->updateClipComponents();*/
-
     AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
     processor->dispatchGUIInstruction(UI_INSTRUCTION_UPDATE_CLIP_COMPONENTS);
 }

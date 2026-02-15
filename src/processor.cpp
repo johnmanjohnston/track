@@ -181,45 +181,6 @@ void AudioPluginAudioProcessor::prepareToPlay(double sampleRate,
         }
     }
 
-    /*
-    // initialize tracks
-    // first track
-    track::track t;
-    t.trackName = "beans";
-
-    track::clip c;
-    c.startPositionSample = startSample;
-    c.path = path;
-    c.updateBuffer();
-
-    t.clips.push_back(c);
-    tracks.push_back(t);
-
-    // second track
-    track::track t2;
-    t2.trackName = "potato";
-    track::clip c2;
-    c2.startPositionSample = 44100;
-    // c2.path = "/home/johnston/Downloads/jldn.wav";
-    c2.path = path;
-    c2.updateBuffer();
-    t2.clips.push_back(c2);
-    tracks.push_back(t2);
-    */
-
-    /*
-    track::track t;
-    t.trackName = "beans";
-
-    track::clip c;
-    c.startPositionSample = startSample;
-    c.path = path;
-    c.updateBuffer();
-
-    t.clips.push_back(c);
-    tracks.push_back(t);
-    */
-
     DBG("prepareToPlay() called with sample rate " << sampleRate);
     DBG("total outputs: " << getTotalNumOutputChannels());
     DBG("total inputs: " << getTotalNumInputChannels());
@@ -323,17 +284,6 @@ void AudioPluginAudioProcessor::processBlock(juce::AudioBuffer<float> &buffer,
         auto *channelData = buffer.getWritePointer(channel);
         juce::ignoreUnused(channelData);
     }
-
-    /*
-    if (plugin != nullptr) {
-        plugin.get()->setPlayHead(getPlayHead());
-        plugin.get()->processBlock(buffer, mb);
-    }
-
-    if (plugin == nullptr) {
-        DBG("plugin is null. msg says " << msg);
-    }
-    */
 
     buffer.applyGain(*masterGain);
 }
@@ -637,11 +587,6 @@ void AudioPluginAudioProcessor::updateLatency() {
     track::MAX_LATENT_SAMPLES = -1;
 
     for (track::audioNode &node : this->tracks) {
-        /*
-        DBG("calculating latency for node "
-            << node.trackName << " which returned sample count of "
-            << node.getTotalLatencySamples());
-            */
         totalLatency += node.getTotalLatencySamples();
     }
 

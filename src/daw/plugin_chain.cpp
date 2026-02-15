@@ -50,17 +50,6 @@ void track::ActionAddPlugin::updateGUI() {
     AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
     processor->dispatchGUIInstruction(UI_INSTRUCTION_RECREATE_ALL_PNCS, nullptr,
                                       nodeRoute);
-    /*
-    for (size_t i = 0; i < editor->pluginChainComponents.size(); ++i) {
-        if (editor->pluginChainComponents[i]->route == nodeRoute) {
-            // recreate plugin node components
-
-            editor->pluginChainComponents[i]
-                ->nodesWrapper.pluginNodeComponents.clear();
-            editor->pluginChainComponents[i]
-                ->nodesWrapper.createPluginNodeComponents();
-        }
-    }*/
 }
 
 track::ActionRemovePlugin::ActionRemovePlugin(track::pluginClipboardData data,
@@ -132,19 +121,6 @@ void track::ActionRemovePlugin::updateGUI() {
     AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
     processor->dispatchGUIInstruction(UI_INSTRUCTION_RECREATE_ALL_PNCS, nullptr,
                                       nodeRoute);
-
-    /*
-    AudioPluginAudioProcessorEditor *editor =
-        (AudioPluginAudioProcessorEditor *)e;
-
-    for (size_t i = 0; i < editor->pluginChainComponents.size(); ++i) {
-        if (editor->pluginChainComponents[i]->route == nodeRoute) {
-            editor->pluginChainComponents[i]
-                ->nodesWrapper.pluginNodeComponents.clear();
-            editor->pluginChainComponents[i]
-                ->nodesWrapper.createPluginNodeComponents();
-        }
-    }*/
 }
 
 track::ActionReorderPlugin::ActionReorderPlugin(std::vector<int> nodeRoute,
@@ -203,19 +179,6 @@ void track::ActionReorderPlugin::updateGUI() {
     AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
     processor->dispatchGUIInstruction(UI_INSTRUCTION_RECREATE_ALL_PNCS, nullptr,
                                       route);
-
-    /*
-    AudioPluginAudioProcessorEditor *editor =
-        (AudioPluginAudioProcessorEditor *)e;
-
-    for (size_t i = 0; i < editor->pluginChainComponents.size(); ++i) {
-        if (editor->pluginChainComponents[i]->route == route) {
-            editor->pluginChainComponents[i]
-                ->nodesWrapper.pluginNodeComponents.clear();
-            editor->pluginChainComponents[i]
-                ->nodesWrapper.createPluginNodeComponents();
-        }
-    }*/
 }
 
 track::ActionChangeTrivialPluginData::ActionChangeTrivialPluginData(
@@ -261,23 +224,6 @@ void track::ActionChangeTrivialPluginData::updateGUI() {
 
     processor->dispatchGUIInstruction(UI_INSTRUCTION_RECREATE_RELAY_NODES,
                                       nullptr, route);
-
-    /*
-    for (size_t i = 0; i < editor->pluginChainComponents.size(); ++i) {
-        if (editor->pluginChainComponents[i]->route == route) {
-            editor->pluginChainComponents[i]
-                ->nodesWrapper.pluginNodeComponents.clear();
-
-            editor->pluginChainComponents[i]
-                ->nodesWrapper.createPluginNodeComponents();
-        }
-    }
-
-    for (size_t i = 0; i < editor->relayManagerCompnoents.size(); ++i) {
-        if (editor->relayManagerCompnoents[i]->route == route)
-            editor->relayManagerCompnoents[i]
-                ->rmNodesWrapper.createRelayNodes();
-    }*/
 };
 
 track::PluginNodeComponent::PluginNodeComponent() : juce::Component() {
@@ -651,12 +597,6 @@ void track::PluginNodesWrapper::mouseDown(const juce::MouseEvent &event) {
                         int pluginIndex = node->plugins.size() - 1;
 
                         editor->openPluginEditorWindow(pcc->route, pluginIndex);
-
-                        /*
-                        // very lazy way but i couldn't be bothered now
-                        pluginNodeComponents.clear();
-                        createPluginNodeComponents();
-                        */
 
                         pcc->resized();
                         pcc->nodesViewport.setViewPosition(
