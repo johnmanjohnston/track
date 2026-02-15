@@ -339,23 +339,9 @@ void track::TimelineViewport::mouseWheelMove(
             UI_TRACK_HEIGHT += 5;
         }
 
-        tracklist->setTrackComponentBounds();
-        trackViewport->repaint();
-
-        TimelineComponent *timelineComponent =
-            (TimelineComponent *)getViewedComponent();
-        int tcHeight =
-            (tracklist->trackComponents.size() + 2) * (size_t)UI_TRACK_HEIGHT;
-        timelineComponent->setSize(timelineComponent->getWidth(),
-                                   juce::jmax(tcHeight, this->getHeight()));
-        timelineComponent->resized();
-        timelineComponent->repaint();
-
-        if (timelineComponent->getHeight() <= this->getHeight()) {
-            setScrollBarsShown(false, true);
-        } else {
-            setScrollBarsShown(true, true);
-        }
+        AudioPluginAudioProcessor *p =
+            (AudioPluginAudioProcessor *)this->tracklist->processor;
+        p->dispatchGUIInstruction(UI_INSTRUCTION_UPDATE_CORE_SCROLLS);
 
         repaint();
     }

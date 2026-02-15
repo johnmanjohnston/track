@@ -412,6 +412,25 @@ void AudioPluginAudioProcessorEditor::changeListenerCallback(
         }
     }
 
+    else if (x.command == UI_INSTRUCTION_UPDATE_CORE_SCROLLS) {
+        tracklist.setTrackComponentBounds();
+        trackViewport.repaint();
+
+        int tcHeight = (tracklist.trackComponents.size() + 2) *
+                       (size_t)track::UI_TRACK_HEIGHT;
+        timelineComponent->setSize(timelineComponent->getWidth(),
+                                   juce::jmax(tcHeight, this->getHeight()));
+        timelineComponent->resized();
+        timelineComponent->repaint();
+
+        if (timelineComponent->getHeight() <= this->getHeight()) {
+            timelineViewport.setScrollBarsShown(false, true);
+        } else {
+            timelineViewport.setScrollBarsShown(true, true);
+        }
+
+    }
+
     // close/opens
     else if (x.command == UI_INSTRUCTION_CLOSE_OPENED_EDITORS) {
         track::utility::closeOpenedEditors(x.r, &this->tmpOpenedEditors,

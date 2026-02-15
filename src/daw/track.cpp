@@ -1435,6 +1435,7 @@ void track::ActionCreateNode::updateGUI() {
 
     AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
     processor->dispatchGUIInstruction(UI_INSTRUCTION_UPDATE_NODE_COMPONENTS);
+    processor->dispatchGUIInstruction(UI_INSTRUCTION_UPDATE_CORE_SCROLLS);
 }
 
 track::ActionDeleteNode::ActionDeleteNode(std::vector<int> nodeRoute,
