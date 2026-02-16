@@ -344,9 +344,8 @@ void track::RelayParamInspectorComponent::initSliders() {
         juce::RangedAudioParameter *rangedParam =
             (juce::RangedAudioParameter *)rawParam;
 
-        auto &x = paramSliderAttachments.emplace_back(
-            new juce::SliderParameterAttachment(*rangedParam, *slider,
-                                                nullptr));
+        paramSliderAttachments.emplace_back(new juce::SliderParameterAttachment(
+            *rangedParam, *slider, nullptr));
 
         slider->setRange(0, 100);
 
@@ -361,7 +360,6 @@ void track::RelayParamInspectorComponent::initSliders() {
 void track::RelayParamInspectorComponent::paint(juce::Graphics &g) {
     // needs to align with resized()
 
-    int w = 200;
     int h = 24;
 
     g.setFont(getInterSemiBold().withHeight(18.f));

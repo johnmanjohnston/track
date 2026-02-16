@@ -685,10 +685,6 @@ void track::TimelineComponent::filesDropped(const juce::StringArray &files,
     juce::AudioFormatManager afm;
     afm.registerBasicFormats();
 
-    for (int i = 0; i < afm.getNumKnownFormats(); ++i) {
-        auto f = afm.getKnownFormat(i);
-    }
-
     std::unique_ptr<juce::AudioFormatReader> reader(afm.createReaderFor(file));
     juce::String path = files[0];
 

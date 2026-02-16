@@ -39,11 +39,11 @@ void track::CloseButton::mouseUp(const juce::MouseEvent &event) {
     }
 }
 
-void track::CloseButton::mouseEnter(const juce::MouseEvent &event) {
+void track::CloseButton::mouseEnter(const juce::MouseEvent & /*event*/) {
     isHoveredOver = true;
     repaint();
 }
-void track::CloseButton::mouseExit(const juce::MouseEvent &event) {
+void track::CloseButton::mouseExit(const juce::MouseEvent & /*event*/) {
     isHoveredOver = false;
     repaint();
 }
@@ -57,7 +57,7 @@ void track::Subwindow::mouseDrag(const juce::MouseEvent &event) {
     }
 }
 
-void track::Subwindow::mouseDown(const juce::MouseEvent &event) {
+void track::Subwindow::mouseDown(const juce::MouseEvent & /*event*/) {
     if (juce::ModifierKeys::currentModifiers.isAltDown())
         dragStartBounds = getBounds();
 

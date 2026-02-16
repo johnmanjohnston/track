@@ -1096,7 +1096,7 @@ void track::PluginEditorWindow::timerCallback() {
                 UI_SUBWINDOW_TITLEBAR_HEIGHT + ape->getHeight());
 }
 
-void track::PluginEditorWindow::mouseDown(const juce::MouseEvent &event) {
+void track::PluginEditorWindow::mouseDown(const juce::MouseEvent & /*event*/) {
     if (juce::ModifierKeys::currentModifiers.isAltDown()) {
         dragStartBounds = getBounds();
 

@@ -43,7 +43,6 @@ void track::TransportStatusComponent::paint(juce::Graphics &g) {
         beat = (ppq % timeSignature.numerator) + 1;
 
         // calculate 8th note divisions from sample counts
-        float eigthNoteLengthInSeconds = (60.f * 1.f / tempo) * .5f;
         float beatDuration = 60.f / tempo;
 
         float mul = 4.f / timeSignature.denominator;
