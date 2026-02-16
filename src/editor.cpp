@@ -103,10 +103,16 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
         contextMenu.addSeparator();
         contextMenu.addItem(MENU_UPDATE_LATENCY, "Update latency");
         contextMenu.addSeparator();
-        contextMenu.addItem(MENU_UNDO, "Undo",
-                            processorRef.undoManager.canUndo());
-        contextMenu.addItem(MENU_REDO, "Redo",
-                            processorRef.undoManager.canRedo());
+        contextMenu.addItem(
+            MENU_UNDO,
+            "Undo " + processorRef.undoManager.getUndoDescription().substring(
+                          7), // 7 is length of "action "
+            processorRef.undoManager.canUndo());
+        contextMenu.addItem(
+            MENU_REDO,
+            "Redo " +
+                processorRef.undoManager.getRedoDescription().substring(7),
+            processorRef.undoManager.canRedo());
         contextMenu.addSeparator();
         contextMenu.addItem(MENU_ABOUT, "About");
         contextMenu.addItem(MENU_BUILD_INFO, "Build info");
