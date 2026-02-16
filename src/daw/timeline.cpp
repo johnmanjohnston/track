@@ -1,10 +1,13 @@
 #include "timeline.h"
 #include "clipboard.h"
 #include "defs.h"
+#include "juce_audio_formats/juce_audio_formats.h"
+#include "juce_core/juce_core.h"
 #include "track.h"
 #include "utility.h"
 #include <cmath>
 #include <functional>
+#include <memory>
 
 track::BarNumbersComponent::BarNumbersComponent() : juce::Component() {
     setInterceptsMouseClicks(false, false);
@@ -730,11 +733,29 @@ void track::TimelineComponent::filesDropped(const juce::StringArray &files,
                 .withButton("Cancel"),
             [this, path, startSample, nodeDisplayIndex](int result) {
                 if (result == 0) {
+                    bool forceWav = false;
                     // init reader
                     juce::AudioFormatManager afm;
                     afm.registerBasicFormats();
                     std::unique_ptr<juce::AudioFormatReader> reader(
                         afm.createReaderFor(path));
+
+                    juce::AudioFormat *fmt = nullptr;
+                    juce::File originalFile = juce::File(path);
+
+                    for (int i = 0; i < afm.getNumKnownFormats(); ++i) {
+                        if (afm.getKnownFormat(i)->canHandleFile(
+                                originalFile)) {
+                            fmt = afm.getKnownFormat(i);
+                        }
+                    }
+                    jassert(fmt != nullptr);
+                    DBG("USING FORMAT: " << fmt->getFormatName());
+
+                    if (fmt->getFormatName().containsIgnoreCase("mp3")) {
+                        DBG("force wav = true");
+                        forceWav = true;
+                    }
 
                     // read original buffer
                     juce::AudioBuffer<float> originalBuffer =
@@ -769,7 +790,6 @@ void track::TimelineComponent::filesDropped(const juce::StringArray &files,
                     }
 
                     // now write resampled file
-                    juce::File originalFile = juce::File(path);
                     juce::File parentDir = originalFile.getParentDirectory();
                     juce::String originalFileName = originalFile.getFileName();
 
@@ -784,16 +804,18 @@ void track::TimelineComponent::filesDropped(const juce::StringArray &files,
                         parentDir.getFullPathName() + dirSep +
                         originalFile.getFileNameWithoutExtension() + "-" +
                         juce::String(track::SAMPLE_RATE) + "hz" +
-                        originalFile.getFileExtension();
+                        (forceWav ? ".wav" : originalFile.getFileExtension());
 
                     juce::File resampledFile = juce::File(resampledFilePath);
                     resampledFile.create();
 
-                    // FIXME: test audio resampling for mp3 files
-                    juce::WavAudioFormat wavFormat;
                     std::unique_ptr<juce::AudioFormatWriter> writer;
 
-                    writer.reset(wavFormat.createWriterFor(
+                    if (forceWav) {
+                        fmt = new juce::WavAudioFormat();
+                    }
+
+                    writer.reset(fmt->createWriterFor(
                         new juce::FileOutputStream(resampledFilePath),
                         track::SAMPLE_RATE, (unsigned int)reader->numChannels,
                         (int)reader->bitsPerSample, reader->metadataValues, 0));
@@ -810,6 +832,10 @@ void track::TimelineComponent::filesDropped(const juce::StringArray &files,
 
                     addNewClipToTimeline(resampledFilePath, startSample,
                                          nodeDisplayIndex);
+
+                    if (forceWav)
+                        delete fmt;
+
                 } else if (result == 1) {
                     addNewClipToTimeline(path, startSample, nodeDisplayIndex);
                 }
