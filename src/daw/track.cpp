@@ -602,8 +602,6 @@ void track::ActionClipModified::markClipComponentStale() {
 void track::ActionClipModified::updateGUI() {
     AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
 
-    DBG("udpateGUI() called");
-
     processor->dispatchGUIInstruction(UI_INSTRUCTION_UPDATE_STALE_TIMELINE);
     processor->dispatchGUIInstruction(UI_INSTRUCTION_INIT_CPWS);
 }

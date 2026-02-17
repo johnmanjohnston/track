@@ -336,7 +336,6 @@ void AudioPluginAudioProcessorEditor::resized() {
 
 void AudioPluginAudioProcessorEditor::changeListenerCallback(
     ChangeBroadcaster * /*source*/) {
-    DBG("changeListenerCallback() called from editor");
 
     track::uiinstruction x = processorRef.GUIInstruction;
 
@@ -355,7 +354,6 @@ void AudioPluginAudioProcessorEditor::changeListenerCallback(
         track::clip *c = (track::clip *)x.metadata;
         for (auto &cc : timelineComponent->clipComponents) {
             if (cc->correspondingClip == c) {
-                DBG("stale match found!");
                 cc->stale = true;
             }
         }
@@ -625,8 +623,6 @@ void AudioPluginAudioProcessorEditor::scan() {
 }
 
 void AudioPluginAudioProcessorEditor::lazyScan() {
-    DBG("lazyScan() called");
-
     processorRef.knownPluginList.clear();
 
     fileChooser = std::make_unique<juce::FileChooser>(
@@ -677,8 +673,6 @@ bool AudioPluginAudioProcessorEditor::keyStateChanged(bool isKeyDown) {
     if (isKeyDown) {
         // ctrl+z
         if (juce::KeyPress::isKeyCurrentlyDown(90)) {
-            DBG("");
-
             // this is temporary; in the future, implement a toast
             // system that tells the user smth "please wait, clips are still
             // rendering..." or smth idk bro i'm vibing to south arcade now,

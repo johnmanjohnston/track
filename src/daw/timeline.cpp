@@ -1,8 +1,6 @@
 #include "timeline.h"
 #include "clipboard.h"
 #include "defs.h"
-#include "juce_audio_formats/juce_audio_formats.h"
-#include "juce_core/juce_core.h"
 #include "track.h"
 #include "utility.h"
 #include <cmath>
@@ -747,6 +745,7 @@ void track::TimelineComponent::filesDropped(const juce::StringArray &files,
                         if (afm.getKnownFormat(i)->canHandleFile(
                                 originalFile)) {
                             fmt = afm.getKnownFormat(i);
+                            break;
                         }
                     }
                     jassert(fmt != nullptr);

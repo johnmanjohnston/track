@@ -58,7 +58,6 @@ class ClipComponent : public juce::Component, public juce::ChangeListener {
 
     bool keyStateChanged(bool isKeyDown) override;
     void focusLost(juce::Component::FocusChangeType /*cause*/) override {
-        DBG("focus lost");
         repaint();
     };
 
