@@ -67,6 +67,9 @@ bool track::ActionAddClip::perform() {
 
     updateGUI();
 
+    AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
+    processor->requireSaving();
+
     return true;
 }
 
@@ -75,6 +78,9 @@ bool track::ActionAddClip::undo() {
 
     node->clips.erase(node->clips.begin() + (long)node->clips.size() - 1);
     updateGUI();
+
+    AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
+    processor->requireSaving();
 
     return true;
 }
@@ -113,6 +119,10 @@ bool track::ActionCutClip::perform() {
     node->clips.erase(node->clips.begin() + (long)clipIndex);
 
     updateGUI();
+
+    AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
+    processor->requireSaving();
+
     return true;
 }
 bool track::ActionCutClip::undo() {
@@ -122,6 +132,10 @@ bool track::ActionCutClip::undo() {
     newClip = addedClip;
 
     updateGUI();
+
+    AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
+    processor->requireSaving();
+
     return true;
 }
 
@@ -170,6 +184,9 @@ bool track::ActionSplitClip::perform() {
 
     updateGUI();
 
+    AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
+    processor->requireSaving();
+
     return true;
 }
 
@@ -182,6 +199,9 @@ bool track::ActionSplitClip::undo() {
     node->clips.pop_back(); // get rid of c2
 
     updateGUI();
+
+    AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
+    processor->requireSaving();
 
     return true;
 }
@@ -203,12 +223,20 @@ track::ActionShiftClips::~ActionShiftClips() {}
 bool track::ActionShiftClips::perform() {
     shift(shiftAmount);
     updateGUI();
+
+    AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
+    processor->requireSaving();
+
     return true;
 }
 
 bool track::ActionShiftClips::undo() {
     shift(-shiftAmount);
     updateGUI();
+
+    AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
+    processor->requireSaving();
+
     return true;
 }
 
@@ -379,6 +407,7 @@ void track::TimelineComponent::mouseDown(const juce::MouseEvent &event) {
 
         contextMenu.showMenuAsync(juce::PopupMenu::Options(), [this, event](
                                                                   int result) {
+            // FIXME: doesn't use un/redoable action
             if (result == MENU_PASTE_CLIP) {
                 if (clipboard::typecode != TYPECODE_CLIP)
                     return;

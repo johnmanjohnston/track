@@ -610,7 +610,6 @@ void AudioPluginAudioProcessor::dispatchGUIInstruction(
 
 void AudioPluginAudioProcessor::requireSaving() {
     johnInt->setValueNotifyingHost(*johnInt == 0 ? 1 : 0);
-    DBG("johnInt value is " << *johnInt);
 }
 
 void AudioPluginAudioProcessor::reset() {

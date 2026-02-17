@@ -24,6 +24,9 @@ bool track::ActionAddPlugin::perform() {
 
     updateGUI();
 
+    AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
+    processor->requireSaving();
+
     return validPlugin;
 }
 
@@ -42,6 +45,7 @@ bool track::ActionAddPlugin::undo() {
     node->removePlugin(node->plugins.size() - 1);
 
     updateGUI();
+    processor->requireSaving();
 
     return true;
 }
@@ -75,6 +79,7 @@ bool track::ActionRemovePlugin::perform() {
 
     processor->dispatchGUIInstruction(UI_INSTRUCTION_OPEN_CLOSED_EDITORS,
                                       nullptr, nodeRoute);
+    processor->requireSaving();
 
     return true;
 }
@@ -113,6 +118,7 @@ bool track::ActionRemovePlugin::undo() {
 
     processor->dispatchGUIInstruction(UI_INSTRUCTION_OPEN_CLOSED_EDITORS,
                                       nullptr, nodeRoute);
+    processor->requireSaving();
 
     return true;
 }
@@ -152,6 +158,8 @@ bool track::ActionReorderPlugin::perform() {
     processor->dispatchGUIInstruction(
         UI_INSTRUCTION_OPEN_CLOSED_RELAY_PARAM_WINDOWS, nullptr, route);
 
+    processor->requireSaving();
+
     return true;
 }
 
@@ -171,6 +179,8 @@ bool track::ActionReorderPlugin::undo() {
                                       nullptr, route);
     processor->dispatchGUIInstruction(
         UI_INSTRUCTION_OPEN_CLOSED_RELAY_PARAM_WINDOWS, nullptr, route);
+
+    processor->requireSaving();
 
     return true;
 }
@@ -203,6 +213,9 @@ bool track::ActionChangeTrivialPluginData::perform() {
 
     updateGUI();
 
+    AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
+    processor->requireSaving();
+
     return true;
 }
 bool track::ActionChangeTrivialPluginData::undo() {
@@ -214,6 +227,9 @@ bool track::ActionChangeTrivialPluginData::undo() {
     plugin->relayParams = oldPluginData.relayParams;
 
     updateGUI();
+
+    AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
+    processor->requireSaving();
 
     return true;
 }

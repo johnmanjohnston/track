@@ -575,21 +575,27 @@ track::clip *track::ActionClipModified::getClip() {
 }
 
 bool track::ActionClipModified::perform() {
+    AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
+
     clip *c = getClip();
     *c = newClip;
 
     markClipComponentStale();
     updateGUI();
+    processor->requireSaving();
 
     return true;
 }
 
 bool track::ActionClipModified::undo() {
+    AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
+
     clip *c = getClip();
     *c = oldClip;
 
     markClipComponentStale();
     updateGUI();
+    processor->requireSaving();
 
     return true;
 }
@@ -1340,6 +1346,7 @@ track::ActionCreateNode::ActionCreateNode(std::vector<int> pRoute,
 track::ActionCreateNode::~ActionCreateNode() {}
 bool track::ActionCreateNode::perform() {
     AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
+
     audioNode *parent = track::utility::getNodeFromRoute(parentRoute, p);
     audioNode *x = nullptr;
     if (parent == nullptr) {
@@ -1356,12 +1363,14 @@ bool track::ActionCreateNode::perform() {
         " " + juce::String(utility::getFlattenedNodes(p).size() + 1);
 
     updateGUI();
+    processor->requireSaving();
 
     return true;
 }
 
 bool track::ActionCreateNode::undo() {
     AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
+
     audioNode *parent = track::utility::getNodeFromRoute(parentRoute, p);
 
     if (parent == nullptr) {
@@ -1371,6 +1380,7 @@ bool track::ActionCreateNode::undo() {
     }
 
     updateGUI();
+    processor->requireSaving();
 
     return true;
 }
@@ -1435,6 +1445,7 @@ bool track::ActionDeleteNode::perform() {
     }
 
     updateGUI();
+    processor->requireSaving();
 
     return true;
 }
@@ -1454,6 +1465,7 @@ bool track::ActionDeleteNode::undo() {
     }
 
     updateGUI();
+    processor->requireSaving();
 
     return true;
 }
@@ -1490,12 +1502,20 @@ bool track::ActionPasteNode::perform() {
     }
 
     updateGUI();
+
+    AudioPluginAudioProcessor *pr = (AudioPluginAudioProcessor *)p;
+    pr->requireSaving();
+
     return true;
 }
 bool track::ActionPasteNode::undo() {
     utility::deleteNode(pastedNodeRoute, p);
 
     updateGUI();
+
+    AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
+    processor->requireSaving();
+
     return true;
 }
 void track::ActionPasteNode::updateGUI() {
@@ -1521,6 +1541,10 @@ bool track::ActionModifyTrivialNodeData::perform() {
     utility::writeTrivialNodeDataToNode(node, newState);
 
     updateGUI();
+
+    AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
+    processor->requireSaving();
+
     return true;
 }
 
@@ -1530,6 +1554,10 @@ bool track::ActionModifyTrivialNodeData::undo() {
     utility::writeTrivialNodeDataToNode(node, oldState);
 
     updateGUI();
+
+    AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
+    processor->requireSaving();
+
     return true;
 }
 
@@ -1600,6 +1628,8 @@ bool track::ActionMoveNodeToGroup::perform() {
     delete temp;
 
     updateGUI();
+    processor->requireSaving();
+
     return true;
 }
 
@@ -1642,6 +1672,8 @@ bool track::ActionMoveNodeToGroup::undo() {
     delete temp;
 
     updateGUI();
+    processor->requireSaving();
+
     return true;
 }
 
@@ -1719,6 +1751,7 @@ bool track::ActionReorderNode::perform() {
 
     utility::reorderNodeAlt(r1, r2, p);
     updateGUI();
+    processor->requireSaving();
     return true;
 }
 
@@ -1729,6 +1762,7 @@ bool track::ActionReorderNode::undo() {
 
     utility::reorderNodeAlt(r1, r2, p);
     updateGUI();
+    processor->requireSaving();
     return true;
 }
 
@@ -1805,6 +1839,8 @@ bool track::ActionUngroup::perform() {
     }
 
     updateGUI();
+    processor->requireSaving();
+
     return true;
 }
 
@@ -1842,6 +1878,8 @@ bool track::ActionUngroup::undo() {
     }
 
     updateGUI();
+    processor->requireSaving();
+
     return true;
 }
 
