@@ -53,7 +53,7 @@ class AudioPluginAudioProcessor : public juce::AudioProcessor,
 
     juce::KnownPluginList knownPluginList;
 
-    juce::AudioParameterFloat *johnFloat;
+    juce::AudioParameterInt *johnInt;
 
     int automatableParametersIndexOffset = -1;
 
@@ -62,6 +62,8 @@ class AudioPluginAudioProcessor : public juce::AudioProcessor,
                            std::vector<int> routeData = std::vector<int>());
     track::uiinstruction GUIInstruction;
     juce::UndoManager undoManager;
+
+    void requireSaving();
 
   private:
     juce::Random random;

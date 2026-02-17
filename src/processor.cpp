@@ -28,8 +28,8 @@ AudioPluginAudioProcessor::AudioPluginAudioProcessor()
 
     updateLatencyAfterDelay();
 
-    addParameter(johnFloat = new juce::AudioParameterFloat("john", "john", -1.f,
-                                                           2.f, 1.f));
+    addParameter(johnInt =
+                     new juce::AudioParameterInt("john", "john", 0, 1, 0));
 
     for (int i = 0; i < 128; ++i) {
         juce::String paramID = "param_" + juce::String(i);
@@ -606,6 +606,11 @@ void AudioPluginAudioProcessor::dispatchGUIInstruction(
     this->GUIInstruction.r = routeData;
 
     sendSynchronousChangeMessage();
+}
+
+void AudioPluginAudioProcessor::requireSaving() {
+    johnInt->setValueNotifyingHost(*johnInt == 0 ? 1 : 0);
+    DBG("johnInt value is " << *johnInt);
 }
 
 void AudioPluginAudioProcessor::reset() {
