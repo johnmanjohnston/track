@@ -51,8 +51,6 @@ AudioPluginAudioProcessor::AudioPluginAudioProcessor()
             break;
         }
     }
-
-    DBG("offset is " << automatableParametersIndexOffset);
 }
 
 AudioPluginAudioProcessor::~AudioPluginAudioProcessor() {}
@@ -181,9 +179,11 @@ void AudioPluginAudioProcessor::prepareToPlay(double sampleRate,
         }
     }
 
+    /*
     DBG("prepareToPlay() called with sample rate " << sampleRate);
     DBG("total outputs: " << getTotalNumOutputChannels());
     DBG("total inputs: " << getTotalNumInputChannels());
+    */
 
     prepared = true;
 }
@@ -518,7 +518,7 @@ void AudioPluginAudioProcessor::getStateInformation(
         knownPlugins->addChildElement(e);
     }
 
-    DBG(knownPlugins->createDocument(""));
+    // DBG(knownPlugins->createDocument(""));
 
     xml->addChildElement(projectSettings);
     xml->addChildElement(knownPlugins);
