@@ -221,6 +221,7 @@ void track::ClipComponent::mouseDown(const juce::MouseEvent &event) {
 #define MENU_EDIT_CLIP_PROPERTIES 9
 
         contextMenu.addItem(MENU_RENAME_CLIP, "Rename clip");
+        contextMenu.addItem(MENU_SPLIT_CLIP, "Split clip");
         contextMenu.addItem(MENU_DUPLICATE_CLIP_IMMEDIATELY_AFTER,
                             "Duplicate clip");
         contextMenu.addItem(MENU_COPY_CLIP, "Copy clip");

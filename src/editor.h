@@ -115,8 +115,6 @@ class AudioPluginAudioProcessorEditor : public juce::AudioProcessorEditor,
         transportStatus.repaint();
         playhead.updateBounds();
 
-        DBG("timerCallback");
-
         if (clipComponentsPendingUpdate) {
             if (!timelineComponent->renderingWaveforms()) {
                 timelineComponent->updateClipComponents();
