@@ -1,4 +1,5 @@
 #include "transport_status.h"
+#include "juce_graphics/juce_graphics.h"
 
 track::TransportStatusComponent::TransportStatusComponent()
     : juce::Component() {}
@@ -55,9 +56,27 @@ void track::TransportStatusComponent::paint(juce::Graphics &g) {
         division = (totalDivisions % divisionPerBar) + 1;
     }
 
+    float cornerSize = 4.f;
+
     // fill bg color
     g.setColour(juce::Colour(0xFF1B1E2D));
-    g.fillAll();
+    g.fillRoundedRectangle(getLocalBounds().toFloat(), cornerSize);
+
+    juce::ColourGradient topGradient = juce::ColourGradient(
+        juce::Colour(0xFF'414245), 0.f, 0.f, juce::Colour(0xFF'282A30), 0.f,
+        (float)getHeight() / 2, false);
+    g.setGradientFill(topGradient);
+    g.fillRect(0, 0, getWidth(), getHeight() / 2);
+
+    juce::ColourGradient bottomGradient = juce::ColourGradient(
+        juce::Colour(0xFF'191B1F), 0.f, (float)getHeight() / 2,
+        juce::Colour(0xFF'24262C), 0.f, getHeight(), false);
+    g.setGradientFill(bottomGradient);
+    g.fillRect(0, getHeight() / 2, getWidth(), getHeight() / 2);
+
+    // outline
+    g.setColour(juce::Colour(0xFF'1A1A18));
+    g.drawRoundedRectangle(getLocalBounds().toFloat(), cornerSize, 1.f);
 
     g.setColour(juce::Colour(0xFFCDD8E4)); // text color
     juce::Rectangle<int> timeInfoTextRectangle = getLocalBounds();
