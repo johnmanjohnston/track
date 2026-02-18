@@ -383,7 +383,12 @@ void AudioPluginAudioProcessorEditor::changeListenerCallback(
     }
 
     else if (x.command == UI_INSTRUCTION_UPDATE_CLIP_COMPONENTS) {
-        timelineComponent->updateClipComponents();
+        bool queueUpdate = (bool)x.metadata;
+
+        if (queueUpdate)
+            clipComponentsPendingUpdate = true;
+        else
+            timelineComponent->updateClipComponents();
     }
 
     else if (x.command == UI_INSTRUCTION_UPDATE_NODE_COMPONENTS) {

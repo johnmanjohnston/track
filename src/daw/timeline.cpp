@@ -63,6 +63,9 @@ track::ActionAddClip::~ActionAddClip() {}
 bool track::ActionAddClip::perform() {
     audioNode *node = utility::getNodeFromRoute(route, p);
 
+    if (!node->isTrack)
+        return false;
+
     node->clips.push_back(addedClip);
 
     updateGUI();
@@ -75,6 +78,8 @@ bool track::ActionAddClip::perform() {
 
 bool track::ActionAddClip::undo() {
     audioNode *node = utility::getNodeFromRoute(route, p);
+
+    jassert(node->isTrack);
 
     node->clips.erase(node->clips.begin() + (long)node->clips.size() - 1);
     updateGUI();
@@ -209,8 +214,8 @@ bool track::ActionSplitClip::undo() {
 void track::ActionSplitClip::updateGUI() {
     if (shouldUpdateGUI) {
         AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
-        processor->dispatchGUIInstruction(
-            UI_INSTRUCTION_UPDATE_CLIP_COMPONENTS);
+        processor->dispatchGUIInstruction(UI_INSTRUCTION_UPDATE_CLIP_COMPONENTS,
+                                          (void *)1);
     }
 }
 
@@ -407,23 +412,16 @@ void track::TimelineComponent::mouseDown(const juce::MouseEvent &event) {
 
         contextMenu.showMenuAsync(juce::PopupMenu::Options(), [this, event](
                                                                   int result) {
-            // FIXME: doesn't use un/redoable action
             if (result == MENU_PASTE_CLIP) {
                 if (clipboard::typecode != TYPECODE_CLIP)
                     return;
 
                 // create clip for processor
                 clip *orginalClip = (clip *)clipboard::retrieveData();
-                std::unique_ptr<clip> newClip(new clip());
-                newClip->path = orginalClip->path;
-                newClip->buffer = orginalClip->buffer;
-                newClip->active = orginalClip->active;
-                newClip->name = orginalClip->name;
-                newClip->startPositionSample =
+                clip newClip = *orginalClip;
+
+                newClip.startPositionSample =
                     (event.getMouseDownX() * SAMPLE_RATE) / UI_ZOOM_MULTIPLIER;
-                newClip->trimLeft = orginalClip->trimLeft;
-                newClip->trimRight = orginalClip->trimRight;
-                newClip->gain = orginalClip->gain;
 
                 int y = event.getMouseDownY();
                 int nodeDisplayIndex =
@@ -432,18 +430,19 @@ void track::TimelineComponent::mouseDown(const juce::MouseEvent &event) {
                     0, (int)viewport->tracklist->trackComponents.size() - 1,
                     nodeDisplayIndex);
 
-                audioNode *node =
+                std::vector<int> r =
                     viewport->tracklist
                         ->trackComponents[(size_t)nodeDisplayIndex]
-                        ->getCorrespondingTrack();
-                if (node->isTrack) {
-                    node->clips.push_back(*newClip);
-                }
+                        ->route;
 
-                updateClipComponents();
+                ActionAddClip *action =
+                    new ActionAddClip(newClip, r, processorRef);
+
+                processorRef->undoManager.beginNewTransaction(
+                    "action add clip");
+                processorRef->undoManager.perform(action);
             }
 
-            // sex0
             else if (result == MENU_SPLIT_ALL_CLIPS_HERE) {
                 int splitSample =
                     ((float)event.x / UI_ZOOM_MULTIPLIER) * SAMPLE_RATE;

@@ -114,9 +114,20 @@ class AudioPluginAudioProcessorEditor : public juce::AudioProcessorEditor,
     void timerCallback() override {
         transportStatus.repaint();
         playhead.updateBounds();
+
+        DBG("timerCallback");
+
+        if (clipComponentsPendingUpdate) {
+            if (!timelineComponent->renderingWaveforms()) {
+                timelineComponent->updateClipComponents();
+                clipComponentsPendingUpdate = false;
+            }
+        }
     }
 
     bool keyStateChanged(bool isKeyDown) override;
+
+    bool clipComponentsPendingUpdate = false;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(
         AudioPluginAudioProcessorEditor)

@@ -710,6 +710,11 @@ void track::ClipPropertiesWindow::init() {
                       juce::NotificationType::dontSendNotification);
 
     gainSlider.setValue(getClip()->gain);
+
+    DBG("CLIP PROPERTIES:");
+    DBG("start: " << getClip()->startPositionSample);
+    DBG("trimLeft: " << getClip()->trimLeft);
+    DBG("trimRight: " << getClip()->trimRight);
 }
 
 track::clip *track::ClipPropertiesWindow::getClip() {
