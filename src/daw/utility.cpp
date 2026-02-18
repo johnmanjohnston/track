@@ -3,6 +3,7 @@
 #include "../processor.h"
 #include "automation_relay.h"
 #include "defs.h"
+#include "juce_gui_basics/juce_gui_basics.h"
 #include "plugin_chain.h"
 #include "track.h"
 
@@ -432,4 +433,15 @@ void track::utility::setAutoGrid() {
 
         SNAP_DIVISION = snap;
     }
+}
+
+void track::utility::gloss(juce::Graphics &g, juce::Rectangle<float> b,
+                           juce::Colour c, float cornerSize = 0.f) {
+    juce::LookAndFeel_V2::drawGlassLozenge(g, b.getX(), b.getY(), b.getWidth(),
+                                           b.getHeight(), c, 0.f, cornerSize,
+                                           true, true, false, true);
+}
+void track::utility::gloss(juce::Graphics &g, juce::Rectangle<int> b,
+                           juce::Colour c, float cornerSize = 0.f) {
+    track::utility::gloss(g, b.toFloat(), c, cornerSize);
 }

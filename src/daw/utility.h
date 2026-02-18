@@ -49,4 +49,11 @@ std::vector<int> rWithPopBack(std::vector<int> r);
 std::vector<int> rWithSize(std::vector<int> r, size_t s);
 
 void setAutoGrid();
+
+// ui
+void gloss(juce::Graphics &g, juce::Rectangle<int> b, juce::Colour c,
+           float cornerSize);
+void gloss(juce::Graphics &g, juce::Rectangle<float> b, juce::Colour c,
+           float cornerSize);
+
 } // namespace track::utility

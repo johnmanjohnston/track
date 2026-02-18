@@ -242,12 +242,15 @@ void AudioPluginAudioProcessorEditor::paint(juce::Graphics &g) {
     g.setColour(juce::Colours::white);
     g.setFont(15.0f);
 
-    // === TOP BAR ===
+    // top bar
     g.setFont(lnf.getRobotoMonoThin());
 
     // draw top bar bg
-    g.setColour(juce::Colour(0xFFCBCBCB).brighter(0.2f));
+    g.setColour(juce::Colour(0xFFCBCBCB).darker(0.2f));
     g.fillRect(0, 0, getWidth(), track::UI_TOPBAR_HEIGHT);
+    track::utility::gloss(
+        g, juce::Rectangle<int>(0.f, 0.f, getWidth(), track::UI_TOPBAR_HEIGHT),
+        juce::Colours::white.withAlpha(0.7f), 0.f);
 
     // draw "track" logo
     g.setColour(juce::Colour(0xFF727272));

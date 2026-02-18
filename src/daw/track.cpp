@@ -4,6 +4,7 @@
 #include "automation_relay.h"
 #include "clipboard.h"
 #include "defs.h"
+#include "juce_gui_basics/juce_gui_basics.h"
 #include "subwindow.h"
 #include "timeline.h"
 #include "utility.h"
@@ -186,6 +187,9 @@ void track::ClipComponent::paint(juce::Graphics &g) {
         p.closeSubPath();
         g.fillPath(p);
     }
+
+    track::utility::gloss(g, getLocalBounds(),
+                          juce::Colours::white.withAlpha(0.1f), cornerSize);
 }
 
 void track::ClipComponent::copyClip() {
@@ -1161,6 +1165,7 @@ void track::TrackComponent::copyNodeToClipboard() {
 
 void track::TrackComponent::paint(juce::Graphics &g) {
     juce::Colour bg = juce::Colour(0xFF'5F5F5F);
+    juce::Colour glossColor = juce::Colours::white.withAlpha(0.2f);
 
     if (hasKeyboardFocus(true))
         bg = bg.brighter(0.14f);
@@ -1174,13 +1179,13 @@ void track::TrackComponent::paint(juce::Graphics &g) {
 
     int lineThickness = 1;
     float cornerSize = 5.f;
-    g.fillAll(groupBg);
+    g.fillAll(groupBg.brighter(0.1f));
 
     juce::Rectangle<float> indentedBounds =
         getLocalBounds()
             .withTrimmedLeft(
                 (((int)route.size() - 1) * UI_TRACK_DEPTH_INCREMENTS) +
-                UI_TRACK_INDEX_WIDTH)
+                UI_TRACK_INDEX_WIDTH - 2)
             .withWidth(UI_TRACK_WIDTH)
             .withHeight(UI_MAXIMUM_TRACK_HEIGHT + 10)
             .withY(0)
@@ -1189,16 +1194,21 @@ void track::TrackComponent::paint(juce::Graphics &g) {
         indentedBounds.expand(-1, 0);
 
     if (getCorrespondingTrack()->isTrack) {
-        g.setColour(bg);
+        g.setColour(bg.darker(0.4f));
 
         if (isFirstNodeInGroup) {
             g.fillRoundedRectangle(indentedBounds, cornerSize);
         } else {
             g.fillRect(indentedBounds);
         }
+
+        track::utility::gloss(g, indentedBounds, glossColor, 0.f);
     } else {
         g.setColour(groupBg);
         g.fillRect(getLocalBounds().withTrimmedLeft(UI_TRACK_INDEX_WIDTH));
+        track::utility::gloss(
+            g, getLocalBounds().withTrimmedLeft(UI_TRACK_INDEX_WIDTH),
+            glossColor, 0.f);
     }
 
     // outline

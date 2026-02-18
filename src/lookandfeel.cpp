@@ -1,5 +1,6 @@
 #include "lookandfeel.h"
 #include "BinaryData.h"
+#include "juce_gui_basics/juce_gui_basics.h"
 
 const juce::Font track::ui::CustomLookAndFeel::getRobotoMonoThin() {
     static auto typeface = Typeface::createSystemTypefaceFor(
@@ -151,13 +152,19 @@ void track::ui::CustomLookAndFeel::drawButtonBackground(
         c = juce::Colour(0xFF'121212);
     }
 
-    if (shouldDrawButtonAsHighlighted) {
-        g.setColour(c.brighter(0.1f));
-    } else {
-        g.setColour(c);
-    }
+    if (shouldDrawButtonAsHighlighted)
+        c = c.brighter(0.1f);
+
+    if (shouldDrawButtonAsDown)
+        c = c.darker(0.2f);
+
+    g.setColour(c);
 
     g.fillRect(b.getLocalBounds());
+    juce::LookAndFeel_V2::drawGlassLozenge(g, 0.f, 0.f, b.getWidth(),
+                                           b.getHeight(),
+                                           juce::Colours::white.withAlpha(0.1f),
+                                           0.f, 0.f, true, true, false, true);
 
     // don't draw border for certain buttons by checking its content. i
     // cannot think of another way that does not involve making my own
@@ -350,7 +357,8 @@ void track::ui::CustomLookAndFeel::drawLabel(Graphics &g, Label &label) {
     }
 
     // text editor moves by 1px and is annoying, check if y is odd/even to
-    // make sure you move only y value only once. idk why it works but it does.
+    // make sure you move only y value only once. idk why it works but it
+    // does.
     if (label.isBeingEdited()) {
         TextEditor *te = label.getCurrentTextEditor();
         te->setFont(label.getFont());
