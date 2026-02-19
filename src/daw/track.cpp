@@ -1166,16 +1166,19 @@ void track::TrackComponent::copyNodeToClipboard() {
 
 void track::TrackComponent::paint(juce::Graphics &g) {
     juce::Colour bg = juce::Colour(0xFF'5F5F5F);
-    juce::Colour glossColor = juce::Colours::white.withAlpha(0.2f);
+    juce::Colour trackBg = juce::Colour(0xFF'454545);
+    juce::Colour glossColor = juce::Colours::white.withAlpha(0.1f);
 
     if (hasKeyboardFocus(true))
         bg = bg.brighter(0.14f);
 
-    if (coolColors)
+    if (coolColors) {
         bg = juce::Colours::white;
+        trackBg = juce::Colours::white;
+    }
 
-    juce::Colour groupBg = bg.brighter(0.2f);
-    juce::Colour outline = juce::Colour(0xFF'535353);
+    juce::Colour groupBg = trackBg.brighter(0.2f);
+    juce::Colour outline = juce::Colour(0xFF'252525).brighter(0.1f);
     bool isFirstNodeInGroup = route.size() != 0 && siblingIndex == 0;
 
     int lineThickness = 1;
@@ -1194,7 +1197,9 @@ void track::TrackComponent::paint(juce::Graphics &g) {
 
     indentedBounds.expand(0.f, 0.5f);
 
-    // fill then outline main chunks
+    juce::Colour fillColor =
+        getCorrespondingTrack()->isTrack ? trackBg : groupBg;
+    // fill main chunks (and outline if applicable)
     if (isFirstNodeInGroup) {
         juce::Rectangle<float> curvedBounds =
             indentedBounds.toFloat()
@@ -1204,8 +1209,7 @@ void track::TrackComponent::paint(juce::Graphics &g) {
                 .withY(0.25f);
 
         // fill it
-        g.setColour(getCorrespondingTrack()->isTrack ? bg.darker(0.3f)
-                                                     : groupBg);
+        g.setColour(fillColor);
         g.fillRoundedRectangle(curvedBounds, cornerSize);
         track::utility::gloss(g, curvedBounds.withHeight(getHeight()),
                               glossColor, cornerSize);
@@ -1215,29 +1219,35 @@ void track::TrackComponent::paint(juce::Graphics &g) {
         g.drawRoundedRectangle(curvedBounds, cornerSize, lineThickness);
     } else {
         // fill it
-        g.setColour(getCorrespondingTrack()->isTrack ? bg.darker(0.3f)
-                                                     : groupBg);
+        g.setColour(fillColor);
         g.fillRect(indentedBounds);
         track::utility::gloss(g, indentedBounds, glossColor, 0.f);
 
         // outline it
-        g.setColour(outline);
-        g.drawRect(indentedBounds, lineThickness);
+        // g.setColour(outline);
+        // g.drawRect(indentedBounds, lineThickness);
     }
 
     // divide line between index number and actual track info
     g.setColour(bg);
     g.fillRect(0, 0, UI_TRACK_INDEX_WIDTH, getHeight());
     g.setColour(outline);
-    g.drawRect(UI_TRACK_INDEX_WIDTH, 0, 2, getHeight(), 2);
+    g.drawRect(UI_TRACK_INDEX_WIDTH, 0, 1, getHeight(), 1);
 
     // depth markers
     g.setColour(outline);
-    for (int i = 0; i < (int)route.size() - 2; ++i) {
-        g.drawRect((UI_TRACK_INDEX_WIDTH) +
-                       ((i + 1) * UI_TRACK_DEPTH_INCREMENTS),
-                   0, 1, getHeight(), 1);
+    int iters = (int)route.size() - 1;
+    for (int i = 0; i < iters; ++i) {
+        g.drawRect(
+            (UI_TRACK_INDEX_WIDTH) + ((i + 1) * UI_TRACK_DEPTH_INCREMENTS),
+            ((int)isFirstNodeInGroup && i == iters - 1) * (int)cornerSize, 1,
+            getHeight(), 1);
     }
+
+    g.setColour(outline);
+
+    if (!isFirstNodeInGroup)
+        g.drawHorizontalLine(0.f, indentedBounds.getX(), getWidth());
 
     g.setColour(juce::Colours::white.withAlpha(0.4f));
     g.setFont(
