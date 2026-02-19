@@ -1166,11 +1166,12 @@ void track::TrackComponent::copyNodeToClipboard() {
 
 void track::TrackComponent::paint(juce::Graphics &g) {
     juce::Colour bg = juce::Colour(0xFF'5F5F5F);
-    juce::Colour trackBg = juce::Colour(0xFF'454545);
+    juce::Colour trackBg = juce::Colour(0xFF'414141);
     juce::Colour glossColor = juce::Colours::white.withAlpha(0.1f);
 
-    if (hasKeyboardFocus(true))
-        bg = bg.brighter(0.14f);
+    if (hasKeyboardFocus(true)) {
+        trackBg = bg.brighter(0.1f);
+    }
 
     if (coolColors) {
         bg = juce::Colours::white;
@@ -1222,10 +1223,6 @@ void track::TrackComponent::paint(juce::Graphics &g) {
         g.setColour(fillColor);
         g.fillRect(indentedBounds);
         track::utility::gloss(g, indentedBounds, glossColor, 0.f);
-
-        // outline it
-        // g.setColour(outline);
-        // g.drawRect(indentedBounds, lineThickness);
     }
 
     // divide line between index number and actual track info
@@ -1246,8 +1243,15 @@ void track::TrackComponent::paint(juce::Graphics &g) {
 
     g.setColour(outline);
 
+    // outline here for nodes that didn't draw outline for
     if (!isFirstNodeInGroup)
         g.drawHorizontalLine(0.f, indentedBounds.getX(), getWidth());
+
+    // highlight for :sparkles: 2010s aesthetic :sparkles:
+    g.setColour(juce::Colour(0x19'FFFFFF));
+    g.drawHorizontalLine(
+        1.f, indentedBounds.getX() + ((int)isFirstNodeInGroup * 5.f),
+        getWidth());
 
     g.setColour(juce::Colours::white.withAlpha(0.4f));
     g.setFont(

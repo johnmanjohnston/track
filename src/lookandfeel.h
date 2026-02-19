@@ -14,7 +14,7 @@ class CustomLookAndFeel : public juce::LookAndFeel_V4 {
         // https://docs.juce.com/master/classDrawableButton.html
         //
         // button bg
-        setColour(0x1004011, juce::Colour(0xFF'535353));
+        setColour(0x1004011, juce::Colour(0xFF'494949));
 
         // future john here. i forgot the enum names correspond to the color IDs
         setColour(Slider::rotarySliderFillColourId, juce::Colour(0xFF'67FF76));

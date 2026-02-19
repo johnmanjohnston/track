@@ -140,7 +140,7 @@ void track::ui::CustomLookAndFeel::drawRotarySlider(
 }
 
 void track::ui::CustomLookAndFeel::drawButtonBackground(
-    Graphics &g, Button &b, const Colour &backgroundColour,
+    Graphics &g, Button &b, const Colour & /*backgroundColour*/,
     bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) {
 
     // fill
@@ -156,15 +156,15 @@ void track::ui::CustomLookAndFeel::drawButtonBackground(
         c = c.brighter(0.1f);
 
     if (shouldDrawButtonAsDown)
-        c = c.darker(0.2f);
+        c = c.darker(0.8f);
 
     g.setColour(c);
-
-    g.fillRect(b.getLocalBounds());
-    juce::LookAndFeel_V2::drawGlassLozenge(g, 0.f, 0.f, b.getWidth(),
-                                           b.getHeight(),
-                                           juce::Colours::white.withAlpha(0.1f),
-                                           0.f, 0.f, true, true, false, true);
+    g.fillRect(b.getLocalBounds().toFloat().expanded(-1.5f, -1.5f));
+    juce::LookAndFeel_V2::drawGlassLozenge(
+        g, 0.f, 0.f, b.getWidth(), b.getHeight(),
+        juce::Colours::white.withAlpha(0.1f +
+                                       ((int)shouldDrawButtonAsDown * 0.2f)),
+        0.f, 0.f, true, true, false, true);
 
     // don't draw border for certain buttons by checking its content. i
     // cannot think of another way that does not involve making my own
@@ -178,8 +178,12 @@ void track::ui::CustomLookAndFeel::drawButtonBackground(
         b.getButtonText().toLowerCase() == "config")
         return;
 
+    // draw highlight
+    g.setColour(juce::Colour(0x11'FFFFFF));
+    g.drawHorizontalLine(2, 0, b.getWidth());
+
     // draw border
-    g.setColour(c.darker(0.4f));
+    g.setColour(c.darker(0.2f));
     g.drawRect(b.getLocalBounds(), 2);
 }
 
@@ -375,7 +379,7 @@ void track::ui::CustomLookAndFeel::drawLabel(Graphics &g, Label &label) {
 void track::ui::CustomLookAndFeel::drawScrollbar(
     Graphics &g, ScrollBar &scrollbar, int x, int y, int width, int height,
     bool isScrollbarVertical, int thumbStartPosition, int thumbSize,
-    bool isMouseOver, bool isMouseDown) {
+    bool isMouseOver, bool /*isMouseDown*/) {
     Rectangle<int> thumbBounds;
 
     if (isScrollbarVertical)
