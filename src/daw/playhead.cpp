@@ -3,6 +3,7 @@
 
 track::PlayheadComponent::PlayheadComponent() : juce::Component() {
     setBounds(10, 10, 10, 10);
+    setOpaque(false);
 }
 track::PlayheadComponent::~PlayheadComponent() {}
 
@@ -10,9 +11,18 @@ void track::PlayheadComponent::paint(juce::Graphics &g) {
     if (getBounds().getX() < UI_TRACK_WIDTH)
         return;
 
-    g.fillAll(juce::Colour(0xFF'E9FFFF));
+    juce::Rectangle<int> lineBounds = getLocalBounds()
+                                          .withSizeKeepingCentre(3, getHeight())
+                                          .withTrimmedTop(2);
+
+    g.setColour(juce::Colour(0xFF'E9FFFF));
+    g.fillRect(lineBounds);
+
     g.setColour(juce::Colours::black);
-    g.drawRect(getLocalBounds());
+    g.drawRect(lineBounds);
+
+    juce::LookAndFeel_V2::drawGlassPointer(
+        g, 0.f, 2.f, w - 1, juce::Colours::grey.brighter(), 1.f, 2);
 }
 
 void track::PlayheadComponent::updateBounds() {
@@ -45,7 +55,7 @@ AudioPluginAudioProcessorEditor::timerCallback (this=0x555558840b70) at
         BPM = 120;
 
     setBounds((curSample / SAMPLE_RATE * UI_ZOOM_MULTIPLIER) + UI_TRACK_WIDTH -
-                  tv->getViewPositionX(),
-              UI_TOPBAR_HEIGHT + 5, 3, 720 - UI_TOPBAR_HEIGHT - 5 - 8);
+                  tv->getViewPositionX() - (w / 2.f),
+              UI_TOPBAR_HEIGHT + 5, w, 720 - UI_TOPBAR_HEIGHT - 5 - 8);
     repaint();
 }

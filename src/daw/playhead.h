@@ -1,3 +1,4 @@
+#pragma once
 #include "timeline.h"
 #include <JuceHeader.h>
 
@@ -12,5 +13,7 @@ class PlayheadComponent : public juce::Component {
 
     void updateBounds();
     void paint(juce::Graphics &g) override;
+
+    int w = 16;
 };
 } // namespace track

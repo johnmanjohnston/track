@@ -445,3 +445,11 @@ void track::utility::gloss(juce::Graphics &g, juce::Rectangle<int> b,
                            juce::Colour c, float cornerSize = 0.f) {
     track::utility::gloss(g, b.toFloat(), c, cornerSize);
 }
+
+void track::utility::customDrawGlassPointer(juce::Graphics &g, const float x,
+                                            const float y, const float diameter,
+                                            const juce::Colour &colour,
+                                            const float outlineThickness,
+                                            const int direction) {
+    // TODO: this
+}
