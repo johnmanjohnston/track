@@ -6,6 +6,7 @@
 #include "daw/timeline.h"
 #include "daw/track.h"
 #include "daw/utility.h"
+#include "juce_gui_basics/juce_gui_basics.h"
 #include "lookandfeel.h"
 #include "processor.h"
 #include <cmath>
@@ -237,7 +238,7 @@ AudioPluginAudioProcessorEditor::~AudioPluginAudioProcessorEditor() {
 }
 
 void AudioPluginAudioProcessorEditor::paint(juce::Graphics &g) {
-    g.fillAll(juce::Colour(0xFF3D3D3D));
+    g.fillAll(juce::Colour(0xFF3D3D3D).darker(0.2f));
 
     g.setColour(juce::Colours::white);
     g.setFont(15.0f);
@@ -246,14 +247,15 @@ void AudioPluginAudioProcessorEditor::paint(juce::Graphics &g) {
     g.setFont(lnf.getRobotoMonoThin());
 
     // draw top bar bg
-    g.setColour(juce::Colour(0xFFCBCBCB).darker(0.2f));
+    g.setColour(juce::Colour(0xFF'8E8E8E).darker(0.1f));
     g.fillRect(0, 0, getWidth(), track::UI_TOPBAR_HEIGHT);
+
     track::utility::gloss(
         g, juce::Rectangle<int>(0.f, 0.f, getWidth(), track::UI_TOPBAR_HEIGHT),
-        juce::Colours::white.withAlpha(0.7f), 0.f);
+        juce::Colours::white.withAlpha(0.5f), 0.f);
 
     // draw "track" logo
-    g.setColour(juce::Colour(0xFF727272));
+    g.setColour(juce::Colour(0xFF'5D5D5D));
     auto epicFont = lnf.getInterRegular();
 
     epicFont = epicFont.withExtraKerningFactor(-.05f);

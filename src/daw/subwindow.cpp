@@ -2,6 +2,7 @@
 #include "defs.h"
 #include "plugin_chain.h"
 #include "track.h"
+#include "utility.h"
 
 // custom close button because lookandfeels are annoying
 track::CloseButton::CloseButton() : juce::Component(), font() {

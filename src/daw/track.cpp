@@ -146,6 +146,10 @@ void track::ClipComponent::paint(juce::Graphics &g) {
     g.setColour(juce::Colour(0xFF'000515));
     g.drawRoundedRectangle(getLocalBounds().toFloat(), cornerSize, 1.4f);
 
+    // highlight
+    g.setColour(juce::Colour(0x14'FFFFFF));
+    g.drawHorizontalLine(1, 2, getWidth() - 4);
+
     // trim handles
     if (drawTrimHandles != 0) {
         g.setColour(juce::Colours::white.withAlpha(0.4f));

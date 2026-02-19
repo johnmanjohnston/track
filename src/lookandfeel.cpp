@@ -1,5 +1,6 @@
 #include "lookandfeel.h"
 #include "BinaryData.h"
+#include "juce_graphics/juce_graphics.h"
 #include "juce_gui_basics/juce_gui_basics.h"
 
 const juce::Font track::ui::CustomLookAndFeel::getRobotoMonoThin() {
@@ -72,8 +73,14 @@ void track::ui::CustomLookAndFeel::drawRotarySlider(
     // background circle
     float mul = 1.9f;
 
+    if (isPanSlider) {
+        juce::LookAndFeel_V2::drawGlassSphere(
+            g, bounds.getX() + 2, bounds.getY() + 2, arcRadius * (mul * 0.95f),
+            juce::Colours::black, 0.1f);
+    }
+
     if (isPanSlider)
-        g.setColour(Colour(0xFF'818181));
+        g.setColour(Colour(0xAA'818181).brighter(0.2f));
     else
         g.setColour(Colour(0xFF'3A3A3A));
 
@@ -147,7 +154,7 @@ void track::ui::CustomLookAndFeel::drawButtonBackground(
     auto c = findColour(0x1004011);
 
     if (b.getButtonText().toLowerCase() == "config") {
-        c = juce::Colour(0xFF'B5B5B5);
+        c = juce::Colour(0xFF'707070);
     } else if (b.getButtonText().toLowerCase() == "x") {
         c = juce::Colour(0xFF'121212);
     }
@@ -160,23 +167,25 @@ void track::ui::CustomLookAndFeel::drawButtonBackground(
 
     g.setColour(c);
     g.fillRect(b.getLocalBounds().toFloat().expanded(-1.5f, -1.5f));
-    juce::LookAndFeel_V2::drawGlassLozenge(
-        g, 0.f, 0.f, b.getWidth(), b.getHeight(),
-        juce::Colours::white.withAlpha(0.1f +
-                                       ((int)shouldDrawButtonAsDown * 0.2f)),
-        0.f, 0.f, true, true, false, true);
+
+    if (b.getButtonText().toLowerCase() != "x") {
+        juce::LookAndFeel_V2::drawGlassLozenge(
+            g, 0.f, 0.f, b.getWidth(), b.getHeight(),
+            juce::Colours::white.withAlpha(
+                0.1f + ((int)shouldDrawButtonAsDown * 0.2f)),
+            0.f, 0.f, true, true, false, true);
+    }
 
     // don't draw border for certain buttons by checking its content. i
     // cannot think of another way that does not involve making my own
     // button class/making multiple lookandfeels outline
-    if (b.getButtonText().toLowerCase() == "editor" ||
+    if (b.getButtonText().toLowerCase() == "x" ||
         b.getButtonText().toLowerCase() == "remove" ||
         b.getButtonText().toLowerCase() == "bypass" ||
         b.getButtonText().toLowerCase() == "automate" ||
-        b.getButtonText().toLowerCase() == "x" ||
-
-        b.getButtonText().toLowerCase() == "config")
+        b.getButtonText().toLowerCase() == "config") {
         return;
+    }
 
     // draw highlight
     g.setColour(juce::Colour(0x11'FFFFFF));
@@ -201,7 +210,7 @@ void track::ui::CustomLookAndFeel::drawButtonText(
                     .withMultipliedAlpha(button.isEnabled() ? 1.0f : 0.5f));
 
     if (button.getButtonText().toLowerCase() == "config") {
-        g.setColour(juce::Colours::black.withAlpha(0.5f));
+        g.setColour(juce::Colours::white.withAlpha(0.7f));
     } else if (button.getButtonText().toLowerCase() == "x")
         g.setColour(juce::Colours::white.withAlpha(0.5f));
 
