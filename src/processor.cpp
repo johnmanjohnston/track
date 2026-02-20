@@ -479,6 +479,8 @@ void AudioPluginAudioProcessor::getStateInformation(
     projectSettings->setAttribute("samplerate", getSampleRate());
     projectSettings->setAttribute("samplesperblock", track::SAMPLES_PER_BLOCK);
     projectSettings->setAttribute("mastergain", *this->masterGain);
+    projectSettings->setAttribute("autogrid", track::AUTO_GRID);
+    projectSettings->setAttribute("snapdivision", track::SNAP_DIVISION);
 
     juce::XmlElement *knownPlugins = new juce::XmlElement("knownplugins");
     for (auto &p : knownPluginList.getTypes()) {
@@ -555,6 +557,10 @@ void AudioPluginAudioProcessor::setStateInformation(const void *data,
             projectSettings->getIntAttribute("samplesperblock");
         *this->masterGain =
             (float)projectSettings->getDoubleAttribute("mastergain", 1.0);
+
+        track::AUTO_GRID = projectSettings->getBoolAttribute("autogrid", true);
+        track::SNAP_DIVISION =
+            projectSettings->getIntAttribute("snapdivision", 4);
     }
 
     juce::XmlElement *knownPlugins = xmlState->getChildByName("knownplugins");
