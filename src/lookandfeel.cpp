@@ -1,5 +1,7 @@
 #include "lookandfeel.h"
 #include "BinaryData.h"
+#include "juce_graphics/juce_graphics.h"
+#include "juce_gui_basics/juce_gui_basics.h"
 
 const juce::Font track::ui::CustomLookAndFeel::getRobotoMonoThin() {
     static auto typeface = Typeface::createSystemTypefaceFor(
@@ -254,14 +256,22 @@ void track::ui::CustomLookAndFeel::drawLinearSlider(
     backgroundTrack.startNewSubPath(startPoint);
     backgroundTrack.lineTo(endPoint);
 
-    g.setColour(Colour(0xFF474748)); // fill color
-    g.strokePath(backgroundTrack, {trackWidth + 5.f, PathStrokeType::curved,
+    // highlight
+    Path highlightTrack = backgroundTrack;
+    highlightTrack.applyTransform(AffineTransform::translation(0.f, 1.f));
+    g.setColour(Colour(0x22'FFFFFF)); // highlight
+    g.strokePath(highlightTrack,
+                 {trackWidth /*+ 1.0f*/ + 6.f, PathStrokeType::curved,
+                  PathStrokeType::rounded});
+
+    // outline
+    g.setColour(juce::Colours::black.withAlpha(0.8f)); // fill color
+    g.strokePath(backgroundTrack, {trackWidth + 6.f, PathStrokeType::curved,
                                    PathStrokeType::rounded});
 
-    g.setColour(Colour(0xFF313330)); // outline color
-    g.strokePath(backgroundTrack,
-                 {trackWidth + 1.0f + 5.f, PathStrokeType::curved,
-                  PathStrokeType::rounded});
+    g.setColour(Colour(0xFF474748).darker(0.3f)); // fill color
+    g.strokePath(backgroundTrack, {trackWidth + 5.f, PathStrokeType::curved,
+                                   PathStrokeType::rounded});
 
     Point<float> minPoint, maxPoint, thumbPoint;
 
@@ -292,12 +302,18 @@ void track::ui::CustomLookAndFeel::drawLinearSlider(
 
     if (!isTwoVal) {
         // draw thumb fill
-        g.setColour(juce::Colour(0x8F8F8F).withAlpha(.8f));
+        juce::LookAndFeel_V2::drawGlassSphere(
+            g, maxPoint.getX() - (thumbWidth / 2.f),
+            maxPoint.getY() - (thumbWidth / 2.f), thumbWidth,
+            juce::Colours::grey.darker(0.3f), 0.f);
+
+        g.setColour(juce::Colour(0xFF'8F8F8F).withAlpha(.3f));
         g.fillEllipse(Rectangle<float>(static_cast<float>(thumbWidth),
                                        static_cast<float>(thumbWidth))
                           .withCentre(isThreeVal ? thumbPoint : maxPoint));
+
         // draw thumb outline
-        g.setColour(juce::Colour(0xD9D9D9).withAlpha(1.f));
+        g.setColour(juce::Colour(0xFF'D9D9D9).withAlpha(1.f));
         g.drawEllipse(Rectangle<float>(static_cast<float>(thumbWidth),
                                        static_cast<float>(thumbWidth))
                           .withCentre(isThreeVal ? thumbPoint : maxPoint),
