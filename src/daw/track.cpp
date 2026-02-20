@@ -977,6 +977,37 @@ void track::TrackComponent::mouseDown(const juce::MouseEvent &event) {
 
         contextMenu.addSeparator();
 
+        contextMenu.addItem("Move up", true, false, [this] {
+            std::vector<int> finalRoute = this->route;
+            --finalRoute.back();
+            ActionReorderNode *action =
+                new ActionReorderNode(this->route, finalRoute, processor);
+
+            AudioPluginAudioProcessor *p =
+                (AudioPluginAudioProcessor *)processor;
+            p->undoManager.beginNewTransaction("action reorder node (move up)");
+            p->undoManager.perform(action);
+        });
+
+        contextMenu.addItem("Move down", true, false, [this] {
+            std::vector<int> finalRoute = this->route;
+            ++finalRoute.back();
+
+            DBG("this->route = " << utility::prettyVector(this->route));
+            DBG("finalRoute = " << utility::prettyVector(finalRoute));
+
+            ActionReorderNode *action =
+                new ActionReorderNode(finalRoute, this->route, processor);
+
+            AudioPluginAudioProcessor *p =
+                (AudioPluginAudioProcessor *)processor;
+            p->undoManager.beginNewTransaction(
+                "action reorder node (move down)");
+            p->undoManager.perform(action);
+        });
+
+        contextMenu.addSeparator();
+
         contextMenu.addItem(
             "Delete " + getCorrespondingTrack()->trackName, [this] {
                 Tracklist *tracklist =
