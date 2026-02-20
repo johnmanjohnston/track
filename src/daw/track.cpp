@@ -511,11 +511,12 @@ void track::ClipComponent::mouseMove(const juce::MouseEvent &event) {
 }
 
 bool track::ClipComponent::keyStateChanged(bool isKeyDown) {
+    /*
     juce::KeyPress curCombo = juce::KeyPress::createFromDescription("a");
     if (curCombo.isCurrentlyDown()) {
         DBG("curCombo is down");
         DBG(curCombo.getKeyCode());
-    }
+    }*/
 
     if (isKeyDown) {
         // r
@@ -574,13 +575,7 @@ track::ActionClipModified::ActionClipModified(void *processor,
 track::ActionClipModified::~ActionClipModified() {}
 
 track::clip *track::ActionClipModified::getClip() {
-    AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
-    audioNode *head = &processor->tracks[(size_t)route[0]];
-    for (size_t i = 1; i < route.size(); ++i) {
-        head = &head->childNodes[(size_t)route[i]];
-    }
-    clip *c = &head->clips[(size_t)clipIndex];
-    return c;
+    return &utility::getNodeFromRoute(route, p)->clips[(size_t)clipIndex];
 }
 
 bool track::ActionClipModified::perform() {
@@ -1074,17 +1069,11 @@ void track::TrackComponent::mouseUp(const juce::MouseEvent &event) {
         if (tracklist->trackComponents[(size_t)displayNodes]->getCorrespondingTrack()->isTrack) {
             AudioPluginAudioProcessor *p = (AudioPluginAudioProcessor *)processor;
       
-            // check if both tracks belong to the same parent 
-            std::vector<int> r1 = tracklist->trackComponents[(size_t)displayNodes]->route;
-            r1.pop_back();
-
-            std::vector<int> r2 = this->route;
-            r2.pop_back();
-
             std::vector<int> sourceRoute = this->route;
             std::vector<int> movementRoute = tracklist->trackComponents[(size_t)displayNodes]->route;
 
-            if (r1 == r2) {
+            if (utility::isSibling(  
+                tracklist->trackComponents[(size_t)displayNodes]->route, this->route)) {
                 ActionReorderNode *action = new ActionReorderNode(sourceRoute, movementRoute, processor);
                 p->undoManager.beginNewTransaction("action reorder node");
                 p->undoManager.perform(action);
