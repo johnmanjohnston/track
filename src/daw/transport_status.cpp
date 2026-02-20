@@ -1,5 +1,4 @@
 #include "transport_status.h"
-#include "juce_graphics/juce_graphics.h"
 
 track::TransportStatusComponent::TransportStatusComponent()
     : juce::Component() {}

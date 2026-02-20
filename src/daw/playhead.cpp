@@ -1,5 +1,6 @@
 #include "playhead.h"
 #include "defs.h"
+#include "utility.h"
 
 track::PlayheadComponent::PlayheadComponent() : juce::Component() {
     setBounds(10, 10, 10, 10);
@@ -15,14 +16,14 @@ void track::PlayheadComponent::paint(juce::Graphics &g) {
                                           .withSizeKeepingCentre(3, getHeight())
                                           .withTrimmedTop(2);
 
-    g.setColour(juce::Colour(0xFF'E9FFFF));
+    g.setColour(juce::Colour(0xAA'FFFFFF));
     g.fillRect(lineBounds);
 
     g.setColour(juce::Colours::black);
     g.drawRect(lineBounds);
 
-    juce::LookAndFeel_V2::drawGlassPointer(
-        g, 0.f, 2.f, w - 1, juce::Colours::grey.brighter(), 1.f, 2);
+    track::utility::customDrawGlassPointer(g, 0.f, 2.f, w - 1,
+                                           juce::Colours::white, 0.5f, 2);
 }
 
 void track::PlayheadComponent::updateBounds() {
@@ -56,6 +57,6 @@ AudioPluginAudioProcessorEditor::timerCallback (this=0x555558840b70) at
 
     setBounds((curSample / SAMPLE_RATE * UI_ZOOM_MULTIPLIER) + UI_TRACK_WIDTH -
                   tv->getViewPositionX() - (w / 2.f),
-              UI_TOPBAR_HEIGHT + 5, w, 720 - UI_TOPBAR_HEIGHT - 5 - 8);
+              UI_TOPBAR_HEIGHT + 7, w, 720 - UI_TOPBAR_HEIGHT - 5 - 8);
     repaint();
 }

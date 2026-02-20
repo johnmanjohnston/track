@@ -3,7 +3,6 @@
 #include "../processor.h"
 #include "automation_relay.h"
 #include "defs.h"
-#include "juce_gui_basics/juce_gui_basics.h"
 #include "plugin_chain.h"
 #include "track.h"
 
@@ -451,5 +450,49 @@ void track::utility::customDrawGlassPointer(juce::Graphics &g, const float x,
                                             const juce::Colour &colour,
                                             const float outlineThickness,
                                             const int direction) {
-    // TODO: this
+    if (diameter <= outlineThickness)
+        return;
+
+    Path p;
+    p.startNewSubPath(x + diameter * 0.5f, y);
+    p.lineTo(x + diameter, y + diameter * 0.6f);
+    p.lineTo(x + diameter, y + diameter);
+    p.lineTo(x, y + diameter);
+    p.lineTo(x, y + diameter * 0.6f);
+    p.closeSubPath();
+
+    p.applyTransform(AffineTransform::rotation(
+        (float)direction * MathConstants<float>::halfPi, x + diameter * 0.5f,
+        y + diameter * 0.5f));
+
+    {
+        ColourGradient cg(Colours::white.withAlpha(0.4f).overlaidWith(
+                              colour.withMultipliedAlpha(0.5f)),
+                          0, y, Colours::white.darker().withAlpha(0.2f), 0,
+                          y + diameter, false);
+
+        // cg.addColour(0.4, Colours::white.overlaidWith(colour));
+
+        g.setGradientFill(cg);
+        g.fillPath(p);
+    }
+
+    // highlight
+    g.setColour(juce::Colours::white.withAlpha(0.8f));
+    g.drawHorizontalLine(2, 0, diameter);
+
+    ColourGradient cg(Colours::transparentBlack, x + diameter * 0.5f,
+                      y + diameter * 0.5f,
+                      Colours::black.withAlpha(0.5f * outlineThickness *
+                                               colour.getFloatAlpha()),
+                      x - diameter * 0.2f, y + diameter * 0.5f, true);
+
+    cg.addColour(0.5, Colours::transparentBlack);
+    cg.addColour(0.7, Colours::black.withAlpha(0.07f * outlineThickness));
+
+    g.setGradientFill(cg);
+    g.fillPath(p);
+
+    g.setColour(Colours::black.withAlpha(0.5f * colour.getFloatAlpha()));
+    g.strokePath(p, PathStrokeType(outlineThickness));
 }
