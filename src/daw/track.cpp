@@ -977,7 +977,7 @@ void track::TrackComponent::mouseDown(const juce::MouseEvent &event) {
 
         contextMenu.addSeparator();
 
-        contextMenu.addItem("Move up", true, false, [this] {
+        contextMenu.addItem("Move up", siblingIndex != 0, false, [this] {
             std::vector<int> finalRoute = this->route;
             --finalRoute.back();
             ActionReorderNode *action =
@@ -989,7 +989,15 @@ void track::TrackComponent::mouseDown(const juce::MouseEvent &event) {
             p->undoManager.perform(action);
         });
 
-        contextMenu.addItem("Move down", true, false, [this] {
+        AudioPluginAudioProcessor *pr = (AudioPluginAudioProcessor *)processor;
+        bool canMoveDown =
+            utility::getParentFromRoute(this->route, processor) == nullptr
+                ? (size_t)route.back() < pr->tracks.size() - 1
+                : (size_t)route.back() < utility::getParentFromRoute(route, pr)
+                                                 ->childNodes.size() -
+                                             1;
+
+        contextMenu.addItem("Move down", canMoveDown, false, [this] {
             std::vector<int> finalRoute = this->route;
             ++finalRoute.back();
 
