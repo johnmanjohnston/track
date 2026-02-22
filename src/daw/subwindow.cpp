@@ -50,7 +50,7 @@ void track::CloseButton::mouseExit(const juce::MouseEvent & /*event*/) {
 }
 
 void track::Subwindow::mouseDrag(const juce::MouseEvent &event) {
-    if (juce::ModifierKeys::currentModifiers.isAltDown()) {
+    if (permitMovement) {
         juce::Rectangle<int> newBounds = this->dragStartBounds;
         newBounds.setX(newBounds.getX() + event.getDistanceFromDragStartX());
         newBounds.setY(newBounds.getY() + event.getDistanceFromDragStartY());
@@ -58,11 +58,16 @@ void track::Subwindow::mouseDrag(const juce::MouseEvent &event) {
     }
 }
 
-void track::Subwindow::mouseDown(const juce::MouseEvent & /*event*/) {
-    if (juce::ModifierKeys::currentModifiers.isAltDown())
+void track::Subwindow::mouseDown(const juce::MouseEvent &event) {
+    if (event.y < getTitleBarBounds().getHeight()) {
         dragStartBounds = getBounds();
-
+        permitMovement = true;
+    }
     this->toFront(true);
+}
+
+void track::Subwindow::mouseUp(const juce::MouseEvent & /*event*/) {
+    permitMovement = false;
 }
 
 juce::Rectangle<int> track::Subwindow::getTitleBarBounds() {

@@ -31,6 +31,9 @@ class Subwindow : public juce::Component {
 
     CloseButton closeBtn;
 
+    bool permitMovement = false;
+
+    void mouseUp(const juce::MouseEvent &event) override;
     void mouseDown(const juce::MouseEvent &event) override;
     void mouseDrag(const juce::MouseEvent &event) override;
     juce::Rectangle<int> dragStartBounds;
