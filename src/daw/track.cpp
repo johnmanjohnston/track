@@ -1182,11 +1182,11 @@ void track::TrackComponent::copyNodeToClipboard() {
 
 void track::TrackComponent::paint(juce::Graphics &g) {
     juce::Colour bg = juce::Colour(0xFF'5F5F5F);
-    juce::Colour trackBg = juce::Colour(0xFF'414141);
+    juce::Colour trackBg = juce::Colour(0xFF'414141).darker(0.1f);
     juce::Colour glossColor = juce::Colours::white.withAlpha(0.1f);
 
     if (hasKeyboardFocus(true)) {
-        trackBg = bg.brighter(0.1f);
+        trackBg = bg.brighter(0.04f);
     }
 
     if (coolColors) {
@@ -1194,7 +1194,7 @@ void track::TrackComponent::paint(juce::Graphics &g) {
         trackBg = juce::Colours::white;
     }
 
-    juce::Colour groupBg = trackBg.brighter(0.2f);
+    juce::Colour groupBg = trackBg.brighter(0.3f);
     juce::Colour outline = juce::Colour(0xFF'252525).brighter(0.1f);
     bool isFirstNodeInGroup = route.size() != 0 && siblingIndex == 0;
 

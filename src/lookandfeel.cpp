@@ -1,5 +1,6 @@
 #include "lookandfeel.h"
 #include "BinaryData.h"
+#include "juce_gui_basics/juce_gui_basics.h"
 
 const juce::Font track::ui::CustomLookAndFeel::getRobotoMonoThin() {
     static auto typeface = Typeface::createSystemTypefaceFor(
@@ -263,11 +264,11 @@ void track::ui::CustomLookAndFeel::drawLinearSlider(
                   PathStrokeType::rounded});
 
     // outline
-    g.setColour(juce::Colours::black.withAlpha(0.8f)); // fill color
+    g.setColour(juce::Colours::black.withAlpha(0.9f)); // fill color
     g.strokePath(backgroundTrack, {trackWidth + 6.f, PathStrokeType::curved,
                                    PathStrokeType::rounded});
 
-    g.setColour(Colour(0xFF474748).darker(0.3f)); // fill color
+    g.setColour(Colour(0xFF474748).darker(0.2f)); // fill color
     g.strokePath(backgroundTrack, {trackWidth + 5.f, PathStrokeType::curved,
                                    PathStrokeType::rounded});
 
@@ -356,6 +357,24 @@ void track::ui::CustomLookAndFeel::drawPopupMenuBackground(Graphics &g,
 
     g.setColour(findColour(PopupMenu::textColourId).withAlpha(.2f));
     g.drawRect(juce::Rectangle<int>(0, 0, width, height), 1);
+}
+
+void track::ui::CustomLookAndFeel::drawPopupMenuItem(
+    Graphics &g, const Rectangle<int> &area, bool isSeparator, bool isActive,
+    bool isHighlighted, bool isTicked, bool hasSubMenu, const String &text,
+    const String &shortcutKeyText, const Drawable *icon,
+    const Colour *textColour) {
+    juce::LookAndFeel_V4::drawPopupMenuItem(
+        g, area, isSeparator, isActive, isHighlighted, isTicked, hasSubMenu,
+        text, shortcutKeyText, icon, textColour);
+
+    if (isHighlighted && isActive && !isSeparator) {
+        juce::LookAndFeel_V2::drawGlassLozenge(
+            g, area.getX(), area.getY(), area.getWidth(),
+            area.getHeight() / 2.f,
+            juce::Colours::white.darker(0.5f).withAlpha(0.1f), 1.f, 0.f, true,
+            true, false, true);
+    }
 }
 
 void track::ui::CustomLookAndFeel::drawLabel(Graphics &g, Label &label) {

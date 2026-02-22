@@ -62,6 +62,11 @@ class CustomLookAndFeel : public juce::LookAndFeel_V4 {
                       int, ComboBox &box) override;
 
     void drawPopupMenuBackground(Graphics &g, int width, int height) override;
+    void drawPopupMenuItem(Graphics &g, const Rectangle<int> &area,
+                           bool isSeparator, bool isActive, bool isHighlighted,
+                           bool isTicked, bool hasSubMenu, const String &text,
+                           const String &shortcutKeyText, const Drawable *icon,
+                           const Colour *textColour) override;
 
     void drawLabel(Graphics &g, Label &label) override;
 
