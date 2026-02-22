@@ -368,6 +368,12 @@ void AudioPluginAudioProcessorEditor::changeListenerCallback(
         timelineComponent->repaint();
     }
 
+    else if (x.command == UI_INSTRUCTION_RESIZE_CLIP_COMPONENTS) {
+        for (auto &cc : timelineComponent->clipComponents) {
+            timelineComponent->resizeClipComponent(cc.get());
+        }
+    }
+
     else if (x.command == UI_INSTRUCTION_RECREATE_ALL_PNCS) {
         jassert(x.r.size() > 0);
 

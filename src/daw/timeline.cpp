@@ -263,7 +263,7 @@ void track::ActionShiftClips::shift(int bars) {
 
 void track::ActionShiftClips::updateGUI() {
     AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
-    processor->dispatchGUIInstruction(UI_INSTRUCTION_UPDATE_CLIP_COMPONENTS);
+    processor->dispatchGUIInstruction(UI_INSTRUCTION_RESIZE_CLIP_COMPONENTS);
 }
 
 track::TimelineComponent::~TimelineComponent(){};
