@@ -41,6 +41,9 @@ bool track::ActionAddPlugin::undo() {
     processor->dispatchGUIInstruction(
         UI_INSTRUCTION_CLOSE_PEW, (void *)(uintptr_t)(node->plugins.size() - 1),
         nodeRoute);
+    processor->dispatchGUIInstruction(
+        UI_INSTRUCTION_CLOSE_ALL_RMC_WITH_ROUTE_AND_INDEX,
+        (void *)(uintptr_t)(node->plugins.size() - 1), nodeRoute);
 
     node->removePlugin(node->plugins.size() - 1);
 
@@ -71,6 +74,8 @@ bool track::ActionRemovePlugin::perform() {
     AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
     processor->dispatchGUIInstruction(UI_INSTRUCTION_CLOSE_OPENED_EDITORS,
                                       nullptr, nodeRoute);
+    processor->dispatchGUIInstruction(
+        UI_INSTRUCTION_CLOSE_OPENED_RELAY_PARAM_WINDOWS, nullptr, nodeRoute);
 
     audioNode *node = utility::getNodeFromRoute(nodeRoute, p);
     node->removePlugin(pluginIndex);
@@ -79,6 +84,8 @@ bool track::ActionRemovePlugin::perform() {
 
     processor->dispatchGUIInstruction(UI_INSTRUCTION_OPEN_CLOSED_EDITORS,
                                       nullptr, nodeRoute);
+    processor->dispatchGUIInstruction(
+        UI_INSTRUCTION_OPEN_CLOSED_RELAY_PARAM_WINDOWS, nullptr, nodeRoute);
     processor->requireSaving();
 
     return true;
@@ -88,6 +95,8 @@ bool track::ActionRemovePlugin::undo() {
     AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
     processor->dispatchGUIInstruction(UI_INSTRUCTION_CLOSE_OPENED_EDITORS,
                                       nullptr, nodeRoute);
+    processor->dispatchGUIInstruction(
+        UI_INSTRUCTION_CLOSE_OPENED_RELAY_PARAM_WINDOWS, nullptr, nodeRoute);
 
     audioNode *node = utility::getNodeFromRoute(nodeRoute, p);
 
@@ -118,6 +127,8 @@ bool track::ActionRemovePlugin::undo() {
 
     processor->dispatchGUIInstruction(UI_INSTRUCTION_OPEN_CLOSED_EDITORS,
                                       nullptr, nodeRoute);
+    processor->dispatchGUIInstruction(
+        UI_INSTRUCTION_OPEN_CLOSED_RELAY_PARAM_WINDOWS, nullptr, nodeRoute);
     processor->requireSaving();
 
     return true;
@@ -189,6 +200,74 @@ void track::ActionReorderPlugin::updateGUI() {
     AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
     processor->dispatchGUIInstruction(UI_INSTRUCTION_RECREATE_ALL_PNCS, nullptr,
                                       route);
+}
+
+track::ActionPastePlugin::ActionPastePlugin(track::pluginClipboardData data,
+                                            std::vector<int> route,
+                                            void *processor)
+    : juce::UndoableAction() {
+    this->subpluginData = data;
+    this->nodeRoute = route;
+    this->p = processor;
+}
+track::ActionPastePlugin::~ActionPastePlugin() {}
+
+bool track::ActionPastePlugin::perform() {
+    // sex0
+
+    audioNode *node = utility::getNodeFromRoute(nodeRoute, p);
+    juce::String cleanedIdentifier =
+        subpluginData.identifier.upToLastOccurrenceOf(".vst3", true, true);
+    node->addPlugin(cleanedIdentifier);
+    juce::MemoryBlock pluginData;
+
+    std::unique_ptr<track::subplugin> &plugin = node->plugins.back();
+
+    plugin->bypassed = subpluginData.bypassed;
+    plugin->dryWetMix = subpluginData.dryWetMix;
+    plugin->relayParams = subpluginData.relayParams;
+
+    bool dataRetrieved =
+        pluginData.fromBase64Encoding((juce::String)subpluginData.data);
+
+    DBG("dataRetrieved = " << (dataRetrieved ? "true" : "false"));
+
+    plugin->plugin->setStateInformation(pluginData.getData(),
+                                        pluginData.getSize());
+
+    AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
+    processor->requireSaving();
+
+    updateGUI();
+
+    return true;
+}
+
+bool track::ActionPastePlugin::undo() {
+    AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
+    processor->dispatchGUIInstruction(UI_INSTRUCTION_CLOSE_OPENED_EDITORS,
+                                      nullptr, nodeRoute);
+
+    audioNode *node = utility::getNodeFromRoute(nodeRoute, p);
+    processor->dispatchGUIInstruction(
+        UI_INSTRUCTION_CLOSE_ALL_RMC_WITH_ROUTE_AND_INDEX,
+        (void *)((uintptr_t)node->plugins.size() - 1), nodeRoute);
+
+    node->removePlugin(node->plugins.size() - 1);
+
+    updateGUI();
+
+    processor->dispatchGUIInstruction(UI_INSTRUCTION_OPEN_CLOSED_EDITORS,
+                                      nullptr, nodeRoute);
+    processor->requireSaving();
+
+    return true;
+}
+
+void track::ActionPastePlugin::updateGUI() {
+    AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
+    processor->dispatchGUIInstruction(UI_INSTRUCTION_RECREATE_ALL_PNCS, nullptr,
+                                      nodeRoute);
 }
 
 track::ActionChangeTrivialPluginData::ActionChangeTrivialPluginData(
@@ -635,34 +714,44 @@ void track::PluginNodesWrapper::mouseDown(const juce::MouseEvent &event) {
                     pluginClipboardData *clipboardData =
                         (pluginClipboardData *)clipboard::retrieveData();
 
-                    juce::String cleanedIdentifier =
-                        clipboardData->identifier.upToLastOccurrenceOf(
-                            ".vst3", true, true);
-                    node->addPlugin(cleanedIdentifier);
-                    juce::MemoryBlock pluginData;
+                    /*
+                juce::String cleanedIdentifier =
+                    clipboardData->identifier.upToLastOccurrenceOf(
+                        ".vst3", true, true);
+                node->addPlugin(cleanedIdentifier);
+                juce::MemoryBlock pluginData;
 
-                    std::unique_ptr<track::subplugin> &plugin =
-                        node->plugins.back();
+                std::unique_ptr<track::subplugin> &plugin =
+                    node->plugins.back();
 
-                    plugin->bypassed = clipboardData->bypassed;
-                    plugin->dryWetMix = clipboardData->dryWetMix;
-                    plugin->relayParams = clipboardData->relayParams;
+                plugin->bypassed = clipboardData->bypassed;
+                plugin->dryWetMix = clipboardData->dryWetMix;
+                plugin->relayParams = clipboardData->relayParams;
 
-                    bool dataRetrieved = pluginData.fromBase64Encoding(
-                        (juce::String)clipboardData->data);
+                bool dataRetrieved = pluginData.fromBase64Encoding(
+                    (juce::String)clipboardData->data);
 
-                    DBG("dataRetrieved = " << (dataRetrieved ? "true"
-                                                             : "false"));
+                DBG("dataRetrieved = " << (dataRetrieved ? "true"
+                                                         : "false"));
 
-                    plugin->plugin->setStateInformation(pluginData.getData(),
-                                                        pluginData.getSize());
-                    // very lazy way but i couldn't be bothered now
-                    pluginNodeComponents.clear();
-                    createPluginNodeComponents();
+                plugin->plugin->setStateInformation(pluginData.getData(),
+                                                    pluginData.getSize());
+                // very lazy way but i couldn't be bothered now
+                pluginNodeComponents.clear();
+                createPluginNodeComponents();
 
-                    pcc->resized();
-                    pcc->nodesViewport.setViewPosition(
-                        pcc->nodesWrapper.getWidth(), 0);
+                pcc->resized();
+                pcc->nodesViewport.setViewPosition(
+                    pcc->nodesWrapper.getWidth(), 0);*/
+
+                    DBG("IT IS HAPPENNING....");
+
+                    ActionPastePlugin *action = new ActionPastePlugin(
+                        *clipboardData, pcc->route, pcc->processor);
+
+                    pcc->processor->undoManager.beginNewTransaction(
+                        "action paste plugin");
+                    pcc->processor->undoManager.perform(action);
 
                     return;
                 }

@@ -369,6 +369,8 @@ void AudioPluginAudioProcessorEditor::changeListenerCallback(
     }
 
     else if (x.command == UI_INSTRUCTION_RECREATE_ALL_PNCS) {
+        jassert(x.r.size() > 0);
+
         for (size_t i = 0; i < pluginChainComponents.size(); ++i) {
             if (pluginChainComponents[i]->route == x.r) {
                 pluginChainComponents[i]
@@ -380,6 +382,8 @@ void AudioPluginAudioProcessorEditor::changeListenerCallback(
     }
 
     else if (x.command == UI_INSTRUCTION_RECREATE_RELAY_NODES) {
+        jassert(x.r.size() > 0);
+
         for (size_t i = 0; i < relayManagerCompnoents.size(); ++i) {
             if (relayManagerCompnoents[i]->route == x.r)
                 relayManagerCompnoents[i]->rmNodesWrapper.createRelayNodes();

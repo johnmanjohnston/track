@@ -2,6 +2,7 @@
 #include "../editor.h"
 #include "../processor.h"
 #include "BinaryData.h"
+#include "juce_data_structures/juce_data_structures.h"
 #include "subwindow.h"
 #include "track.h"
 #include <JuceHeader.h>
@@ -68,6 +69,21 @@ class ActionReorderPlugin : public juce::UndoableAction {
     bool perform() override;
     bool undo() override;
     void updateGUI(); // y
+};
+
+class ActionPastePlugin : public juce::UndoableAction {
+  public:
+    ActionPastePlugin(pluginClipboardData data, std::vector<int> route,
+                      void *processor);
+    ~ActionPastePlugin();
+
+    pluginClipboardData subpluginData;
+    std::vector<int> nodeRoute;
+    void *p = nullptr;
+
+    bool perform() override;
+    bool undo() override;
+    void updateGUI();
 };
 
 class ActionChangeTrivialPluginData : public juce::UndoableAction {
