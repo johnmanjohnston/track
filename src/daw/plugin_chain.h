@@ -2,7 +2,6 @@
 #include "../editor.h"
 #include "../processor.h"
 #include "BinaryData.h"
-#include "juce_data_structures/juce_data_structures.h"
 #include "subwindow.h"
 #include "track.h"
 #include <JuceHeader.h>
@@ -78,6 +77,21 @@ class ActionPastePlugin : public juce::UndoableAction {
     ~ActionPastePlugin();
 
     pluginClipboardData subpluginData;
+    std::vector<int> nodeRoute;
+    void *p = nullptr;
+
+    bool perform() override;
+    bool undo() override;
+    void updateGUI();
+};
+
+class ActionPastePluginChain : public juce::UndoableAction {
+  public:
+    ActionPastePluginChain(pluginChainClipboardData data,
+                           std::vector<int> route, void *processor);
+    ~ActionPastePluginChain();
+
+    pluginChainClipboardData chainData;
     std::vector<int> nodeRoute;
     void *p = nullptr;
 
