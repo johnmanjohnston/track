@@ -938,12 +938,7 @@ track::audioNode *track::PluginChainComponent::getCorrespondingTrack() {
     jassert(processor != nullptr);
     jassert(route.size() > 0);
 
-    audioNode *head = &processor->tracks[(size_t)route[0]];
-    for (size_t i = 1; i < route.size(); ++i) {
-        head = &head->childNodes[(size_t)route[i]];
-    }
-
-    return head;
+    return utility::getNodeFromRoute(this->route, processor);
 }
 
 void track::PluginChainComponent::removePlugin(int pluginIndex) {
@@ -1155,12 +1150,7 @@ void track::PluginEditorWindow::mouseUp(const juce::MouseEvent &event) {
 
 // get current track and plugin util functions
 track::audioNode *track::PluginEditorWindow::getCorrespondingTrack() {
-    audioNode *head = &processor->tracks[(size_t)route[0]];
-    for (size_t i = 1; i < route.size(); ++i) {
-        head = &head->childNodes[(size_t)route[i]];
-    }
-
-    return head;
+    return utility::getNodeFromRoute(this->route, processor);
 }
 
 std::unique_ptr<track::subplugin> *track::PluginEditorWindow::getPlugin() {

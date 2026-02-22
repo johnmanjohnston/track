@@ -722,15 +722,7 @@ void track::ClipPropertiesWindow::init() {
 }
 
 track::clip *track::ClipPropertiesWindow::getClip() {
-    AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
-
-    audioNode *head = &processor->tracks[(size_t)route[0]];
-
-    for (size_t i = 1; i < route.size(); ++i) {
-        head = &head->childNodes[(size_t)route[i]];
-    }
-
-    return &head->clips[(size_t)clipIndex];
+    return &utility::getNodeFromRoute(this->route, p)->clips[(size_t)clipIndex];
 }
 
 track::audioNode *
@@ -739,14 +731,7 @@ track::TrackComponent::TrackComponent::getCorrespondingTrack() {
     jassert(siblingIndex != -1);
     jassert(route.size() != 0);
 
-    AudioPluginAudioProcessor *p = (AudioPluginAudioProcessor *)processor;
-
-    audioNode *head = &p->tracks[(size_t)route[0]];
-    for (size_t i = 1; i < route.size(); ++i) {
-        head = &head->childNodes[(size_t)route[i]];
-    }
-
-    return head;
+    return utility::getNodeFromRoute(this->route, processor);
 }
 
 void track::TrackComponent::initializSliders() {
