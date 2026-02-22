@@ -30,6 +30,9 @@ class CustomLookAndFeel : public juce::LookAndFeel_V4 {
         setColour(PopupMenu::highlightedBackgroundColourId,
                   juce::Colour(0xFF'454545));
 
+        setColour(BubbleComponent::backgroundColourId,
+                  juce::Colour(0xFF'1F1F1F));
+
         setColour(Label::outlineWhenEditingColourId,
                   juce::Colours::transparentWhite);
     }

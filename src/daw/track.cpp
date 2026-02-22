@@ -4,7 +4,6 @@
 #include "automation_relay.h"
 #include "clipboard.h"
 #include "defs.h"
-#include "juce_core/juce_core.h"
 #include "subwindow.h"
 #include "timeline.h"
 #include "utility.h"
@@ -744,12 +743,12 @@ track::TrackComponent::TrackComponent(int trackIndex) : juce::Component() {
     setWantsKeyboardFocus(true);
     setMouseClickGrabsKeyboardFocus(true);
 
-    gainSlider.setPopupDisplayEnabled(true, true, this);
+    gainSlider.setPopupDisplayEnabled(true, true, this, 2000);
     gainSlider.textFromValueFunction = [](double x) {
         return juce::String(x, 2);
     };
 
-    panSlider.setPopupDisplayEnabled(true, true, this);
+    panSlider.setPopupDisplayEnabled(true, true, this, 1500);
     panSlider.textFromValueFunction = [](double x) {
         juce::String side = x < 0.f ? "L" : "R";
         return (int)(x * 50) == 0
