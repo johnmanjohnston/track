@@ -335,13 +335,8 @@ void track::ClipComponent::mouseDown(const juce::MouseEvent &event) {
                     tracklist->trackComponents[(size_t)this->nodeDisplayIndex]
                         ->getCorrespondingTrack();
 
-                int clipIndex = -1;
-                for (size_t i = 0; i < node->clips.size(); ++i) {
-                    if (correspondingClip == &node->clips[i]) {
-                        clipIndex = i;
-                        break;
-                    }
-                }
+                int clipIndex =
+                    utility::getIndexOfClip(node, correspondingClip);
 
                 jassert(clipIndex != -1);
 
@@ -363,6 +358,31 @@ void track::ClipComponent::mouseDown(const juce::MouseEvent &event) {
             trimMode = 1;
         else
             trimMode = 0;
+
+        if (event.getNumberOfClicks() == 2) {
+            TimelineComponent *tc = (TimelineComponent *)getParentComponent();
+            TimelineViewport *tv =
+                (TimelineViewport *)
+                    tc->findParentComponentOfClass<TimelineViewport>();
+
+            AudioPluginAudioProcessorEditor *editor =
+                tv->findParentComponentOfClass<
+                    AudioPluginAudioProcessorEditor>();
+
+            track::Tracklist *tracklist = tv->tracklist;
+
+            std::vector<int> nodeRoute =
+                tracklist->trackComponents[(size_t)this->nodeDisplayIndex]
+                    ->route;
+            audioNode *node =
+                tracklist->trackComponents[(size_t)this->nodeDisplayIndex]
+                    ->getCorrespondingTrack();
+
+            int clipIndex = utility::getIndexOfClip(node, correspondingClip);
+            jassert(clipIndex != -1);
+
+            editor->openClipPropertiesWindows(nodeRoute, clipIndex);
+        }
     }
 }
 
