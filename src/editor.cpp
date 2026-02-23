@@ -1,7 +1,6 @@
 #include "editor.h"
 #include "daw/automation_relay.h"
 #include "daw/clipboard.h"
-#include "daw/defs.h"
 #include "daw/plugin_chain.h"
 #include "daw/timeline.h"
 #include "daw/track.h"
@@ -551,7 +550,7 @@ void AudioPluginAudioProcessorEditor::openFxChain(std::vector<int> route) {
     pcc->nodesWrapper.createPluginNodeComponents();
 
     addAndMakeVisible(*pcc);
-    pcc->setBounds(10, 10, 900, 128);
+    pcc->setBounds(10, 10, 900, 140);
     repaint();
 }
 

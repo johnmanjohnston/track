@@ -1,5 +1,6 @@
 #include "subwindow.h"
 #include "defs.h"
+#include "juce_graphics/juce_graphics.h"
 #include "plugin_chain.h"
 #include "track.h"
 #include "utility.h"
@@ -59,7 +60,7 @@ void track::Subwindow::mouseDrag(const juce::MouseEvent &event) {
 }
 
 void track::Subwindow::mouseDown(const juce::MouseEvent &event) {
-    if (event.y < getTitleBarBounds().getHeight()) {
+    if (event.y < getTitleBarBounds().getHeight() + shadowSpread) {
         dragStartBounds = getBounds();
         permitMovement = true;
     }
@@ -71,8 +72,10 @@ void track::Subwindow::mouseUp(const juce::MouseEvent & /*event*/) {
 }
 
 juce::Rectangle<int> track::Subwindow::getTitleBarBounds() {
-    juce::Rectangle<int> titlebarBounds = getLocalBounds();
+    juce::Rectangle<int> titlebarBounds =
+        getLocalBounds().reduced((shadowSpread / 2) - 1, 0);
     titlebarBounds.setHeight(UI_SUBWINDOW_TITLEBAR_HEIGHT);
+    titlebarBounds.setY(shadowSpread);
     titlebarBounds.reduce(UI_SUBWINDOW_TITLEBAR_MARGIN, 0);
 
     return titlebarBounds;
@@ -80,17 +83,22 @@ juce::Rectangle<int> track::Subwindow::getTitleBarBounds() {
 
 void track::Subwindow::resized() {
     int closeBtnSize = UI_SUBWINDOW_TITLEBAR_HEIGHT;
-    closeBtn.setBounds(getWidth() - closeBtnSize - UI_SUBWINDOW_TITLEBAR_MARGIN,
-                       0, closeBtnSize + UI_SUBWINDOW_TITLEBAR_MARGIN,
-                       closeBtnSize);
+    closeBtn.setBounds(
+        getWidth() - closeBtnSize - UI_SUBWINDOW_TITLEBAR_MARGIN - 8, 8,
+        closeBtnSize + UI_SUBWINDOW_TITLEBAR_MARGIN, closeBtnSize);
 }
 
 void track::Subwindow::paint(juce::Graphics &g) {
     // bg
-    g.fillAll(juce::Colour(0xFF'282828));
+    juce::DropShadow shadow =
+        juce::DropShadow(juce::Colours::black, 8.f, juce::Point<int>());
+    shadow.drawForRectangle(g, getLocalBounds().reduced(shadowSpread));
+
+    g.setColour(juce::Colour(0xFF'282828));
+    g.fillRect(getLocalBounds().reduced(shadowSpread));
 
     // border
     g.setColour(juce::Colour(0xFF'4A4A4A));
-    g.fillRect(0, getTitleBarBounds().getHeight(), getWidth(), 2);
-    g.drawRect(getLocalBounds(), 2);
+    g.drawRect(getTitleBarBounds());
+    g.drawRect(getLocalBounds().reduced(shadowSpread), 2);
 }

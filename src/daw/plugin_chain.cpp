@@ -1,6 +1,5 @@
 #include "plugin_chain.h"
 #include "clipboard.h"
-#include "defs.h"
 #include "subwindow.h"
 #include "track.h"
 #include "utility.h"
@@ -967,9 +966,10 @@ void track::PluginChainComponent::resized() {
 
     nodesViewport.setScrollBarsShown(false, true, false, true);
 
-    juce::Rectangle<int> nodesViewportBounds =
-        juce::Rectangle<int>(1, UI_SUBWINDOW_TITLEBAR_HEIGHT + 5, getWidth(),
-                             getHeight() - UI_SUBWINDOW_TITLEBAR_HEIGHT - 4);
+    juce::Rectangle<int> nodesViewportBounds = juce::Rectangle<int>(
+        1 + shadowSpread, UI_SUBWINDOW_TITLEBAR_HEIGHT + 5 + shadowSpread,
+        getWidth() - shadowSpread,
+        getHeight() - UI_SUBWINDOW_TITLEBAR_HEIGHT - 4);
     nodesViewportBounds.reduce(5, 0);
     nodesViewport.setBounds(nodesViewportBounds);
 
@@ -996,13 +996,12 @@ void track::PluginChainComponent::paint(juce::Graphics &g) {
     g.setColour(juce::Colour(0xFF'A7A7A7)); // track name text color
     // juce::String x = juce::String(getCorrespondingTrack()->clips.size());
     g.drawText(getCorrespondingTrack()->trackName,
-               getTitleBarBounds().withLeft(37).withTop(2),
-               juce::Justification::left);
+               getTitleBarBounds().withLeft(37 + 4), juce::Justification::left);
 
     // fx logo
     // outline
-    juce::Rectangle<int> fxLogoBounds =
-        juce::Rectangle<int>(8, 1, 30, getTitleBarBounds().getHeight());
+    juce::Rectangle<int> fxLogoBounds = juce::Rectangle<int>(
+        shadowSpread + 8, shadowSpread, 30, getTitleBarBounds().getHeight());
 
     juce::Path textPath;
     juce::GlyphArrangement glyphs;
