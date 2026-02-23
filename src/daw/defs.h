@@ -25,6 +25,7 @@ constexpr int UI_TOPBAR_HEIGHT = 50;
 
 constexpr int UI_SUBWINDOW_TITLEBAR_HEIGHT = 26;
 constexpr int UI_SUBWINDOW_TITLEBAR_MARGIN = 5;
+constexpr int UI_SUBWINDOW_SHADOW_SPREAD = 6;
 
 constexpr int UI_VISUAL_FEEDBACK_FLASH_DURATION_MS = 60;
 

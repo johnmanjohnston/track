@@ -1,5 +1,6 @@
 #include "plugin_chain.h"
 #include "clipboard.h"
+#include "defs.h"
 #include "subwindow.h"
 #include "track.h"
 #include "utility.h"
@@ -967,10 +968,12 @@ void track::PluginChainComponent::resized() {
     nodesViewport.setScrollBarsShown(false, true, false, true);
 
     juce::Rectangle<int> nodesViewportBounds = juce::Rectangle<int>(
-        1 + shadowSpread, UI_SUBWINDOW_TITLEBAR_HEIGHT + 5 + shadowSpread,
-        getWidth() - shadowSpread,
-        getHeight() - UI_SUBWINDOW_TITLEBAR_HEIGHT - 4);
-    nodesViewportBounds.reduce(5, 0);
+        1 + UI_SUBWINDOW_SHADOW_SPREAD,
+        UI_SUBWINDOW_TITLEBAR_HEIGHT + UI_SUBWINDOW_SHADOW_SPREAD + 4,
+        getWidth() - (UI_SUBWINDOW_SHADOW_SPREAD * 2) - 2,
+        getHeight() - UI_SUBWINDOW_TITLEBAR_HEIGHT -
+            UI_SUBWINDOW_SHADOW_SPREAD - 10);
+    nodesViewportBounds.reduce(2, 0);
     nodesViewport.setBounds(nodesViewportBounds);
 
     juce::Rectangle<int> nodesWrapperBounds = juce::Rectangle<int>(
@@ -978,7 +981,8 @@ void track::PluginChainComponent::resized() {
         jmax(getWidth() - 30,
              ((int)this->nodesWrapper.pluginNodeComponents.size() + 1) *
                  (UI_PLUGIN_NODE_WIDTH + UI_PLUGIN_NODE_MARGIN)),
-        getHeight() - UI_SUBWINDOW_TITLEBAR_HEIGHT - 4);
+        getHeight() - UI_SUBWINDOW_TITLEBAR_HEIGHT -
+            UI_SUBWINDOW_SHADOW_SPREAD - 10);
 
     nodesWrapper.setBounds(nodesWrapperBounds);
 }
@@ -996,12 +1000,13 @@ void track::PluginChainComponent::paint(juce::Graphics &g) {
     g.setColour(juce::Colour(0xFF'A7A7A7)); // track name text color
     // juce::String x = juce::String(getCorrespondingTrack()->clips.size());
     g.drawText(getCorrespondingTrack()->trackName,
-               getTitleBarBounds().withLeft(37 + 4), juce::Justification::left);
+               getTitleBarBounds().withLeft(37 + 6), juce::Justification::left);
 
     // fx logo
     // outline
     juce::Rectangle<int> fxLogoBounds = juce::Rectangle<int>(
-        shadowSpread + 8, shadowSpread, 30, getTitleBarBounds().getHeight());
+        UI_SUBWINDOW_SHADOW_SPREAD + 8, UI_SUBWINDOW_SHADOW_SPREAD, 30,
+        getTitleBarBounds().getHeight());
 
     juce::Path textPath;
     juce::GlyphArrangement glyphs;

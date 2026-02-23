@@ -499,7 +499,7 @@ void AudioPluginAudioProcessorEditor::openRelayMenu(std::vector<int> route,
     rmc->rmNodesWrapper.createRelayNodes();
 
     addAndMakeVisible(*rmc);
-    rmc->setBounds(10, 10, 280, 640);
+    rmc->setBounds(10, 10, 280 + 20, 640);
     repaint();
 }
 
@@ -550,7 +550,7 @@ void AudioPluginAudioProcessorEditor::openFxChain(std::vector<int> route) {
     pcc->nodesWrapper.createPluginNodeComponents();
 
     addAndMakeVisible(*pcc);
-    pcc->setBounds(10, 10, 900, 140);
+    pcc->setBounds(10, 10, 900, 144);
     repaint();
 }
 

@@ -698,15 +698,14 @@ void track::ClipPropertiesWindow::paint(juce::Graphics &g) {
 
     g.setColour(juce::Colour(0xFF'A7A7A7));
     g.setFont(getTitleBarFont());
-    g.drawText(
-        getClip()->name,
-        getTitleBarBounds().withLeft(10).withTop(2).withWidth(getWidth() - 36),
-        juce::Justification::left);
+    g.drawText(getClip()->name,
+               getTitleBarBounds().withLeft(10 + 4).withWidth(getWidth() - 36),
+               juce::Justification::left);
 
     // main
     g.setFont(nameLabel.getFont().italicised());
     juce::Rectangle<int> attributeNameLabelBounds =
-        nameLabel.getBounds().withWidth(48).withX(nameLabel.getX() - 44);
+        nameLabel.getBounds().withWidth(48).withX(nameLabel.getX() - 40);
 
     g.drawText("NAME ", attributeNameLabelBounds, juce::Justification::left,
                false);

@@ -1,6 +1,5 @@
 #include "subwindow.h"
 #include "defs.h"
-#include "juce_graphics/juce_graphics.h"
 #include "plugin_chain.h"
 #include "track.h"
 #include "utility.h"
@@ -60,7 +59,8 @@ void track::Subwindow::mouseDrag(const juce::MouseEvent &event) {
 }
 
 void track::Subwindow::mouseDown(const juce::MouseEvent &event) {
-    if (event.y < getTitleBarBounds().getHeight() + shadowSpread) {
+    if (event.y <
+        getTitleBarBounds().getHeight() + UI_SUBWINDOW_SHADOW_SPREAD) {
         dragStartBounds = getBounds();
         permitMovement = true;
     }
@@ -73,9 +73,9 @@ void track::Subwindow::mouseUp(const juce::MouseEvent & /*event*/) {
 
 juce::Rectangle<int> track::Subwindow::getTitleBarBounds() {
     juce::Rectangle<int> titlebarBounds =
-        getLocalBounds().reduced((shadowSpread / 2) - 1, 0);
+        getLocalBounds().reduced((UI_SUBWINDOW_SHADOW_SPREAD / 2) - 1, 0);
     titlebarBounds.setHeight(UI_SUBWINDOW_TITLEBAR_HEIGHT);
-    titlebarBounds.setY(shadowSpread);
+    titlebarBounds.setY(UI_SUBWINDOW_SHADOW_SPREAD);
     titlebarBounds.reduce(UI_SUBWINDOW_TITLEBAR_MARGIN, 0);
 
     return titlebarBounds;
@@ -84,21 +84,24 @@ juce::Rectangle<int> track::Subwindow::getTitleBarBounds() {
 void track::Subwindow::resized() {
     int closeBtnSize = UI_SUBWINDOW_TITLEBAR_HEIGHT;
     closeBtn.setBounds(
-        getWidth() - closeBtnSize - UI_SUBWINDOW_TITLEBAR_MARGIN - 8, 8,
-        closeBtnSize + UI_SUBWINDOW_TITLEBAR_MARGIN, closeBtnSize);
+        getWidth() - closeBtnSize - UI_SUBWINDOW_TITLEBAR_MARGIN -
+            UI_SUBWINDOW_SHADOW_SPREAD,
+        UI_SUBWINDOW_SHADOW_SPREAD, closeBtnSize + UI_SUBWINDOW_TITLEBAR_MARGIN,
+        closeBtnSize);
 }
 
 void track::Subwindow::paint(juce::Graphics &g) {
     // bg
     juce::DropShadow shadow =
         juce::DropShadow(juce::Colours::black, 8.f, juce::Point<int>());
-    shadow.drawForRectangle(g, getLocalBounds().reduced(shadowSpread));
+    shadow.drawForRectangle(
+        g, getLocalBounds().reduced(UI_SUBWINDOW_SHADOW_SPREAD));
 
     g.setColour(juce::Colour(0xFF'282828));
-    g.fillRect(getLocalBounds().reduced(shadowSpread));
+    g.fillRect(getLocalBounds().reduced(UI_SUBWINDOW_SHADOW_SPREAD));
 
     // border
     g.setColour(juce::Colour(0xFF'4A4A4A));
     g.drawRect(getTitleBarBounds());
-    g.drawRect(getLocalBounds().reduced(shadowSpread), 2);
+    g.drawRect(getLocalBounds().reduced(UI_SUBWINDOW_SHADOW_SPREAD), 2);
 }

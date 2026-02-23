@@ -42,8 +42,7 @@ void track::RelayManagerComponent::paint(juce::Graphics &g) {
 
     g.setColour(juce::Colour(0xFF'A7A7A7));
     g.drawText(getPlugin()->get()->plugin->getName(),
-               getTitleBarBounds().withLeft(10).withTop(2),
-               juce::Justification::left);
+               getTitleBarBounds().withLeft(14), juce::Justification::left);
 
     int leftMargin =
         juce::GlyphArrangement::getStringWidthInt(
@@ -61,8 +60,12 @@ void track::RelayManagerComponent::resized() {
 
     int wrapperHeight = (getPlugin()->get()->relayParams.size() + 1) * 64;
 
-    rmViewport.setBounds(0, UI_SUBWINDOW_TITLEBAR_HEIGHT, getWidth(),
-                         getHeight() - UI_SUBWINDOW_TITLEBAR_HEIGHT);
+    rmViewport.setBounds(UI_SUBWINDOW_SHADOW_SPREAD,
+                         UI_SUBWINDOW_TITLEBAR_HEIGHT +
+                             UI_SUBWINDOW_SHADOW_SPREAD,
+                         getWidth() - (UI_SUBWINDOW_SHADOW_SPREAD * 2),
+                         getHeight() - UI_SUBWINDOW_TITLEBAR_HEIGHT -
+                             UI_SUBWINDOW_SHADOW_SPREAD);
     rmNodesWrapper.setBounds(0, 0, getWidth() - 8,
                              juce::jmax(wrapperHeight, rmViewport.getHeight()));
 }
@@ -375,7 +378,7 @@ void track::RelayParamInspectorComponent::resized() {
     int h = 24;
     int w = 200;
     for (size_t i = 0; i < paramSliders.size(); ++i) {
-        paramSliders[i]->setBounds(100, 4 + ((int)i * h), w, h);
+        paramSliders[i]->setBounds(80, 4 + ((int)i * h), w, h);
     }
 }
 
@@ -384,16 +387,19 @@ void track::RelayParamInspector::paint(juce::Graphics &g) {
 
     g.setFont(getTitleBarFont());
     g.setColour(juce::Colour(0xFF'A7A7A7));
-    g.drawText("Relay Params Inspector",
-               getTitleBarBounds().withLeft(8).withTop(2),
+    g.drawText("Relay Params Inspector", getTitleBarBounds().withLeft(8 + 4),
                juce::Justification::left);
 }
 
 void track::RelayParamInspector::resized() {
     Subwindow::resized();
 
-    rpiViewport.setBounds(0, UI_SUBWINDOW_TITLEBAR_HEIGHT, getWidth(),
-                          getHeight() - UI_SUBWINDOW_TITLEBAR_HEIGHT);
+    rpiViewport.setBounds(UI_SUBWINDOW_SHADOW_SPREAD + 4,
+                          UI_SUBWINDOW_TITLEBAR_HEIGHT +
+                              UI_SUBWINDOW_SHADOW_SPREAD,
+                          getWidth() - (UI_SUBWINDOW_SHADOW_SPREAD * 2) - 4,
+                          getHeight() - UI_SUBWINDOW_TITLEBAR_HEIGHT -
+                              (UI_SUBWINDOW_SHADOW_SPREAD * 2) - 4);
     rpiComponent.setBounds(0, 0, 2000, 3100);
 }
 

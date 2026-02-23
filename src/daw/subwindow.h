@@ -53,7 +53,5 @@ class Subwindow : public juce::Component {
 
         return typeface;
     }
-
-    int shadowSpread = 6;
 };
 } // namespace track
