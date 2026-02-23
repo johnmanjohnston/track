@@ -1,4 +1,5 @@
 #pragma once
+#include "../processor.h"
 #include "track.h"
 
 namespace track::utility {
@@ -8,7 +9,19 @@ bool isDescendant(audioNode *parent, audioNode *possibleChild,
 
 int getIndexOfClip(audioNode *node, clip *c);
 int getIndexOfClipByValue(audioNode *node, clip c);
-audioNode *getNodeFromRoute(std::vector<int> route, void *p);
+inline audioNode *getNodeFromRoute(std::vector<int> route, void *p) {
+    if (route.size() == 0)
+        return nullptr;
+
+    AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
+    audioNode *head = &processor->tracks[(size_t)route[0]];
+
+    for (size_t i = 1; i < route.size(); ++i) {
+        head = &head->childNodes[(size_t)route[i]];
+    }
+
+    return head;
+}
 audioNode *getParentFromRoute(std::vector<int> route, void *p);
 audioNode *findDuplicate(audioNode *parent, audioNode *src);
 void copyNode(audioNode *dest, audioNode *src, void *processor);

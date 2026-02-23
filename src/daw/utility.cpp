@@ -1,6 +1,5 @@
 #include "utility.h"
 #include "../editor.h"
-#include "../processor.h"
 #include "automation_relay.h"
 #include "defs.h"
 #include "plugin_chain.h"
@@ -30,21 +29,6 @@ int track::utility::getIndexOfClipByValue(audioNode *node, clip c) {
     }
 
     return retval;
-}
-
-inline track::audioNode *
-track::utility::getNodeFromRoute(std::vector<int> route, void *p) {
-    if (route.size() == 0)
-        return nullptr;
-
-    AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
-    audioNode *head = &processor->tracks[(size_t)route[0]];
-
-    for (size_t i = 1; i < route.size(); ++i) {
-        head = &head->childNodes[(size_t)route[i]];
-    }
-
-    return head;
 }
 
 track::audioNode *track::utility::getParentFromRoute(std::vector<int> route,
