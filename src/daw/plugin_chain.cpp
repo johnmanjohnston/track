@@ -509,13 +509,13 @@ void track::PluginNodeComponent::mouseUp(const juce::MouseEvent &event) {
         float mouseX = event.getEventRelativeTo(pcc).position.getX() +
                        (UI_PLUGIN_NODE_WIDTH + UI_PLUGIN_NODE_MARGIN) +
                        (UI_PLUGIN_NODE_MARGIN / 2.f);
-        int displayNodes = (int)(mouseX / (float)(getWidth() + 4)) - 1;
+        int destIndex = (int)(mouseX / (float)(getWidth() + 4)) - 1;
 
-        DBG("FINAL NODE INDEX = " << displayNodes);
+        if (this->pluginIndex != destIndex) {
+            pcc->reorderPlugin(this->pluginIndex, destIndex);
+        }
 
         pcc->updateInsertIndicator(-1);
-
-        pcc->reorderPlugin(this->pluginIndex, displayNodes);
     }
 }
 
