@@ -493,6 +493,10 @@ void track::PluginNodeComponent::mouseDown(const juce::MouseEvent &event) {
             menu.setLookAndFeel(&getLookAndFeel());
             menu.showMenuAsync(juce::PopupMenu::Options());
         }
+    } else {
+        if (event.getNumberOfClicks() == 2) {
+            openThisPluginsEditor();
+        }
     }
 }
 
@@ -1216,44 +1220,39 @@ void track::PluginEditorWindow::timerCallback() {
 }
 
 void track::PluginEditorWindow::mouseDown(const juce::MouseEvent & /*event*/) {
-    if (juce::ModifierKeys::currentModifiers.isAltDown()) {
-        dragStartBounds = getBounds();
+    dragStartBounds = getBounds();
 
 #if JUCE_LINUX
-        ape->setVisible(false);
+    ape->setVisible(false);
 #endif
-    }
 
     this->toFront(true);
     this->ape->toFront(true);
 }
 
 void track::PluginEditorWindow::mouseDrag(const juce::MouseEvent &event) {
-    if (juce::ModifierKeys::currentModifiers.isAltDown()) {
-        juce::Rectangle<int> newBounds = this->dragStartBounds;
-        newBounds.setX(newBounds.getX() + event.getDistanceFromDragStartX());
-        newBounds.setY(newBounds.getY() + event.getDistanceFromDragStartY());
-        setBounds(newBounds);
+    juce::Rectangle<int> newBounds = this->dragStartBounds;
+    newBounds.setX(newBounds.getX() + event.getDistanceFromDragStartX());
+    newBounds.setY(newBounds.getY() + event.getDistanceFromDragStartY());
+    setBounds(newBounds);
 
-        ape->setBounds(0, UI_SUBWINDOW_TITLEBAR_HEIGHT, getWidth(),
-                       getHeight() - UI_SUBWINDOW_TITLEBAR_HEIGHT);
-    }
+    ape->setBounds(0, UI_SUBWINDOW_TITLEBAR_HEIGHT, getWidth(),
+                   getHeight() - UI_SUBWINDOW_TITLEBAR_HEIGHT);
 
     ape->resized();
     ape->repaint();
 }
 
 void track::PluginEditorWindow::mouseUp(const juce::MouseEvent &event) {
-    if (event.mouseWasDraggedSinceMouseDown() ||
-        juce::ModifierKeys::currentModifiers.isAltDown()) {
+    if (event.mouseWasDraggedSinceMouseDown())
+
         DBG("DRAG STOPPED");
 
-        ape->setVisible(true);
+    ape->setVisible(true);
 
 #if JUCE_LINUX
-        ape->postCommandMessage(COMMAND_UPDATE_VST3_EMBEDDED_BOUNDS);
+    ape->postCommandMessage(COMMAND_UPDATE_VST3_EMBEDDED_BOUNDS);
 #endif
-    }
 }
 
 // get current track and plugin util functions
