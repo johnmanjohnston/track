@@ -978,7 +978,7 @@ void track::PluginChainComponent::resized() {
     juce::Rectangle<int> nodesViewportBounds = juce::Rectangle<int>(
         UI_SUBWINDOW_SHADOW_SPREAD,
         UI_SUBWINDOW_TITLEBAR_HEIGHT + UI_SUBWINDOW_SHADOW_SPREAD + 4 + 2,
-        getWidth() - (UI_SUBWINDOW_SHADOW_SPREAD)-4 - 2,
+        getWidth() - (UI_SUBWINDOW_SHADOW_SPREAD)-4,
         getHeight() - UI_SUBWINDOW_TITLEBAR_HEIGHT -
             UI_SUBWINDOW_SHADOW_SPREAD - 10 - 2);
     nodesViewportBounds.reduce(2, 0);
