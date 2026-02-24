@@ -182,7 +182,7 @@ void track::RelayManagerNodesWrapper::mouseDown(const juce::MouseEvent &event) {
 }
 
 track::RelayManagerNode::RelayManagerNode()
-    : juce::Component(), juce::ComboBox::Listener() {
+    : SubwindowChildFocusGrabber(), juce::ComboBox::Listener() {
     addAndMakeVisible(relaySelector);
     addAndMakeVisible(hostedPluginParamSelector);
 
@@ -287,6 +287,8 @@ void track::RelayManagerNode::comboBoxChanged(juce::ComboBox *box) {
 }
 
 void track::RelayManagerNode::mouseDown(const juce::MouseEvent &event) {
+    SubwindowChildFocusGrabber::mouseDown(event);
+
     if (event.mods.isRightButtonDown()) {
         juce::PopupMenu menu;
 
@@ -328,7 +330,7 @@ track::RelayParamInspector::RelayParamInspector() : track::Subwindow() {
 track::RelayParamInspector::~RelayParamInspector(){};
 
 track::RelayParamInspectorComponent::RelayParamInspectorComponent()
-    : juce::Component(){};
+    : SubwindowChildFocusGrabber(){};
 track::RelayParamInspectorComponent::~RelayParamInspectorComponent() {}
 
 void track::RelayParamInspectorComponent::initSliders() {
@@ -358,6 +360,8 @@ void track::RelayParamInspectorComponent::initSliders() {
                                 false, 52 + 12, 16);
 
         addAndMakeVisible(*slider);
+
+        slider->onDragStart = [this] { bringOverOtherSubwindows(); };
     }
 }
 

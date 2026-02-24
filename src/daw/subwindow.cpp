@@ -59,6 +59,7 @@ void track::Subwindow::mouseDrag(const juce::MouseEvent &event) {
 }
 
 void track::Subwindow::mouseDown(const juce::MouseEvent &event) {
+    DBG("subwindow mouseDown");
     if (event.y <
         getTitleBarBounds().getHeight() + UI_SUBWINDOW_SHADOW_SPREAD) {
         dragStartBounds = getBounds();
@@ -103,5 +104,5 @@ void track::Subwindow::paint(juce::Graphics &g) {
     // border
     g.setColour(juce::Colour(0xFF'4A4A4A));
     g.drawRect(getTitleBarBounds());
-    g.drawRect(getLocalBounds().reduced(UI_SUBWINDOW_SHADOW_SPREAD), 2);
+    g.drawRect(getLocalBounds().reduced(UI_SUBWINDOW_SHADOW_SPREAD), 1);
 }

@@ -13,7 +13,7 @@ struct relayParam {
 };
 
 class RelayManagerComponent;
-class RelayManagerNode : public juce::Component,
+class RelayManagerNode : public SubwindowChildFocusGrabber,
                          public juce::ComboBox::Listener {
   public:
     RelayManagerNode();
@@ -46,9 +46,9 @@ class RelayManagerNode : public juce::Component,
     }
 };
 
-class RelayManagerNodesWrapper : public juce::Component {
+class RelayManagerNodesWrapper : public SubwindowChildFocusGrabber {
   public:
-    RelayManagerNodesWrapper() : juce::Component() {
+    RelayManagerNodesWrapper() : SubwindowChildFocusGrabber() {
         setWantsKeyboardFocus(true);
     }
     ~RelayManagerNodesWrapper(){};
@@ -92,7 +92,7 @@ class RelayParamInspectorViewport : public juce::Viewport {
     ~RelayParamInspectorViewport() {}
 };
 
-class RelayParamInspectorComponent : public juce::Component {
+class RelayParamInspectorComponent : public SubwindowChildFocusGrabber {
   public:
     RelayParamInspectorComponent();
     ~RelayParamInspectorComponent();

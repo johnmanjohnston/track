@@ -397,7 +397,8 @@ void track::ActionChangeTrivialPluginData::updateGUI() {
                                       nullptr, route);
 };
 
-track::PluginNodeComponent::PluginNodeComponent() : juce::Component() {
+track::PluginNodeComponent::PluginNodeComponent()
+    : SubwindowChildFocusGrabber() {
     setWantsKeyboardFocus(true);
 
     this->openEditorBtn.setButtonText("EDITOR");
@@ -459,7 +460,7 @@ track::PluginNodeComponent::PluginNodeComponent() : juce::Component() {
     automationButton.onClick = [this] { openThisPluginsRelayMenu(); };
 }
 track::PluginNodeComponent::~PluginNodeComponent() {}
-track::PluginNodesWrapper::PluginNodesWrapper() : juce::Component() {
+track::PluginNodesWrapper::PluginNodesWrapper() : SubwindowChildFocusGrabber() {
     addAndMakeVisible(insertIndicator);
     setWantsKeyboardFocus(true);
 }
@@ -468,6 +469,7 @@ track::PluginNodesViewport::PluginNodesViewport() : juce::Viewport() {}
 track::PluginNodesViewport::~PluginNodesViewport() {}
 
 void track::PluginNodeComponent::mouseDown(const juce::MouseEvent &event) {
+
     if (event.mods.isRightButtonDown()) {
         if (event.mods.isRightButtonDown()) {
             PluginChainComponent *pcc =
@@ -737,6 +739,8 @@ void track::PluginNodesWrapper::createPluginNodeComponents() {
 }
 
 void track::PluginNodesWrapper::mouseDown(const juce::MouseEvent &event) {
+    // pcc->toFront(true);
+
     if (event.mods.isRightButtonDown()) {
         jassert(knownPluginList != nullptr);
 

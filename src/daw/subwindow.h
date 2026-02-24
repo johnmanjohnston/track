@@ -1,4 +1,5 @@
 #pragma once
+#include "juce_gui_basics/juce_gui_basics.h"
 #include <JuceHeader.h>
 
 namespace track {
@@ -52,6 +53,29 @@ class Subwindow : public juce::Component {
             BinaryData::Inter_18ptBoldItalic_ttfSize);
 
         return typeface;
+    }
+};
+
+class SubwindowChildFocusGrabber : public juce::Component {
+  public:
+    SubwindowChildFocusGrabber() : juce::Component() {}
+    ~SubwindowChildFocusGrabber() {}
+
+    void bringOverOtherSubwindows() {
+        Subwindow *sw = findParentComponentOfClass<Subwindow>();
+        sw->toFront(true);
+    }
+
+    void mouseDown(const juce::MouseEvent & /*event*/) override {
+        bringOverOtherSubwindows();
+    }
+
+    void focusGained(juce::Component::FocusChangeType /*cause*/) override {
+        bringOverOtherSubwindows();
+    }
+
+    void focusLost(juce::Component::FocusChangeType /*cause*/) override {
+        bringOverOtherSubwindows();
     }
 };
 } // namespace track

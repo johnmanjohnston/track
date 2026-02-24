@@ -119,7 +119,7 @@ class ActionChangeTrivialPluginData : public juce::UndoableAction {
     void updateGUI(); // y
 };
 
-class PluginNodeComponent : public juce::Component {
+class PluginNodeComponent : public SubwindowChildFocusGrabber {
   public:
     PluginNodeComponent();
     ~PluginNodeComponent();
@@ -146,14 +146,6 @@ class PluginNodeComponent : public juce::Component {
     void mouseUp(const juce::MouseEvent &event) override;
     void mouseDown(const juce::MouseEvent &event) override;
 
-    void focusGained(juce::Component::FocusChangeType /*cause*/) override {
-        repaint();
-    }
-
-    void focusLost(juce::Component::FocusChangeType /*cause*/) override {
-        repaint();
-    }
-
     bool keyStateChanged(bool isKeyDown) override;
 
     int pluginIndex = -1;
@@ -165,7 +157,7 @@ class PluginNodeComponent : public juce::Component {
     bool coolColors = false;
 };
 
-class PluginNodesWrapper : public juce::Component {
+class PluginNodesWrapper : public SubwindowChildFocusGrabber {
   public:
     PluginNodesWrapper();
     ~PluginNodesWrapper();
