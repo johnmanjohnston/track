@@ -74,10 +74,10 @@ void track::Subwindow::mouseUp(const juce::MouseEvent & /*event*/) {
 
 juce::Rectangle<int> track::Subwindow::getTitleBarBounds() {
     juce::Rectangle<int> titlebarBounds =
-        getLocalBounds().reduced((UI_SUBWINDOW_SHADOW_SPREAD / 2) - 1, 0);
+        getLocalBounds().reduced((UI_SUBWINDOW_SHADOW_SPREAD / 2), 0);
     titlebarBounds.setHeight(UI_SUBWINDOW_TITLEBAR_HEIGHT);
     titlebarBounds.setY(UI_SUBWINDOW_SHADOW_SPREAD);
-    titlebarBounds.reduce(UI_SUBWINDOW_TITLEBAR_MARGIN, 0);
+    titlebarBounds.reduce(UI_SUBWINDOW_TITLEBAR_MARGIN - 3, 0);
 
     return titlebarBounds;
 }
@@ -96,7 +96,7 @@ void track::Subwindow::paint(juce::Graphics &g) {
     juce::DropShadow shadow =
         juce::DropShadow(juce::Colours::black, 5.f, juce::Point<int>());
     shadow.drawForRectangle(
-        g, getLocalBounds().reduced(UI_SUBWINDOW_SHADOW_SPREAD));
+        g, getLocalBounds().reduced(UI_SUBWINDOW_SHADOW_SPREAD - 1));
 
     g.setColour(juce::Colour(0xFF'282828));
     g.fillRect(getLocalBounds().reduced(UI_SUBWINDOW_SHADOW_SPREAD));
