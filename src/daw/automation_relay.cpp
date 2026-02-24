@@ -7,6 +7,7 @@
 
 track::RelayManagerComponent::RelayManagerComponent() : track::Subwindow() {
     rmViewport.setViewedComponent(&rmNodesWrapper);
+    rmViewport.setScrollBarsShown(true, false, true, false);
     addAndMakeVisible(this->rmViewport);
 
     closeBtn.onClose = [this] {
@@ -63,10 +64,10 @@ void track::RelayManagerComponent::resized() {
     rmViewport.setBounds(UI_SUBWINDOW_SHADOW_SPREAD,
                          UI_SUBWINDOW_TITLEBAR_HEIGHT +
                              UI_SUBWINDOW_SHADOW_SPREAD,
-                         getWidth() - (UI_SUBWINDOW_SHADOW_SPREAD * 2),
+                         getWidth() - (UI_SUBWINDOW_SHADOW_SPREAD)-4 - 4,
                          getHeight() - UI_SUBWINDOW_TITLEBAR_HEIGHT -
-                             UI_SUBWINDOW_SHADOW_SPREAD);
-    rmNodesWrapper.setBounds(0, 0, getWidth() - 8,
+                             UI_SUBWINDOW_SHADOW_SPREAD - 4 - 4);
+    rmNodesWrapper.setBounds(0, 0, rmViewport.getWidth() - 1,
                              juce::jmax(wrapperHeight, rmViewport.getHeight()));
 }
 
@@ -321,7 +322,7 @@ void track::RelayManagerNode::resized() {
 
 track::RelayParamInspector::RelayParamInspector() : track::Subwindow() {
     addAndMakeVisible(rpiViewport);
-
+    rpiViewport.setScrollBarsShown(true, false, true, false);
     rpiViewport.setViewedComponent(&rpiComponent);
 };
 track::RelayParamInspector::~RelayParamInspector(){};
@@ -397,7 +398,7 @@ void track::RelayParamInspector::resized() {
     rpiViewport.setBounds(UI_SUBWINDOW_SHADOW_SPREAD + 4,
                           UI_SUBWINDOW_TITLEBAR_HEIGHT +
                               UI_SUBWINDOW_SHADOW_SPREAD,
-                          getWidth() - (UI_SUBWINDOW_SHADOW_SPREAD * 2) - 4,
+                          getWidth() - (UI_SUBWINDOW_SHADOW_SPREAD * 2) - 4 - 2,
                           getHeight() - UI_SUBWINDOW_TITLEBAR_HEIGHT -
                               (UI_SUBWINDOW_SHADOW_SPREAD * 2) - 4);
     rpiComponent.setBounds(0, 0, 2000, 3100);

@@ -873,9 +873,9 @@ void track::PluginNodesWrapper::mouseDown(const juce::MouseEvent &event) {
 
 juce::Rectangle<int>
 track::PluginNodesWrapper::getBoundsForPluginNodeComponent(int index) {
-    return juce::Rectangle<int>((UI_PLUGIN_NODE_WIDTH + UI_PLUGIN_NODE_MARGIN) *
-                                    index,
-                                0, UI_PLUGIN_NODE_WIDTH, 88);
+    return juce::Rectangle<int>(
+        ((UI_PLUGIN_NODE_WIDTH + UI_PLUGIN_NODE_MARGIN) * index) + 5, 0,
+        UI_PLUGIN_NODE_WIDTH, 88);
 }
 
 std::unique_ptr<track::subplugin> *track::PluginNodeComponent::getPlugin() {
@@ -968,11 +968,11 @@ void track::PluginChainComponent::resized() {
     nodesViewport.setScrollBarsShown(false, true, false, true);
 
     juce::Rectangle<int> nodesViewportBounds = juce::Rectangle<int>(
-        1 + UI_SUBWINDOW_SHADOW_SPREAD,
+        UI_SUBWINDOW_SHADOW_SPREAD,
         UI_SUBWINDOW_TITLEBAR_HEIGHT + UI_SUBWINDOW_SHADOW_SPREAD + 4,
-        getWidth() - (UI_SUBWINDOW_SHADOW_SPREAD * 2) - 2,
+        getWidth() - (UI_SUBWINDOW_SHADOW_SPREAD)-4 - 2,
         getHeight() - UI_SUBWINDOW_TITLEBAR_HEIGHT -
-            UI_SUBWINDOW_SHADOW_SPREAD - 10);
+            UI_SUBWINDOW_SHADOW_SPREAD - 10 - 2);
     nodesViewportBounds.reduce(2, 0);
     nodesViewport.setBounds(nodesViewportBounds);
 

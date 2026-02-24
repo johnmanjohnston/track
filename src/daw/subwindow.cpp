@@ -93,7 +93,7 @@ void track::Subwindow::resized() {
 void track::Subwindow::paint(juce::Graphics &g) {
     // bg
     juce::DropShadow shadow =
-        juce::DropShadow(juce::Colours::black, 8.f, juce::Point<int>());
+        juce::DropShadow(juce::Colours::black, 5.f, juce::Point<int>());
     shadow.drawForRectangle(
         g, getLocalBounds().reduced(UI_SUBWINDOW_SHADOW_SPREAD));
 
