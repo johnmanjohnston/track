@@ -1,6 +1,7 @@
 #include "plugin_chain.h"
 #include "clipboard.h"
 #include "defs.h"
+#include "juce_events/juce_events.h"
 #include "subwindow.h"
 #include "track.h"
 #include "utility.h"
@@ -1115,7 +1116,15 @@ void track::PluginChainComponent::reorderPlugin(int srcIndex, int destIndex) {
 
 // plugin editor window
 track::PluginEditorWindow::PluginEditorWindow() : juce::Component() {
+    glow.setGlowProperties(4.f, juce::Colours::white.withAlpha(0.7f));
+    pluginNameLabel.setComponentEffect(&glow);
+    pluginNameLabel.setFont(
+        getInterBold().boldened().withHeight(21.f).withExtraKerningFactor(
+            -.02f));
+    pluginNameLabel.setMinimumHorizontalScale(1.f);
+
     closeBtn.font = getInterBoldItalic();
+    addAndMakeVisible(pluginNameLabel);
 
     closeBtn.onClose = [this] {
         AudioPluginAudioProcessorEditor *editor =
@@ -1159,20 +1168,24 @@ void track::PluginEditorWindow::paint(juce::Graphics &g) {
     g.setColour(juce::Colour(0xFF'1F1F1F));
     g.fillRect(0, 0, getWidth(), UI_SUBWINDOW_TITLEBAR_HEIGHT);
 
-    g.setColour(juce::Colour(0xFF'838383));
-    g.setFont(
-        getInterBoldItalic().withHeight(21.f).withExtraKerningFactor(-.02f));
+    utility::gloss(
+        g, juce::Rectangle<int>(getWidth(), UI_SUBWINDOW_TITLEBAR_HEIGHT),
+        juce::Colour(0xFF'050505).withAlpha(0.5f), 0.f);
+
+    g.setColour(juce::Colour(0xFF'999999));
+    g.setFont(getInterBold().withHeight(21.f).withExtraKerningFactor(-.02f));
 
     int titlebarLeftMargin = UI_SUBWINDOW_TITLEBAR_MARGIN + 5;
     int pluginNameWidth = g.getCurrentFont().getStringWidth(pluginName);
 
     // plugin name
-    g.drawText(pluginName, titlebarLeftMargin, 0, pluginNameWidth,
-               UI_SUBWINDOW_TITLEBAR_HEIGHT, juce::Justification::left, false);
+    /*g.drawText(pluginName, titlebarLeftMargin, 0, pluginNameWidth,
+               UI_SUBWINDOW_TITLEBAR_HEIGHT, juce::Justification::left,
+       false);*/
 
     // other info
-    g.setColour(juce::Colour(0xFF'595959));
-    g.setFont(g.getCurrentFont().withHeight(17.f));
+    g.setColour(juce::Colour(0xFF'D7D7D7));
+    g.setFont(getInterBoldItalic().withHeight(17.f));
 
     int latency = getPlugin()->get()->plugin->getLatencySamples();
     float latencyMs =
@@ -1185,9 +1198,18 @@ void track::PluginEditorWindow::paint(juce::Graphics &g) {
     g.drawText(otherInfoText, pluginNameWidth + titlebarLeftMargin + 8, 0,
                getWidth() / 2, UI_SUBWINDOW_TITLEBAR_HEIGHT,
                juce::Justification::left, false);
+
+    g.setColour(juce::Colour(0xFF'999999));
+    g.drawHorizontalLine(UI_SUBWINDOW_TITLEBAR_HEIGHT - 1, 0, getWidth());
 }
 
 void track::PluginEditorWindow::resized() {
+
+    int pluginNameWidth =
+        pluginNameLabel.getFont().getStringWidth(pluginName) + 10;
+    pluginNameLabel.setBounds(4.f, 0.f, pluginNameWidth,
+                              UI_SUBWINDOW_TITLEBAR_HEIGHT);
+
     int closeBtnSize = UI_SUBWINDOW_TITLEBAR_HEIGHT;
     closeBtn.setBounds(getWidth() - closeBtnSize - UI_SUBWINDOW_TITLEBAR_MARGIN,
                        0, closeBtnSize + UI_SUBWINDOW_TITLEBAR_MARGIN,
@@ -1212,6 +1234,9 @@ void track::PluginEditorWindow::createEditor() {
 
     DBG(pluginName);
     DBG(pluginManufacturer);
+
+    pluginNameLabel.setText(pluginName,
+                            juce::NotificationType::dontSendNotification);
 
     startTimer(60);
 }

@@ -2,6 +2,7 @@
 #include "../editor.h"
 #include "../processor.h"
 #include "BinaryData.h"
+#include "juce_graphics/juce_graphics.h"
 #include "subwindow.h"
 #include "track.h"
 #include <JuceHeader.h>
@@ -215,6 +216,9 @@ class PluginEditorWindow : public juce::Component, juce::Timer {
   public:
     PluginEditorWindow();
     ~PluginEditorWindow();
+
+    GlowEffect glow;
+    juce::Label pluginNameLabel;
 
     CloseButton closeBtn;
 
