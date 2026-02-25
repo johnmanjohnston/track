@@ -1,7 +1,6 @@
 #include "plugin_chain.h"
 #include "clipboard.h"
 #include "defs.h"
-#include "juce_graphics/juce_graphics.h"
 #include "subwindow.h"
 #include "track.h"
 #include "utility.h"
@@ -1119,7 +1118,7 @@ track::PluginEditorWindow::PluginEditorWindow() : juce::Component() {
     glow.setGlowProperties(4.f, juce::Colours::white.withAlpha(0.7f));
     pluginNameLabel.setComponentEffect(&glow);
     pluginNameLabel.setFont(
-        getInterBold().boldened().withHeight(21.f).withExtraKerningFactor(
+        getInterBold().boldened().withHeight(18.f).withExtraKerningFactor(
             -.02f));
     pluginNameLabel.setMinimumHorizontalScale(1.f);
     pluginNameLabel.setInterceptsMouseClicks(false, false);
@@ -1166,36 +1165,24 @@ void track::PluginEditorWindow::paint(juce::Graphics &g) {
     g.drawRect(getLocalBounds(), 2);
 #endif
 
-    // g.setColour(juce::Colour(0xFF'1F1F1F));
-    // g.fillRect(0, 0, getWidth(), UI_SUBWINDOW_TITLEBAR_HEIGHT);
-
     utility::titlebarGloss(
         g, juce::Rectangle<int>(getWidth(), UI_SUBWINDOW_TITLEBAR_HEIGHT));
-
-    g.setColour(juce::Colour(0xFF'999999));
-    g.setFont(getInterBold().withHeight(21.f).withExtraKerningFactor(-.02f));
 
     int titlebarLeftMargin = UI_SUBWINDOW_TITLEBAR_MARGIN + 5;
     int pluginNameWidth = g.getCurrentFont().getStringWidth(pluginName);
 
-    // plugin name
-    /*g.drawText(pluginName, titlebarLeftMargin, 0, pluginNameWidth,
-               UI_SUBWINDOW_TITLEBAR_HEIGHT, juce::Justification::left,
-       false);*/
-
     // other info
-    g.setColour(juce::Colour(0xFF'D7D7D7));
+    g.setColour(juce::Colour(0xFF'D3D3D3));
     g.setFont(getInterBoldItalic().withHeight(17.f));
 
     int latency = getPlugin()->get()->plugin->getLatencySamples();
     float latencyMs =
         (latency / getPlugin()->get()->plugin->getSampleRate()) * 1000.f;
-    juce::String otherInfoText = pluginManufacturer + "        " +
-                                 juce::String(route[route.size() - 1]) + "/" +
-                                 trackName + "        " +
-                                 juce::String(latency) + " samples (" +
-                                 juce::String(latencyMs, 2, false) + "ms)";
-    g.drawText(otherInfoText, pluginNameWidth + titlebarLeftMargin + 8, 0,
+    juce::String otherInfoText =
+        pluginManufacturer + "      " + juce::String(route[route.size() - 1]) +
+        "/" + trackName + "     " + juce::String(latency) + " samples (" +
+        juce::String(latencyMs, 2, false) + "ms)";
+    g.drawText(otherInfoText, pluginNameWidth + titlebarLeftMargin + 18, 0,
                getWidth() / 2, UI_SUBWINDOW_TITLEBAR_HEIGHT,
                juce::Justification::left, false);
 

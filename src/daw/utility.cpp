@@ -2,7 +2,6 @@
 #include "../editor.h"
 #include "automation_relay.h"
 #include "defs.h"
-#include "juce_graphics/juce_graphics.h"
 #include "plugin_chain.h"
 #include "track.h"
 
