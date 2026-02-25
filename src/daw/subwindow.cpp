@@ -96,10 +96,16 @@ void track::Subwindow::paint(juce::Graphics &g) {
     juce::DropShadow shadow =
         juce::DropShadow(juce::Colours::black, 5.f, juce::Point<int>());
     shadow.drawForRectangle(
-        g, getLocalBounds().reduced(UI_SUBWINDOW_SHADOW_SPREAD - 1));
+        g, getLocalBounds().reduced(UI_SUBWINDOW_SHADOW_SPREAD));
 
     g.setColour(juce::Colour(0xFF'282828));
     g.fillRect(getLocalBounds().reduced(UI_SUBWINDOW_SHADOW_SPREAD));
+
+    // titlebar fill
+    // g.setColour(juce::Colour(0xFF'242424));
+    // g.fillRect(getTitleBarBounds());
+    utility::gloss(g, getTitleBarBounds(),
+                   juce::Colour(0xFF'050505).withAlpha(0.5f), 0.f);
 
     // border
     g.setColour(juce::Colour(0xFF'4A4A4A));
