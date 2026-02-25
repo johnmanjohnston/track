@@ -1,7 +1,7 @@
 #include "plugin_chain.h"
 #include "clipboard.h"
 #include "defs.h"
-#include "juce_events/juce_events.h"
+#include "juce_graphics/juce_graphics.h"
 #include "subwindow.h"
 #include "track.h"
 #include "utility.h"
@@ -1122,6 +1122,7 @@ track::PluginEditorWindow::PluginEditorWindow() : juce::Component() {
         getInterBold().boldened().withHeight(21.f).withExtraKerningFactor(
             -.02f));
     pluginNameLabel.setMinimumHorizontalScale(1.f);
+    pluginNameLabel.setInterceptsMouseClicks(false, false);
 
     closeBtn.font = getInterBoldItalic();
     addAndMakeVisible(pluginNameLabel);
@@ -1165,12 +1166,11 @@ void track::PluginEditorWindow::paint(juce::Graphics &g) {
     g.drawRect(getLocalBounds(), 2);
 #endif
 
-    g.setColour(juce::Colour(0xFF'1F1F1F));
-    g.fillRect(0, 0, getWidth(), UI_SUBWINDOW_TITLEBAR_HEIGHT);
+    // g.setColour(juce::Colour(0xFF'1F1F1F));
+    // g.fillRect(0, 0, getWidth(), UI_SUBWINDOW_TITLEBAR_HEIGHT);
 
-    utility::gloss(
-        g, juce::Rectangle<int>(getWidth(), UI_SUBWINDOW_TITLEBAR_HEIGHT),
-        juce::Colour(0xFF'050505).withAlpha(0.5f), 0.f);
+    utility::titlebarGloss(
+        g, juce::Rectangle<int>(getWidth(), UI_SUBWINDOW_TITLEBAR_HEIGHT));
 
     g.setColour(juce::Colour(0xFF'999999));
     g.setFont(getInterBold().withHeight(21.f).withExtraKerningFactor(-.02f));

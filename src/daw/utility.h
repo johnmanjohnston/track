@@ -69,6 +69,8 @@ void gloss(juce::Graphics &g, juce::Rectangle<int> b, juce::Colour c,
 void gloss(juce::Graphics &g, juce::Rectangle<float> b, juce::Colour c,
            float cornerSize);
 
+void titlebarGloss(juce::Graphics &g, juce::Rectangle<int> b);
+
 void customDrawGlassPointer(juce::Graphics &g, const float x, const float y,
                             const float diameter, const juce::Colour &colour,
                             const float outlineThickness, const int direction);

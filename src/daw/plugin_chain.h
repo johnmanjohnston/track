@@ -3,7 +3,6 @@
 #include "../processor.h"
 #include "BinaryData.h"
 #include "juce_graphics/juce_graphics.h"
-#include "subwindow.h"
 #include "track.h"
 #include <JuceHeader.h>
 

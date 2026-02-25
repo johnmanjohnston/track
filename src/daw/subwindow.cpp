@@ -104,8 +104,7 @@ void track::Subwindow::paint(juce::Graphics &g) {
     // titlebar fill
     // g.setColour(juce::Colour(0xFF'242424));
     // g.fillRect(getTitleBarBounds());
-    utility::gloss(g, getTitleBarBounds(),
-                   juce::Colour(0xFF'050505).withAlpha(0.5f), 0.f);
+    utility::titlebarGloss(g, getTitleBarBounds());
 
     // border
     g.setColour(juce::Colour(0xFF'4A4A4A));

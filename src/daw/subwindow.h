@@ -16,8 +16,8 @@ class CloseButton : public juce::Component {
     bool isHoveredOver = false;
     void mouseEnter(const juce::MouseEvent &event) override;
     void mouseExit(const juce::MouseEvent &event) override;
-    juce::Colour normalColor = juce::Colour(0xFF'585858);
-    juce::Colour hoveredColor = juce::Colour(0xFF'808080);
+    juce::Colour normalColor = juce::Colour(0xFF'585858).brighter();
+    juce::Colour hoveredColor = juce::Colour(0xFF'808080).brighter();
 
     std::function<void()> onClose;
 };
@@ -64,6 +64,7 @@ class SubwindowChildFocusGrabber : public juce::Component {
     void bringOverOtherSubwindows() {
         Subwindow *sw = findParentComponentOfClass<Subwindow>();
         sw->toFront(true);
+        repaint();
     }
 
     void mouseDown(const juce::MouseEvent & /*event*/) override {
