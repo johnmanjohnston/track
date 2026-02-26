@@ -1444,8 +1444,7 @@ bool track::ActionCreateNode::perform() {
     x->processor = p;
 
     x->trackName = isTrack ? "Track" : "Group";
-    x->trackName +=
-        " " + juce::String(utility::getFlattenedNodes(p).size() + 1);
+    x->trackName += " " + juce::String(utility::getFlattenedNodes(p).size());
 
     updateGUI();
     processor->requireSaving();
