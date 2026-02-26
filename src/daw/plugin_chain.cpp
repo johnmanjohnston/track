@@ -731,11 +731,12 @@ void track::PluginNodesWrapper::createPluginNodeComponents() {
         nc.setDryWetSliderValue();
     }
 
+    /*
     DBG("pluginNodeComponents.size() = " << this->pluginNodeComponents.size());
     if (pluginNodeComponents.size() > 0) {
         DBG("first plugin node compnoent bounds are "
             << this->rectToStr(pluginNodeComponents[0]->getBounds()));
-    }
+    }*/
 }
 
 void track::PluginNodesWrapper::mouseDown(const juce::MouseEvent &event) {
@@ -784,8 +785,9 @@ void track::PluginNodesWrapper::mouseDown(const juce::MouseEvent &event) {
                         juce::NativeMessageBox::showMessageBoxAsync(
                             juce::MessageBoxIconType::WarningIcon,
                             "Failed to add plugin",
-                            "Couldn't add the plugin at \"" +
-                                action->pluginIdentifier + "\"");
+                            juce::String("Couldn't add the plugin at \"") +
+                                juce::String(action->pluginIdentifier) +
+                                juce::String("\""));
                     }
                 });
         }
