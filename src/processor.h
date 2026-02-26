@@ -65,6 +65,9 @@ class AudioPluginAudioProcessor : public juce::AudioProcessor,
 
     void requireSaving();
 
+    std::vector<juce::String> failedDeserializationErrors;
+    juce::String faultyState = "";
+
   private:
     juce::Random random;
 

@@ -3,6 +3,7 @@
 #include "daw/defs.h"
 #include "daw/track.h"
 #include "editor.h"
+#include "juce_gui_basics/juce_gui_basics.h"
 
 AudioPluginAudioProcessor::AudioPluginAudioProcessor()
     : AudioProcessor(
@@ -380,40 +381,46 @@ void AudioPluginAudioProcessor::deserializeNode(juce::XmlElement *nodeElement,
     for (size_t i = 0; pluginElement != nullptr; ++i) {
         juce::String identifier =
             pluginElement->getStringAttribute("identifier");
-        node->addPlugin(identifier);
+        bool success = node->addPlugin(identifier);
 
-        // get plugin
-        auto &pluginInstance = *node->plugins.back();
+        if (success) {
+            // get plugin
+            auto &pluginInstance = *node->plugins.back();
 
-        // get and assign data from base64
-        juce::String encodedPluginData =
-            pluginElement->getStringAttribute("data");
-        juce::MemoryBlock pluginData;
+            // get and assign data from base64
+            juce::String encodedPluginData =
+                pluginElement->getStringAttribute("data");
+            juce::MemoryBlock pluginData;
 
-        pluginData.fromBase64Encoding(encodedPluginData);
-        pluginInstance.plugin->setStateInformation(pluginData.getData(),
-                                                   pluginData.getSize());
-        bool bypassed = pluginElement->getBoolAttribute("bypass", false);
-        node->plugins[i]->bypassed = bypassed;
+            pluginData.fromBase64Encoding(encodedPluginData);
+            pluginInstance.plugin->setStateInformation(pluginData.getData(),
+                                                       pluginData.getSize());
+            bool bypassed = pluginElement->getBoolAttribute("bypass", false);
+            node->plugins[i]->bypassed = bypassed;
 
-        float dryWetMix = pluginElement->getDoubleAttribute("drywetmix", 1.f);
-        node->plugins[i]->dryWetMix = dryWetMix;
+            float dryWetMix =
+                pluginElement->getDoubleAttribute("drywetmix", 1.f);
+            node->plugins[i]->dryWetMix = dryWetMix;
 
-        juce::XmlElement *relayParamElement =
-            pluginElement->getChildByName("relayparam");
+            juce::XmlElement *relayParamElement =
+                pluginElement->getChildByName("relayparam");
 
-        while (relayParamElement != nullptr) {
-            node->plugins[i]->relayParams.emplace_back();
-            track::relayParam *relayParam =
-                &node->plugins[i]->relayParams.back();
+            while (relayParamElement != nullptr) {
+                node->plugins[i]->relayParams.emplace_back();
+                track::relayParam *relayParam =
+                    &node->plugins[i]->relayParams.back();
 
-            relayParam->pluginParamIndex =
-                relayParamElement->getIntAttribute("pluginparamindex", -1);
-            relayParam->outputParamID =
-                relayParamElement->getIntAttribute("relayindex", -1);
+                relayParam->pluginParamIndex =
+                    relayParamElement->getIntAttribute("pluginparamindex", -1);
+                relayParam->outputParamID =
+                    relayParamElement->getIntAttribute("relayindex", -1);
 
-            relayParamElement =
-                relayParamElement->getNextElementWithTagName("relayparam");
+                relayParamElement =
+                    relayParamElement->getNextElementWithTagName("relayparam");
+            }
+        } else {
+            failedDeserializationErrors.emplace_back(
+                "could not load plugin with path: " + identifier);
         }
 
         pluginElement = pluginElement->getNextElementWithTagName("plugin");
@@ -582,6 +589,11 @@ void AudioPluginAudioProcessor::setStateInformation(const void *data,
         // DBG("root deserialization call for " << node->trackName);
         deserializeNode(nodeElement, node);
         nodeElement = nodeElement->getNextElementWithTagName("node");
+    }
+
+    if (failedDeserializationErrors.size() > 0) {
+        DBG("copying faulty xml...");
+        faultyState = xmlState->createDocument("");
     }
 
     // DBG(xmlState->createDocument(""));

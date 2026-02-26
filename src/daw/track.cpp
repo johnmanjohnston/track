@@ -2355,14 +2355,19 @@ bool track::subplugin::initializePlugin(juce::String path) {
         plist.scanAndAddFile(path, true, pluginDescriptions,
                              *apfm.getFormat(i));
 
-    jassert(pluginDescriptions.size() > 0);
+    if (pluginDescriptions.size() == 0) {
+        DBG("no plugin description found: " << path);
+        return false;
+    }
 
     plugin =
         apfm.createPluginInstance(*pluginDescriptions[0], track::SAMPLE_RATE,
                                   track::SAMPLES_PER_BLOCK, errorMsg);
 
-    if (plugin.get() == nullptr)
+    if (plugin.get() == nullptr) {
+        DBG("plugin = nullptr: " << path);
         return false;
+    }
 
     plugin->setPlayConfigDetails(2, 2, track::SAMPLE_RATE,
                                  track::SAMPLES_PER_BLOCK);

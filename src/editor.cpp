@@ -5,6 +5,7 @@
 #include "daw/timeline.h"
 #include "daw/track.h"
 #include "daw/utility.h"
+#include "juce_gui_basics/juce_gui_basics.h"
 #include "lookandfeel.h"
 #include "processor.h"
 #include <cmath>
@@ -225,6 +226,52 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
     };
 
     addAndMakeVisible(configBtn);
+
+    // deserialization errors
+    if (processorRef.failedDeserializationErrors.size() > 0) {
+        juce::String msg = "Error(s) occurred when trying to load data."
+                           "See the following error message(s):\n\n\n";
+
+        for (auto &x : processorRef.failedDeserializationErrors)
+            msg += x + "\n\n";
+
+        juce::NativeMessageBox::showAsync(
+            juce::MessageBoxOptions()
+                .withIconType(juce::MessageBoxIconType::WarningIcon)
+                .withTitle("Error(s) occured when retreiving data")
+                .withMessage(msg)
+
+                .withButton(
+                    "Write faulty state to a text file for review/repair?")
+                .withButton("Cancel"),
+
+            [this](int result) {
+                if (result == 0) {
+                    DBG("picked");
+                    juce::SystemClipboard::copyTextToClipboard(
+                        juce::String(processorRef.faultyState));
+
+                    juce::File f =
+                        juce::File(juce::File::getSpecialLocation(
+                                       juce::File::SpecialLocationType::
+                                           userApplicationDataDirectory))
+                            .getChildFile("johnmanjohnston")
+                            .getChildFile("track");
+
+                    int reports = f.getNumberOfChildFiles(
+                        juce::File::TypesOfFileToFind::findFiles);
+
+                    f = f.getChildFile(juce::String(reports) + ".txt");
+                    f.create();
+
+                    f.appendText(processorRef.faultyState);
+
+                    f.revealToUser();
+
+                    DBG("written to " << f.getFullPathName());
+                }
+            });
+    }
 }
 
 AudioPluginAudioProcessorEditor::~AudioPluginAudioProcessorEditor() {
