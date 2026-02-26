@@ -4,6 +4,7 @@
 #include "automation_relay.h"
 #include "clipboard.h"
 #include "defs.h"
+#include "juce_audio_basics/juce_audio_basics.h"
 #include "subwindow.h"
 #include "timeline.h"
 #include "utility.h"
@@ -640,8 +641,21 @@ track::ClipPropertiesWindow::ClipPropertiesWindow() : track::Subwindow() {
     addAndMakeVisible(nameLabel);
     addAndMakeVisible(gainSlider);
 
-    gainSlider.setRange(0.f, 6.f);
-    gainSlider.setNumDecimalPlacesToDisplay(2);
+    gainSlider.textFromValueFunction = [](double x) {
+        double db = juce::Decibels::gainToDecibels(x);
+        return juce::String(db, 1) + "dB";
+    };
+    gainSlider.valueFromTextFunction = [](juce::String x) {
+        double retval = 0.f;
+        retval = x.getDoubleValue();
+        retval = juce::Decibels::decibelsToGain(retval);
+        return retval;
+    };
+
+    double sliderEndBoundary = juce::Decibels::decibelsToGain(12.f);
+    gainSlider.setRange(0.f, sliderEndBoundary);
+    gainSlider.setSkewFactor(0.5f);
+
     nameLabel.setEditable(true, true, false);
 
     nameLabel.onEditorShow = [this] { this->oldName = nameLabel.getText(); };
@@ -725,7 +739,8 @@ void track::ClipPropertiesWindow::paint(juce::Graphics &g) {
 void track::ClipPropertiesWindow::resized() {
     Subwindow::resized();
     nameLabel.setBounds(54, 32, getWidth() - 54 - 8, 24);
-    gainSlider.setBounds(34 + 19, 55, getWidth() - 28 - 32, 30);
+    gainSlider.setBounds(34 + 19, 55, getWidth() - 28 - 32 - 4, 30);
+    gainSlider.setTextBoxStyle(juce::Slider::TextBoxLeft, false, 80 - 4, 24);
 }
 
 void track::ClipPropertiesWindow::init() {
@@ -762,9 +777,12 @@ track::TrackComponent::TrackComponent(int trackIndex) : juce::Component() {
     setWantsKeyboardFocus(true);
     setMouseClickGrabsKeyboardFocus(true);
 
+    gainSlider.setSkewFactor(.5f);
     gainSlider.setPopupDisplayEnabled(true, true, this, 2000);
     gainSlider.textFromValueFunction = [](double x) {
-        return juce::String(x, 2);
+        double db = juce::Decibels::gainToDecibels(x);
+        DBG("x=" << x << "; db=" << db);
+        return juce::String(db, 1) + "dB";
     };
 
     panSlider.setPopupDisplayEnabled(true, true, this, 1500);
@@ -853,8 +871,10 @@ track::TrackComponent::TrackComponent(int trackIndex) : juce::Component() {
     };
 
     addAndMakeVisible(gainSlider);
-    gainSlider.setSkewFactorFromMidPoint(0.3f);
-    gainSlider.setRange(0.0, 6.0);
+
+    // gainSlider.setSkewFactorFromMidPoint(JUCE_LIVE_CONSTANT(sk));
+    double sliderEndBoundary = juce::Decibels::decibelsToGain(6.f);
+    gainSlider.setRange(0.0, sliderEndBoundary);
 
     muteBtn.onClick = [this] {
         getCorrespondingTrack()->m = !(getCorrespondingTrack()->m);
@@ -1213,6 +1233,7 @@ void track::TrackComponent::copyNodeToClipboard() {
 }
 
 void track::TrackComponent::paint(juce::Graphics &g) {
+
     juce::Colour bg = juce::Colour(0xFF'5F5F5F);
     juce::Colour trackBg = juce::Colour(0xFF'414141).darker(0.1f);
     juce::Colour glossColor = juce::Colours::white.withAlpha(0.1f);
