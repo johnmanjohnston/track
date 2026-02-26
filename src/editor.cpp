@@ -536,7 +536,7 @@ void AudioPluginAudioProcessorEditor::openRelayParamInspector() {
     relayParamInspector->initSliders();
 
     addAndMakeVisible(*relayParamInspector);
-    relayParamInspector->setBounds(10, 10, 300 + 8, 640);
+    relayParamInspector->setBounds(10, 10, 300 + 4, 640);
 }
 
 void AudioPluginAudioProcessorEditor::openFxChain(std::vector<int> route) {

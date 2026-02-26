@@ -64,9 +64,9 @@ void track::RelayManagerComponent::resized() {
     rmViewport.setBounds(UI_SUBWINDOW_SHADOW_SPREAD,
                          UI_SUBWINDOW_TITLEBAR_HEIGHT +
                              UI_SUBWINDOW_SHADOW_SPREAD + 1,
-                         getWidth() - (UI_SUBWINDOW_SHADOW_SPREAD)-4 - 1,
+                         getWidth() - (UI_SUBWINDOW_SHADOW_SPREAD)-4 - 2,
                          getHeight() - UI_SUBWINDOW_TITLEBAR_HEIGHT -
-                             UI_SUBWINDOW_SHADOW_SPREAD - 4 - 5);
+                             UI_SUBWINDOW_SHADOW_SPREAD - 4 - 6);
     rmNodesWrapper.setBounds(0, 0, rmViewport.getWidth() - 1,
                              juce::jmax(wrapperHeight, rmViewport.getHeight()));
 }
@@ -401,10 +401,10 @@ void track::RelayParamInspector::resized() {
 
     rpiViewport.setBounds(UI_SUBWINDOW_SHADOW_SPREAD + 4,
                           UI_SUBWINDOW_TITLEBAR_HEIGHT +
-                              UI_SUBWINDOW_SHADOW_SPREAD,
+                              UI_SUBWINDOW_SHADOW_SPREAD + 1,
                           getWidth() - (UI_SUBWINDOW_SHADOW_SPREAD * 2) - 4 - 2,
                           getHeight() - UI_SUBWINDOW_TITLEBAR_HEIGHT -
-                              (UI_SUBWINDOW_SHADOW_SPREAD * 2) - 4);
+                              (UI_SUBWINDOW_SHADOW_SPREAD * 2) - 5);
     rpiComponent.setBounds(0, 0, 2000, 3100);
 }
 
