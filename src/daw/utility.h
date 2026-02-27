@@ -3,6 +3,8 @@
 #include "track.h"
 
 namespace track::utility {
+juce::String prettyVector(std::vector<int> x);
+
 // nodes
 bool isDescendant(audioNode *parent, audioNode *possibleChild,
                   bool directDescandant);
@@ -10,6 +12,8 @@ bool isDescendant(audioNode *parent, audioNode *possibleChild,
 int getIndexOfClip(audioNode *node, clip *c);
 int getIndexOfClipByValue(audioNode *node, clip c);
 inline audioNode *getNodeFromRoute(std::vector<int> route, void *p) {
+    DBG("call to getNodeFromRoute(); route=" << prettyVector(route));
+
     if (route.size() == 0)
         return nullptr;
 
@@ -54,7 +58,6 @@ void openRelayParamWindows(std::vector<int> nodeRoute,
 
 void clearSubwindows(void *e);
 
-juce::String prettyVector(std::vector<int> x);
 bool clipsEqual(track::clip x, track::clip y);
 int snapSample(int sample, int division, int offset = 0);
 

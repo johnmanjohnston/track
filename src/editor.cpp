@@ -91,7 +91,8 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
 #define MENU_UNDO 9
 #define MENU_REDO 10
 #define MENU_COPY_STATE 11
-#define MENU_WRITE_STATE 12
+#define MENU_WRITE_STATE_FROM_CLIPBOARD 12
+#define MENU_WRITE_STATE_FROM_FILE 13
 
         contextMenu.addItem(MENU_PLUGIN_SCAN, "Scan plugins");
         contextMenu.addItem(MENU_PLUGIN_LAZY_SCAN, "Lazy scan for plugins");
@@ -116,7 +117,10 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
         contextMenu.addItem(MENU_ABOUT, "About");
         contextMenu.addItem(MENU_BUILD_INFO, "Build info");
         contextMenu.addItem(MENU_COPY_STATE, "Copy state to clipboard");
-        contextMenu.addItem(MENU_WRITE_STATE, "Write state from clipboard");
+        contextMenu.addItem(MENU_WRITE_STATE_FROM_CLIPBOARD,
+                            "Write state from clipboard");
+        contextMenu.addItem(MENU_WRITE_STATE_FROM_FILE,
+                            "Write state from file");
 
 #if JUCE_DEBUG
         contextMenu.addSeparator();
@@ -183,7 +187,7 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
                 auto x = processorRef.getXmlFromBinary(state.getData(),
                                                        state.getSize());
                 juce::SystemClipboard::copyTextToClipboard(x->toString());
-            } else if (result == MENU_WRITE_STATE) {
+            } else if (result == MENU_WRITE_STATE_FROM_CLIPBOARD) {
 
                 juce::NativeMessageBox::showAsync(
                     juce::MessageBoxOptions()
@@ -195,11 +199,16 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
                         .withButton("No"),
                     [this](int result) {
                         if (result == 0) {
+                            pluginChainComponents.clear();
+                            relayManagerCompnoents.clear();
+                            clipPropertiesWindows.clear();
+                            pluginEditorWindows.clear();
+
                             timelineComponent->clipComponents.clear();
                             tracklist.trackComponents.clear();
                             processorRef.undoManager.clearUndoHistory();
 
-                            auto xmlText =
+                            juce::String xmlText =
                                 juce::SystemClipboard::getTextFromClipboard();
                             std::unique_ptr<juce::XmlElement> xml(
                                 juce::XmlDocument::parse(xmlText));
@@ -219,6 +228,58 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
                             timelineComponent->updateClipComponents();
                             timelineComponent->repaint();
                         }
+                    });
+            } else if (result == MENU_WRITE_STATE_FROM_FILE) {
+                DBG("menu write state from file");
+
+                fileChooser = std::make_unique<juce::FileChooser>(
+                    "Select file",
+                    juce::File::getSpecialLocation(
+                        juce::File::SpecialLocationType::
+                            userApplicationDataDirectory)
+                        .getChildFile("johnmanjohnston")
+                        .getChildFile("track"),
+                    "*");
+
+                auto flags = juce::FileBrowserComponent::openMode |
+                             juce::FileBrowserComponent::canSelectFiles;
+
+                fileChooser->launchAsync(
+                    flags, [this](const juce::FileChooser &c) {
+                        pluginChainComponents.clear();
+                        relayManagerCompnoents.clear();
+                        clipPropertiesWindows.clear();
+                        pluginEditorWindows.clear();
+
+                        timelineComponent->clipComponents.clear();
+                        tracklist.trackComponents.clear();
+                        processorRef.undoManager.clearUndoHistory();
+
+                        DBG("launched...");
+
+                        juce::File dataFile = c.getResult();
+                        juce::String xmlText = dataFile.loadFileAsString();
+
+                        DBG(xmlText);
+                        DBG("xml text is up");
+
+                        std::unique_ptr<juce::XmlElement> xml(
+                            juce::XmlDocument::parse(xmlText));
+
+                        juce::MemoryBlock state;
+                        processorRef.copyXmlToBinary(*xml, state);
+                        processorRef.setStateInformation(state.getData(),
+                                                         state.getSize());
+
+                        timelineComponent->clipComponentsUpdated = false;
+                        timelineComponent->updateClipComponents();
+
+                        tracklist.trackComponents.clear();
+                        tracklist.createTrackComponents();
+                        tracklist.setTrackComponentBounds();
+
+                        timelineComponent->updateClipComponents();
+                        timelineComponent->repaint();
                     });
             }
         });
