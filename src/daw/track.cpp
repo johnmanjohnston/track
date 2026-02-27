@@ -4,7 +4,6 @@
 #include "automation_relay.h"
 #include "clipboard.h"
 #include "defs.h"
-#include "juce_audio_basics/juce_audio_basics.h"
 #include "subwindow.h"
 #include "timeline.h"
 #include "utility.h"
@@ -2382,13 +2381,13 @@ bool track::subplugin::initializePlugin(juce::String path) {
 track::subplugin::subplugin() : plugin() {}
 track::subplugin::~subplugin() {}
 
-void track::clip::updateBuffer() {
+bool track::clip::updateBuffer() {
     juce::File file(path);
 
     if (!file.exists()) {
         buffer.setSize(0, 0);
         DBG("updateBuffer() called--file " << path << " does not exist");
-        return;
+        return false;
     }
 
     juce::AudioFormatManager afm;
@@ -2399,6 +2398,7 @@ void track::clip::updateBuffer() {
                                       reader->lengthInSamples);
 
     reader->read(&buffer, 0, buffer.getNumSamples(), 0, true, true);
+    return true;
 }
 
 bool track::audioNode::addPlugin(juce::String path) {

@@ -3,7 +3,6 @@
 #include "daw/defs.h"
 #include "daw/track.h"
 #include "editor.h"
-#include "juce_gui_basics/juce_gui_basics.h"
 
 AudioPluginAudioProcessor::AudioPluginAudioProcessor()
     : AudioProcessor(
@@ -451,7 +450,13 @@ void AudioPluginAudioProcessor::deserializeNode(juce::XmlElement *nodeElement,
             c->trimLeft = trimLeft;
             c->trimRight = trimRight;
             c->gain = clipGain;
-            c->updateBuffer();
+            bool success = c->updateBuffer();
+
+            if (!success) {
+                failedDeserializationErrors.emplace_back(
+                    "could not find audio file for '" + clipName +
+                    "' missing path is " + path);
+            }
 
             clipElement = clipElement->getNextElementWithTagName("clip");
         }

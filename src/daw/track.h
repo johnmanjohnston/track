@@ -18,7 +18,7 @@ class clip {
     int trimRight = 0;
 
     juce::AudioBuffer<float> buffer;
-    void updateBuffer();
+    bool updateBuffer();
 };
 
 struct clipCoordinate {
