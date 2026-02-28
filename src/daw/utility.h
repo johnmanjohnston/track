@@ -11,8 +11,8 @@ bool isDescendant(audioNode *parent, audioNode *possibleChild,
 
 int getIndexOfClip(audioNode *node, clip *c);
 int getIndexOfClipByValue(audioNode *node, clip c);
-inline audioNode *getNodeFromRoute(std::vector<int> route, void *p) {
-    DBG("call to getNodeFromRoute(); route=" << prettyVector(route));
+inline audioNode *getNodeFromRoute(const std::vector<int> &route, void *p) {
+    // DBG("call to getNodeFromRoute(); route=" << prettyVector(route));
 
     if (route.size() == 0)
         return nullptr;
