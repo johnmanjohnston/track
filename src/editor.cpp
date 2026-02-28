@@ -560,6 +560,23 @@ void AudioPluginAudioProcessorEditor::changeListenerCallback(
 
     }
 
+    else if (x.command == UI_INSTRUCTION_NODE_NAME_CHANGE) {
+        for (auto &sw : pluginChainComponents) {
+            if (sw->route == x.r)
+                sw->updateTrackInformation();
+        }
+
+        for (auto &sw : pluginEditorWindows) {
+            if (sw->route == x.r)
+                sw->updateTrackInformation();
+        }
+
+        for (auto &sw : relayManagerCompnoents) {
+            if (sw->route == x.r)
+                sw->updateTrackInformation();
+        }
+    }
+
     // close/opens
     else if (x.command == UI_INSTRUCTION_CLOSE_OPENED_EDITORS) {
         track::utility::closeOpenedEditors(x.r, &this->tmpOpenedEditors,
@@ -604,6 +621,7 @@ void AudioPluginAudioProcessorEditor::openRelayMenu(std::vector<int> route,
     rmc->processor = &processorRef;
 
     rmc->rmNodesWrapper.createRelayNodes();
+    rmc->updateTrackInformation();
 
     addAndMakeVisible(*rmc);
     rmc->setBounds(10, 10, 280 + 18, 640);
@@ -655,6 +673,7 @@ void AudioPluginAudioProcessorEditor::openFxChain(std::vector<int> route) {
     pcc->route = route;
     pcc->processor = &processorRef;
     pcc->nodesWrapper.createPluginNodeComponents();
+    pcc->updateTrackInformation();
 
     addAndMakeVisible(*pcc);
     pcc->setBounds(10, 10, 900, 144);
@@ -683,6 +702,7 @@ void AudioPluginAudioProcessorEditor::openPluginEditorWindow(
     pew->pluginIndex = pluginIndex;
     pew->processor = &processorRef;
     pew->createEditor();
+    pew->updateTrackInformation();
     addAndMakeVisible(*pew);
 
     pew->setBounds(400, 0, 100, 100);

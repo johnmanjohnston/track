@@ -1669,6 +1669,8 @@ void track::ActionModifyTrivialNodeData::updateGUI() {
     AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
     processor->dispatchGUIInstruction(
         UI_INSTRUCTION_UPDATE_EXISTING_NODE_COMPONENTS);
+    processor->dispatchGUIInstruction(UI_INSTRUCTION_NODE_NAME_CHANGE, nullptr,
+                                      route);
 }
 
 track::ActionMoveNodeToGroup::ActionMoveNodeToGroup(std::vector<int> toMove,

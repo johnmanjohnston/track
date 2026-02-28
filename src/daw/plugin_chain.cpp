@@ -645,45 +645,49 @@ void track::PluginNodeComponent::openThisPluginsRelayMenu() {
     repaint();
 }
 
+void track::PluginNodeComponent::updatePluginInformation() {
+    this->pluginName = getPlugin()->get()->plugin->getName();
+    this->pluginManufacturer =
+        getPlugin()->get()->plugin->getPluginDescription().manufacturerName;
+    this->isBypassed = getPluginBypassedStatus();
+}
+
 void track::PluginNodeComponent::paint(juce::Graphics &g) {
-    if (getPlugin() && getPlugin()->get()) {
-        if (!coolColors)
-            g.fillAll(juce::Colour(hasKeyboardFocus(true) ? 0xFF'292929
-                                                          : 0xFF'121212));
-        else
-            g.fillAll(juce::Colour(0xFF'FFFFFF));
+    if (!coolColors)
+        g.fillAll(
+            juce::Colour(hasKeyboardFocus(true) ? 0xFF'292929 : 0xFF'121212));
+    else
+        g.fillAll(juce::Colour(0xFF'FFFFFF));
 
-        // border
-        g.setColour(juce::Colours::lightgrey.withAlpha(.3f));
-        g.drawRect(getLocalBounds(), 1);
+    // border
+    g.setColour(juce::Colours::lightgrey.withAlpha(.3f));
+    g.drawRect(getLocalBounds(), 1);
 
-        g.setColour(juce::Colours::white);
+    g.setColour(juce::Colours::white);
 
-        g.setColour(juce::Colour(0xFF'A7A7A7)
-                        .withAlpha(getPluginBypassedStatus() ? .3f : 1.f));
+    g.setColour(
+        juce::Colour(0xFF'A7A7A7).withAlpha(this->isBypassed ? .3f : 1.f));
 
 #if JUCE_WINDOWS
-        auto pluginDataFont = track::ui::CustomLookAndFeel::getInterSemiBold()
-                                  .withExtraKerningFactor(-0.02f);
+    auto pluginDataFont =
+        track::ui::CustomLookAndFeel::getInterSemiBold().withExtraKerningFactor(
+            -0.02f);
 #else
-        auto pluginDataFont = track::ui::CustomLookAndFeel::getInterSemiBold();
-        pluginDataFont =
-            pluginDataFont.italicised().boldened().withExtraKerningFactor(
-                -0.03f);
+    auto pluginDataFont = track::ui::CustomLookAndFeel::getInterSemiBold();
+    pluginDataFont =
+        pluginDataFont.italicised().boldened().withExtraKerningFactor(-0.03f);
 #endif
 
-        // draw name
-        g.setFont(pluginDataFont.withHeight(22.f));
-        g.drawText(getPlugin()->get()->plugin->getName(), 10, 8, getWidth(), 20,
-                   juce::Justification::left);
+    // draw name
+    g.setFont(pluginDataFont.withHeight(22.f));
+    g.drawText(this->pluginName, 10, 8, getWidth(), 20,
+               juce::Justification::left);
 
-        // draw manufacturer name
-        g.setColour(juce::Colour(0xFF'595959));
-        g.setFont(pluginDataFont.withHeight(16.f));
-        g.drawText(
-            getPlugin()->get()->plugin->getPluginDescription().manufacturerName,
-            10, 30, getWidth(), 20, juce::Justification::left);
-    }
+    // draw manufacturer name
+    g.setColour(juce::Colour(0xFF'595959));
+    g.setFont(pluginDataFont.withHeight(16.f));
+    g.drawText(this->pluginManufacturer, 10, 30, getWidth(), 20,
+               juce::Justification::left);
 }
 
 void track::PluginNodeComponent::resized() {
@@ -729,6 +733,7 @@ void track::PluginNodesWrapper::createPluginNodeComponents() {
         addAndMakeVisible(nc);
         nc.setBounds(getBoundsForPluginNodeComponent(i));
         nc.setDryWetSliderValue();
+        nc.updatePluginInformation();
     }
 
     /*
@@ -997,6 +1002,11 @@ void track::PluginChainComponent::resized() {
     nodesWrapper.setBounds(nodesWrapperBounds);
 }
 
+void track::PluginChainComponent::updateTrackInformation() {
+    this->trackName = getCorrespondingTrack()->trackName;
+    repaint();
+}
+
 track::PluginChainComponent::~PluginChainComponent() {}
 
 void track::PluginChainComponent::paint(juce::Graphics &g) {
@@ -1009,8 +1019,8 @@ void track::PluginChainComponent::paint(juce::Graphics &g) {
     g.setFont(getTitleBarFont());
     g.setColour(juce::Colour(0xFF'A7A7A7)); // track name text color
     // juce::String x = juce::String(getCorrespondingTrack()->clips.size());
-    g.drawText(getCorrespondingTrack()->trackName,
-               getTitleBarBounds().withLeft(37 + 6), juce::Justification::left);
+    g.drawText(this->trackName, getTitleBarBounds().withLeft(37 + 6),
+               juce::Justification::left);
 
     // fx logo
     // outline
@@ -1271,6 +1281,12 @@ void track::PluginEditorWindow::mouseUp(const juce::MouseEvent &event) {
 #if JUCE_LINUX
     ape->postCommandMessage(COMMAND_UPDATE_VST3_EMBEDDED_BOUNDS);
 #endif
+}
+
+void track::PluginEditorWindow::updateTrackInformation() {
+    this->trackName = getCorrespondingTrack()->trackName;
+
+    repaint();
 }
 
 // get current track and plugin util functions

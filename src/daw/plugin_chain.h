@@ -138,6 +138,11 @@ class PluginNodeComponent : public SubwindowChildFocusGrabber {
     void openThisPluginsEditor();
     void openThisPluginsRelayMenu();
 
+    juce::String pluginName;
+    juce::String pluginManufacturer;
+    bool isBypassed;
+    void updatePluginInformation();
+
     void paint(juce::Graphics &g) override;
     void resized() override;
 
@@ -199,6 +204,9 @@ class PluginChainComponent : public track::Subwindow {
     void paint(juce::Graphics &g) override;
     void resized() override;
 
+    juce::String trackName;
+    void updateTrackInformation();
+
     std::vector<int> route;
     AudioPluginAudioProcessor *processor = nullptr;
     audioNode *getCorrespondingTrack();
@@ -238,6 +246,8 @@ class PluginEditorWindow : public juce::Component, juce::Timer {
     juce::String pluginName;
     juce::String pluginManufacturer;
     juce::String trackName;
+
+    void updateTrackInformation();
 
     juce::AudioProcessorEditor *ape = nullptr;
     // std::unique_ptr<juce::AudioProcessorEditor> ape;

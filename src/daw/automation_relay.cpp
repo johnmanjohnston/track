@@ -42,16 +42,14 @@ void track::RelayManagerComponent::paint(juce::Graphics &g) {
     g.setFont(getTitleBarFont());
 
     g.setColour(juce::Colour(0xFF'A7A7A7));
-    g.drawText(getPlugin()->get()->plugin->getName(),
-               getTitleBarBounds().withLeft(14), juce::Justification::left);
+    g.drawText(pluginName, getTitleBarBounds().withLeft(14),
+               juce::Justification::left);
 
-    int leftMargin =
-        juce::GlyphArrangement::getStringWidthInt(
-            g.getCurrentFont(), getPlugin()->get()->plugin->getName()) +
-        10 + 10;
+    int leftMargin = juce::GlyphArrangement::getStringWidthInt(
+                         g.getCurrentFont(), this->pluginName) +
+                     10 + 10;
     g.setColour(juce::Colours::grey);
-    g.drawText(juce::String(pluginIndex) + "/" +
-                   getCorrespondingTrack()->trackName,
+    g.drawText(juce::String(pluginIndex) + "/" + this->trackName,
                getTitleBarBounds().withLeft(leftMargin).withTop(2),
                juce::Justification::left);
 }
@@ -69,6 +67,13 @@ void track::RelayManagerComponent::resized() {
                              UI_SUBWINDOW_SHADOW_SPREAD - 4 - 6);
     rmNodesWrapper.setBounds(0, 0, rmViewport.getWidth() - 1,
                              juce::jmax(wrapperHeight, rmViewport.getHeight()));
+}
+
+void track::RelayManagerComponent::updateTrackInformation() {
+    this->trackName = getCorrespondingTrack()->trackName;
+    this->pluginName = getPlugin()->get()->plugin->getName();
+
+    repaint();
 }
 
 void track::RelayManagerComponent::removeRelayParam(size_t index) {
