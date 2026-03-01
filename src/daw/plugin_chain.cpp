@@ -416,17 +416,27 @@ track::PluginNodeComponent::PluginNodeComponent()
     this->dryWetSlider.setRange(0.f, 1.f);
     addAndMakeVisible(dryWetSlider);
 
-    dryWetSlider.setTextBoxStyle(juce::Slider::TextEntryBoxPosition::NoTextBox,
-                                 true, 0, 0);
+    dryWetSlider.setTextBoxStyle(
+        juce::Slider::TextEntryBoxPosition::TextBoxRight, false, 50, 100);
     dryWetSlider.setSliderStyle(
         juce::Slider::SliderStyle::RotaryHorizontalDrag);
     dryWetSlider.onValueChange = [this] {
         getPlugin()->get()->dryWetMix = dryWetSlider.getValue();
     };
 
+    dryWetSlider.setNumDecimalPlacesToDisplay(0);
+    dryWetSlider.textFromValueFunction = [](double x) {
+        return juce::String(int(x * 100)) + "%";
+    };
+
+    dryWetSlider.valueFromTextFunction = [](juce::String x) {
+        return x.getIntValue() / 100.0;
+    };
+
     // for un/redoing dry/wet mix changes
     dryWetSlider.onDragStart = [this] {
         this->dryWetMixAtDragStart = dryWetSlider.getValue();
+        repaint();
     };
     dryWetSlider.onDragEnd = [this] {
         // prepare all this shit man idfk
@@ -683,15 +693,16 @@ void track::PluginNodeComponent::paint(juce::Graphics &g) {
     g.drawText(this->pluginName, 10, 8, getWidth(), 20,
                juce::Justification::left);
 
+    /*
     // draw manufacturer name
     g.setColour(juce::Colour(0xFF'595959));
     g.setFont(pluginDataFont.withHeight(16.f));
     g.drawText(this->pluginManufacturer, 10, 30, getWidth(), 20,
-               juce::Justification::left);
+               juce::Justification::left);*/
 }
 
 void track::PluginNodeComponent::resized() {
-    this->dryWetSlider.setBounds(211, 20, 40, 40);
+    this->dryWetSlider.setBounds(/*211 - 100*/ 2, 20 + 4, 40 + 50, 40);
 
     int btnWidth = 76;
     int btnHeight = 21;
