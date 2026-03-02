@@ -139,7 +139,6 @@ class PluginNodeComponent : public SubwindowChildFocusGrabber {
     void openThisPluginsRelayMenu();
 
     juce::String pluginName;
-    juce::String pluginManufacturer;
     bool isBypassed;
     void updatePluginInformation();
 

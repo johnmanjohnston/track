@@ -73,6 +73,9 @@ class CustomLookAndFeel : public juce::LookAndFeel_V4 {
 
     void drawLabel(Graphics &g, Label &label) override;
 
+    void fillTextEditorBackground(Graphics &g, int width, int height,
+                                  TextEditor &) override;
+
     void drawScrollbar(Graphics &g, ScrollBar &scrollbar, int x, int y,
                        int width, int height, bool isScrollbarVertical,
                        int thumbStartPosition, int thumbSize, bool isMouseOver,

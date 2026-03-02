@@ -437,7 +437,7 @@ track::PluginNodeComponent::PluginNodeComponent()
     // for un/redoing dry/wet mix changes
     dryWetSlider.onDragStart = [this] {
         this->dryWetMixAtDragStart = dryWetSlider.getValue();
-        repaint();
+        bringOverOtherSubwindows();
     };
     dryWetSlider.onDragEnd = [this] {
         // prepare all this shit man idfk
@@ -658,8 +658,6 @@ void track::PluginNodeComponent::openThisPluginsRelayMenu() {
 
 void track::PluginNodeComponent::updatePluginInformation() {
     this->pluginName = getPlugin()->get()->plugin->getName();
-    this->pluginManufacturer =
-        getPlugin()->get()->plugin->getPluginDescription().manufacturerName;
     this->isBypassed = getPluginBypassedStatus();
 }
 
@@ -1207,7 +1205,7 @@ void track::PluginEditorWindow::paint(juce::Graphics &g) {
         "/" + trackName + "     " + juce::String(latency) + " samples (" +
         juce::String(latencyMs, 2, false) + "ms)";
     g.drawText(otherInfoText, pluginNameWidth + titlebarLeftMargin + 18, 0,
-               getWidth() / 2, UI_SUBWINDOW_TITLEBAR_HEIGHT,
+               getWidth() / 1.2f, UI_SUBWINDOW_TITLEBAR_HEIGHT,
                juce::Justification::left, false);
 
     g.setColour(juce::Colour(0xFF'999999));

@@ -400,19 +400,35 @@ void track::ui::CustomLookAndFeel::drawLabel(Graphics &g, Label &label) {
     }
 
     // text editor moves by 1px and is annoying, check if y is odd/even to
-    // make sure you move only y value only once. idk why it works but it
-    // does.
+    // make sure you move only y value only once
     if (label.isBeingEdited()) {
         TextEditor *te = label.getCurrentTextEditor();
         te->setFont(label.getFont());
 
         // ABSOLUTE CINEMA.
         juce::Rectangle<int> bounds = te->getBounds();
-        if (bounds.getY() % 2 == 0)
+        if (bounds.getY() % 2 == 0) {
             bounds.setY(bounds.getY() - 1);
+
+            if (label.findParentComponentOfClass<Slider>()) {
+                juce::Slider *s = label.findParentComponentOfClass<Slider>();
+
+                if (s->isRotary()) {
+                    bounds.setY(bounds.getY() + 8);
+                    bounds.setX(bounds.getX() + 4);
+                }
+            }
+        }
 
         te->setBounds(bounds);
     }
+}
+
+void track::ui::CustomLookAndFeel::fillTextEditorBackground(Graphics &g,
+                                                            int width,
+                                                            int height,
+                                                            TextEditor &) {
+    g.fillAll(juce::Colours::transparentWhite);
 }
 
 void track::ui::CustomLookAndFeel::drawScrollbar(
