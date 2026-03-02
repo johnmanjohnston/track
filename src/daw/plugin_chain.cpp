@@ -425,8 +425,9 @@ track::PluginNodeComponent::PluginNodeComponent()
     };
 
     dryWetSlider.setNumDecimalPlacesToDisplay(0);
+    dryWetSlider.setTextValueSuffix("%");
     dryWetSlider.textFromValueFunction = [](double x) {
-        return juce::String(int(x * 100)) + "%";
+        return juce::String(juce::roundToInt(x * 100));
     };
 
     dryWetSlider.valueFromTextFunction = [](juce::String x) {
@@ -702,7 +703,7 @@ void track::PluginNodeComponent::paint(juce::Graphics &g) {
 }
 
 void track::PluginNodeComponent::resized() {
-    this->dryWetSlider.setBounds(/*211 - 100*/ 2, 20 + 4, 40 + 50, 40);
+    this->dryWetSlider.setBounds(/*211 - 100*/ 0, 20 + 4, 40 + 50, 40);
 
     int btnWidth = 76;
     int btnHeight = 21;
