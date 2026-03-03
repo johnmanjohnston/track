@@ -68,6 +68,9 @@ class AudioPluginAudioProcessor : public juce::AudioProcessor,
     std::vector<juce::String> failedDeserializationErrors;
     juce::String faultyState = "";
 
+    bool deserializationSampleRateMismatch = false;
+    double faultySampleRate = -1.0;
+
   private:
     juce::Random random;
 

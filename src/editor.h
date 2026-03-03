@@ -127,6 +127,8 @@ class AudioPluginAudioProcessorEditor : public juce::AudioProcessorEditor,
 
     bool clipComponentsPendingUpdate = false;
 
+    void handleSampleRateMismatch(double oldSampleRate);
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(
         AudioPluginAudioProcessorEditor)
 };

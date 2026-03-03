@@ -109,6 +109,18 @@ void AudioPluginAudioProcessor::changeProgramName(int index,
 
 void AudioPluginAudioProcessor::prepareToPlay(double sampleRate,
                                               int samplesPerBlock) {
+
+    DBG("prepareToPlay() called: ");
+    DBG("sampleRate = " << sampleRate);
+    DBG("track::SAMPLE_RATE = " << track::SAMPLE_RATE);
+
+    if (!juce::approximatelyEqual(sampleRate, track::SAMPLE_RATE) &&
+        track::SAMPLE_RATE > 0.0) {
+        this->faultySampleRate = track::SAMPLE_RATE;
+        this->dispatchGUIInstruction(
+            UI_INSTRUCTION_HOST_PROCESSOR_SAMPLE_RATE_MISMATCH);
+    }
+
     track::SAMPLE_RATE = sampleRate;
     track::SAMPLES_PER_BLOCK = samplesPerBlock;
 
@@ -573,6 +585,17 @@ void AudioPluginAudioProcessor::setStateInformation(const void *data,
         track::AUTO_GRID = projectSettings->getBoolAttribute("autogrid", true);
         track::SNAP_DIVISION =
             projectSettings->getIntAttribute("snapdivision", 4);
+
+        DBG("sample rate on deserialization: " << getSampleRate());
+        if (!juce::approximatelyEqual(
+                getSampleRate(),
+                projectSettings->getDoubleAttribute("samplerate"))) {
+
+            double oldSampleRate =
+                projectSettings->getDoubleAttribute("samplerate");
+            this->faultySampleRate = oldSampleRate;
+            this->deserializationSampleRateMismatch = true;
+        }
     }
 
     juce::XmlElement *knownPlugins = xmlState->getChildByName("knownplugins");

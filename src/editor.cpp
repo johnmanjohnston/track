@@ -1,6 +1,7 @@
 #include "editor.h"
 #include "daw/automation_relay.h"
 #include "daw/clipboard.h"
+#include "daw/defs.h"
 #include "daw/plugin_chain.h"
 #include "daw/timeline.h"
 #include "daw/track.h"
@@ -332,6 +333,10 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
                 }
             });
     }
+
+    if (processorRef.deserializationSampleRateMismatch) {
+        this->handleSampleRateMismatch(processorRef.faultySampleRate);
+    }
 }
 
 AudioPluginAudioProcessorEditor::~AudioPluginAudioProcessorEditor() {
@@ -605,6 +610,12 @@ void AudioPluginAudioProcessorEditor::changeListenerCallback(
         pluginEditorWindows.clear();
         relayManagerCompnoents.clear();
     }
+
+    // sample rate mismatch
+    else if (x.command == UI_INSTRUCTION_HOST_PROCESSOR_SAMPLE_RATE_MISMATCH) {
+        double sr = processorRef.faultySampleRate;
+        this->handleSampleRateMismatch(sr);
+    }
 }
 
 void AudioPluginAudioProcessorEditor::openRelayMenu(std::vector<int> route,
@@ -840,4 +851,25 @@ bool AudioPluginAudioProcessorEditor::keyStateChanged(bool isKeyDown) {
     }
 
     return false;
+}
+
+void AudioPluginAudioProcessorEditor::handleSampleRateMismatch(
+    double oldSampleRate) {
+    juce::String msg = "sample rate mismatch, old is " +
+                       juce::String(oldSampleRate) + ", new is " +
+                       juce::String(processorRef.getSampleRate());
+
+    juce::NativeMessageBox::showAsync(
+        juce::MessageBoxOptions()
+            .withIconType(juce::MessageBoxIconType::WarningIcon)
+            .withTitle("Sample rate mismatch")
+            .withMessage(msg)
+
+            .withButton("Resample all clips")
+            .withButton("Cancel"),
+
+        [this](int result) {
+            if (result == 0) {
+            }
+        });
 }
