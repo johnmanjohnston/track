@@ -277,7 +277,7 @@ void track::ClipComponent::mouseDown(const juce::MouseEvent &event) {
                 jassert(tc != nullptr);
 
                 ActionAddClip *action =
-                    new ActionAddClip(*newClip.get(), route, tc);
+                    new ActionAddClip(*newClip.get(), route, tc->processorRef);
                 tc->processorRef->undoManager.beginNewTransaction(
                     "action add clip (duplicate clip immediately after)");
                 tc->processorRef->undoManager.perform(action);
