@@ -611,6 +611,36 @@ void AudioPluginAudioProcessorEditor::changeListenerCallback(
         relayManagerCompnoents.clear();
     }
 
+    // clang-format off
+    else if (x.command ==
+             UI_INSTRUCTION_CLEAR_SUBWINDOWS_WITH_CONTAINED_ROUTE) {
+
+        DBG("UI_INSTRUCTION_CLEAR_SUBWINDOWS_WITH_CONTAINED_ROUTE");
+        // pccs
+        for (int i = pluginChainComponents.size() - 1; i >= 0; --i) {
+            DBG("pcc iter");
+            if (track::utility::rWithSize(pluginChainComponents[(size_t)i]->route, x.r.size()) == x.r) {
+                pluginChainComponents.erase(pluginChainComponents.begin() + i);
+            }
+        }
+
+        // pews
+        for (int i = pluginEditorWindows.size() - 1; i >= 0; --i) {
+            if (track::utility::rWithSize(pluginEditorWindows[(size_t)i]->route,
+                                          x.r.size()) == x.r) {
+                pluginEditorWindows.erase(pluginEditorWindows.begin() + i);
+            }
+        }
+
+        // rmcs
+        for (int i = relayManagerCompnoents.size() - 1; i >= 0; --i) {
+            if (track::utility::rWithSize(relayManagerCompnoents[(size_t)i]->route, x.r.size()) == x.r) {
+                relayManagerCompnoents.erase(relayManagerCompnoents.begin() + i);
+            }
+        }
+    }
+    // clang-format on
+
     // sample rate mismatch
     else if (x.command == UI_INSTRUCTION_HOST_PROCESSOR_SAMPLE_RATE_MISMATCH) {
         double sr = processorRef.faultySampleRate;

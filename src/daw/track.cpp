@@ -1508,16 +1508,7 @@ bool track::ActionDeleteNode::perform() {
 
     // close subwindows relevant to this node
     processor->dispatchGUIInstruction(
-        UI_INSTRUCTION_CLOSE_ALL_FX_CHAINS_WITH_ROUTE, nullptr, route);
-
-    audioNode *node = utility::getNodeFromRoute(route, p);
-    for (size_t i = 0; i < node->plugins.size(); ++i) {
-        processor->dispatchGUIInstruction(UI_INSTRUCTION_CLOSE_PEW,
-                                          (void *)(uintptr_t)i, route);
-        processor->dispatchGUIInstruction(
-            UI_INSTRUCTION_CLOSE_ALL_RMC_WITH_ROUTE_AND_INDEX,
-            (void *)(uintptr_t)i, route);
-    }
+        UI_INSTRUCTION_CLEAR_SUBWINDOWS_WITH_CONTAINED_ROUTE, nullptr, route);
 
     if (route.size() == 1) {
         if ((size_t)route[0] > processor->tracks.size()) {
