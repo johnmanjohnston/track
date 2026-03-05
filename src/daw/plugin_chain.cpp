@@ -1272,6 +1272,9 @@ void track::PluginEditorWindow::mouseDrag(const juce::MouseEvent &event) {
     juce::Rectangle<int> newBounds = this->dragStartBounds;
     newBounds.setX(newBounds.getX() + event.getDistanceFromDragStartX());
     newBounds.setY(newBounds.getY() + event.getDistanceFromDragStartY());
+
+    track::utility::restrictSubwindowBounds(&newBounds);
+
     setBounds(newBounds);
 
     ape->setBounds(0, UI_SUBWINDOW_TITLEBAR_HEIGHT, getWidth(),

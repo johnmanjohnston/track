@@ -54,6 +54,9 @@ void track::Subwindow::mouseDrag(const juce::MouseEvent &event) {
         juce::Rectangle<int> newBounds = this->dragStartBounds;
         newBounds.setX(newBounds.getX() + event.getDistanceFromDragStartX());
         newBounds.setY(newBounds.getY() + event.getDistanceFromDragStartY());
+
+        track::utility::restrictSubwindowBounds(&newBounds);
+
         setBounds(newBounds);
     }
 }

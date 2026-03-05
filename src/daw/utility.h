@@ -78,4 +78,6 @@ void customDrawGlassPointer(juce::Graphics &g, const float x, const float y,
                             const float diameter, const juce::Colour &colour,
                             const float outlineThickness, const int direction);
 
+void restrictSubwindowBounds(juce::Rectangle<int> *b);
+
 } // namespace track::utility
