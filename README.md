@@ -13,7 +13,14 @@ You can then create tracks to play audio clips, as well as host other plugins.
 - **simple**, intuitive user interface
 
 ## Usage
+<figure>
+    <img width="1920" height="1024" alt="image" src="https://github.com/user-attachments/assets/5f31f22c-6bf8-4a7d-a0dc-e1ca157066d7" />
+    <p align="center">track running within Ableton Live Lite</p>
+</figure>
+
+
 TODO
+
 
 ## Installation
 ### Latest Release (v0.0.1)
