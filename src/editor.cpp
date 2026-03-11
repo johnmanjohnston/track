@@ -94,6 +94,7 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
 #define MENU_COPY_STATE 11
 #define MENU_WRITE_STATE_FROM_CLIPBOARD 12
 #define MENU_WRITE_STATE_FROM_FILE 13
+#define MENU_TAKE_SCREENSHOT 14
 
         contextMenu.addItem(MENU_PLUGIN_SCAN, "Scan plugins");
         contextMenu.addItem(MENU_PLUGIN_LAZY_SCAN, "Lazy scan for plugins");
@@ -126,6 +127,7 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
 #if JUCE_DEBUG
         contextMenu.addSeparator();
         contextMenu.addItem(MENU_RAISE_SEGFAULT, "Segfault");
+        contextMenu.addItem(MENU_TAKE_SCREENSHOT, "Take screenshot");
 #endif
         juce::PopupMenu::Options popupmenuOptions;
         contextMenu.showMenuAsync(popupmenuOptions, [this](int result) {
@@ -230,7 +232,33 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
                             timelineComponent->repaint();
                         }
                     });
-            } else if (result == MENU_WRITE_STATE_FROM_FILE) {
+            } 
+            else if (result == MENU_TAKE_SCREENSHOT) {
+                juce::Image img = createComponentSnapshot(
+                    juce::Rectangle<int>(0, 0, 1280, 720), true, 4.f, juce::SoftwareImageType());
+
+                juce::File f = juce::File::getSpecialLocation(
+                                   juce::File::SpecialLocationType::
+                                       userApplicationDataDirectory)
+                                   .getChildFile("johnmanjohnston")
+                                   .getChildFile("track");
+    
+                int n = f.getNumberOfChildFiles(juce::File::TypesOfFileToFind::findFiles);
+
+                f = f.getChildFile("screenshot" + juce::String(n) + ".png");
+
+                f.create();
+
+                juce::FileOutputStream stream(f);
+                PNGImageFormat pngWriter;
+                pngWriter.writeImageToStream(img, stream);
+
+                f.revealToUser();
+
+                DBG(f.getFullPathName());
+            } 
+
+            else if (result == MENU_WRITE_STATE_FROM_FILE) {
                 DBG("menu write state from file");
 
                 fileChooser = std::make_unique<juce::FileChooser>(
