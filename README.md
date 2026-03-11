@@ -4,6 +4,11 @@ an audio plugin developed as a workaround to track count limits in "lower tier v
 To start using *track*, add the plugin to any track within your host DAW—you now have a mini DAW in a plugin.
 You can then create tracks to play audio clips, as well as host other plugins.
 
+<figure>
+    <img width="1920" height="1024" alt="image" src="https://github.com/user-attachments/assets/5f31f22c-6bf8-4a7d-a0dc-e1ca157066d7" />
+    <p align="center">track running within Ableton Live Lite</p>
+</figure>
+
 ## Features
 - **unlimited stereo audio tracks**, which can be organized using groups
 - **drag and drop audio clips** (with basic clip manipulation features like splitting and trimming)
@@ -14,6 +19,7 @@ You can then create tracks to play audio clips, as well as host other plugins.
 
 ## Usage
 TODO
+
 
 ## Installation
 ### Latest Release (v0.0.1)
