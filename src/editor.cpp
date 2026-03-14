@@ -127,8 +127,9 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
 #if JUCE_DEBUG
         contextMenu.addSeparator();
         contextMenu.addItem(MENU_RAISE_SEGFAULT, "Segfault");
-        contextMenu.addItem(MENU_TAKE_SCREENSHOT, "Take screenshot");
 #endif
+        contextMenu.addItem(MENU_TAKE_SCREENSHOT, "Take screenshot");
+
         juce::PopupMenu::Options popupmenuOptions;
         contextMenu.showMenuAsync(popupmenuOptions, [this](int result) {
             if (result == MENU_PLUGIN_SCAN) {
@@ -234,29 +235,8 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
                     });
             } 
             else if (result == MENU_TAKE_SCREENSHOT) {
-                juce::Image img = createComponentSnapshot(
-                    juce::Rectangle<int>(0, 0, 1280, 720), true, 4.f, juce::SoftwareImageType());
-
-                juce::File f = juce::File::getSpecialLocation(
-                                   juce::File::SpecialLocationType::
-                                       userApplicationDataDirectory)
-                                   .getChildFile("johnmanjohnston")
-                                   .getChildFile("track");
-    
-                int n = f.getNumberOfChildFiles(juce::File::TypesOfFileToFind::findFiles);
-
-                f = f.getChildFile("screenshot" + juce::String(n) + ".png");
-
-                f.create();
-
-                juce::FileOutputStream stream(f);
-                PNGImageFormat pngWriter;
-                pngWriter.writeImageToStream(img, stream);
-
-                f.revealToUser();
-
-                DBG(f.getFullPathName());
-            } 
+                takeScreenshot();
+                            } 
 
             else if (result == MENU_WRITE_STATE_FROM_FILE) {
                 DBG("menu write state from file");
@@ -878,6 +858,10 @@ void AudioPluginAudioProcessorEditor::lazyScan() {
 bool AudioPluginAudioProcessorEditor::keyStateChanged(bool isKeyDown) {
     juce::Component *focused = juce::Component::getCurrentlyFocusedComponent();
 
+    if (juce::KeyPress::isKeyCurrentlyDown(juce::KeyPress::F2Key)) {
+        takeScreenshot();
+    }
+
     // if we're typing then let that text editor take all keypresses
     // including ctrl+z/ctrl+y
     if (dynamic_cast<juce::TextEditor *>(focused)) {
@@ -930,4 +914,33 @@ void AudioPluginAudioProcessorEditor::handleSampleRateMismatch(
             if (result == 0) {
             }
         });
+}
+
+void AudioPluginAudioProcessorEditor::takeScreenshot() {
+
+juce::Image img =
+        createComponentSnapshot(juce::Rectangle<int>(0, 0, 1280, 720), true,
+                                4.f, juce::SoftwareImageType());
+
+    juce::File f =
+        juce::File::getSpecialLocation(
+            juce::File::SpecialLocationType::userApplicationDataDirectory)
+            .getChildFile("johnmanjohnston")
+            .getChildFile("track");
+
+    int n = f.getNumberOfChildFiles(juce::File::TypesOfFileToFind::findFiles);
+
+    f = f.getChildFile("screenshot" + juce::String(n) + ".png");
+
+    f.create();
+
+    juce::FileOutputStream stream(f);
+    PNGImageFormat pngWriter;
+    pngWriter.writeImageToStream(img, stream);
+
+    f.revealToUser();
+
+    DBG(f.getFullPathName());
+
+
 }
