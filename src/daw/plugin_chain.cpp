@@ -1191,7 +1191,7 @@ void track::PluginEditorWindow::paint(juce::Graphics &g) {
         g, juce::Rectangle<int>(getWidth(), UI_SUBWINDOW_TITLEBAR_HEIGHT));
 
     int titlebarLeftMargin = UI_SUBWINDOW_TITLEBAR_MARGIN + 5;
-    int pluginNameWidth = g.getCurrentFont().getStringWidth(pluginName);
+    int pluginNameWidth = g.getCurrentFont().getStringWidth(pluginName) * 1.3f;
 
     // other info
     g.setColour(juce::Colour(0xFF'D3D3D3));
@@ -1204,7 +1204,7 @@ void track::PluginEditorWindow::paint(juce::Graphics &g) {
         pluginManufacturer + "      " + juce::String(route[route.size() - 1]) +
         "/" + trackName + "     " + juce::String(latency) + " samples (" +
         juce::String(latencyMs, 2, false) + "ms)";
-    g.drawText(otherInfoText, pluginNameWidth + titlebarLeftMargin + 18, 0,
+    g.drawText(otherInfoText, pluginNameWidth + titlebarLeftMargin, 0,
                getWidth() / 1.2f, UI_SUBWINDOW_TITLEBAR_HEIGHT,
                juce::Justification::left, false);
 
@@ -1215,7 +1215,7 @@ void track::PluginEditorWindow::paint(juce::Graphics &g) {
 void track::PluginEditorWindow::resized() {
 
     int pluginNameWidth =
-        pluginNameLabel.getFont().getStringWidth(pluginName) + 10;
+        pluginNameLabel.getFont().getStringWidth(pluginName) * 1.3f;
     pluginNameLabel.setBounds(4.f, 0.f, pluginNameWidth,
                               UI_SUBWINDOW_TITLEBAR_HEIGHT);
 
