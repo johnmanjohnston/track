@@ -390,8 +390,15 @@ bool track::ActionChangeTrivialPluginData::undo() {
 }
 void track::ActionChangeTrivialPluginData::updateGUI() {
     AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
-    processor->dispatchGUIInstruction(UI_INSTRUCTION_RECREATE_ALL_PNCS, nullptr,
-                                      route);
+
+    if (recreateAllPNCs) {
+        processor->dispatchGUIInstruction(UI_INSTRUCTION_RECREATE_ALL_PNCS,
+                                          nullptr, route);
+    } else {
+        processor->dispatchGUIInstruction(
+            UI_INSTRUCTION_UPDATE_PLUGIN_CHAIN_WITHOUT_RECREATING_PNCS, nullptr,
+            route);
+    }
 
     processor->dispatchGUIInstruction(UI_INSTRUCTION_RECREATE_RELAY_NODES,
                                       nullptr, route);
@@ -457,6 +464,9 @@ track::PluginNodeComponent::PluginNodeComponent()
             new ActionChangeTrivialPluginData(oldPluginData, pluginData,
                                               pcc->route, pluginIndex,
                                               pcc->processor);
+
+        action->recreateAllPNCs = false;
+
         pcc->processor->undoManager.beginNewTransaction(
             "action change trivial plugin data");
         pcc->processor->undoManager.perform(action);
@@ -752,6 +762,19 @@ void track::PluginNodesWrapper::createPluginNodeComponents() {
         DBG("first plugin node compnoent bounds are "
             << this->rectToStr(pluginNodeComponents[0]->getBounds()));
     }*/
+}
+
+void track::PluginNodesWrapper::updateExistingPluginNodeComponents() {
+    audioNode *node = pcc->getCorrespondingTrack();
+
+    for (size_t i = 0; i < node->plugins.size(); ++i) {
+        PluginNodeComponent &nc = *this->pluginNodeComponents[i];
+        nc.pluginIndex = i;
+
+        nc.setBounds(getBoundsForPluginNodeComponent(i));
+        nc.setDryWetSliderValue();
+        nc.updatePluginInformation();
+    }
 }
 
 void track::PluginNodesWrapper::mouseDown(const juce::MouseEvent &event) {

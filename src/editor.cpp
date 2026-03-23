@@ -233,10 +233,9 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
                             timelineComponent->repaint();
                         }
                     });
-            } 
-            else if (result == MENU_TAKE_SCREENSHOT) {
+            } else if (result == MENU_TAKE_SCREENSHOT) {
                 takeScreenshot();
-                            } 
+            }
 
             else if (result == MENU_WRITE_STATE_FROM_FILE) {
                 DBG("menu write state from file");
@@ -502,6 +501,18 @@ void AudioPluginAudioProcessorEditor::changeListenerCallback(
                     ->nodesWrapper.pluginNodeComponents.clear();
                 pluginChainComponents[i]
                     ->nodesWrapper.createPluginNodeComponents();
+            }
+        }
+    }
+
+    else if (x.command ==
+             UI_INSTRUCTION_UPDATE_PLUGIN_CHAIN_WITHOUT_RECREATING_PNCS) {
+        jassert(x.r.size() > 0);
+
+        for (size_t i = 0; i < pluginChainComponents.size(); ++i) {
+            if (pluginChainComponents[i]->route == x.r) {
+                pluginChainComponents[i]
+                    ->nodesWrapper.updateExistingPluginNodeComponents();
             }
         }
     }
@@ -918,7 +929,7 @@ void AudioPluginAudioProcessorEditor::handleSampleRateMismatch(
 
 void AudioPluginAudioProcessorEditor::takeScreenshot() {
 
-juce::Image img =
+    juce::Image img =
         createComponentSnapshot(juce::Rectangle<int>(0, 0, 1280, 720), true,
                                 4.f, juce::SoftwareImageType());
 
@@ -941,6 +952,4 @@ juce::Image img =
     f.revealToUser();
 
     DBG(f.getFullPathName());
-
-
 }

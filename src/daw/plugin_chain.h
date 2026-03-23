@@ -116,6 +116,8 @@ class ActionChangeTrivialPluginData : public juce::UndoableAction {
     bool perform() override;
     bool undo() override;
     void updateGUI(); // y
+
+    bool recreateAllPNCs = true;
 };
 
 class PluginNodeComponent : public SubwindowChildFocusGrabber {
@@ -168,6 +170,7 @@ class PluginNodesWrapper : public SubwindowChildFocusGrabber {
     InsertIndicator insertIndicator;
 
     void createPluginNodeComponents();
+    void updateExistingPluginNodeComponents();
     PluginChainComponent *pcc = nullptr;
 
     std::vector<std::unique_ptr<PluginNodeComponent>> pluginNodeComponents;
