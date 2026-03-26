@@ -660,10 +660,14 @@ void AudioPluginAudioProcessorEditor::changeListenerCallback(
     }
     // clang-format on
 
-    // sample rate mismatch
+    // misc
     else if (x.command == UI_INSTRUCTION_HOST_PROCESSOR_SAMPLE_RATE_MISMATCH) {
         double sr = processorRef.faultySampleRate;
         this->handleSampleRateMismatch(sr);
+    }
+
+    else if (x.command == UI_INSTRUCTION_SEND_FOCUS_TO_TIMELINE) {
+        timelineComponent->grabKeyboardFocus();
     }
 }
 

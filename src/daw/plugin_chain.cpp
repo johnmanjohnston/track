@@ -470,14 +470,16 @@ track::PluginNodeComponent::PluginNodeComponent()
         pcc->processor->undoManager.beginNewTransaction(
             "action change trivial plugin data");
         pcc->processor->undoManager.perform(action);
+
+        // rid focus
+        pcc->processor->dispatchGUIInstruction(
+            UI_INSTRUCTION_SEND_FOCUS_TO_TIMELINE);
+        pcc->repaint();
     };
 
     openEditorBtn.onClick = [this] { openThisPluginsEditor(); };
-
     removePluginBtn.onClick = [this] { removeThisPlugin(); };
-
     bypassBtn.onClick = [this] { toggleBypass(); };
-
     automationButton.onClick = [this] { openThisPluginsRelayMenu(); };
 }
 track::PluginNodeComponent::~PluginNodeComponent() {}

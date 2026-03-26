@@ -1133,11 +1133,8 @@ void track::TrackComponent::mouseUp(const juce::MouseEvent &event) {
 }
 
 void track::TrackComponent::sendFocusToTimeline() {
-    Tracklist *tracklist = (Tracklist *)getParentComponent();
-
-    ((TimelineComponent *)tracklist->timelineComponent)
-        ->grabKeyboardFocus(); // just rid any track components of focus
-
+    AudioPluginAudioProcessor *p = (AudioPluginAudioProcessor *)processor;
+    p->dispatchGUIInstruction(UI_INSTRUCTION_SEND_FOCUS_TO_TIMELINE);
     repaint();
 }
 
