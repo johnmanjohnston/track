@@ -47,10 +47,10 @@ void track::RelayManagerComponent::paint(juce::Graphics &g) {
 
     int leftMargin = juce::GlyphArrangement::getStringWidthInt(
                          g.getCurrentFont(), this->pluginName) +
-                     10 + 10;
+                     10 + 10 + 4;
     g.setColour(juce::Colours::grey);
     g.drawText(juce::String(pluginIndex) + "/" + this->trackName,
-               getTitleBarBounds().withLeft(leftMargin).withTop(2),
+               getTitleBarBounds().withLeft(leftMargin),
                juce::Justification::left);
 }
 
