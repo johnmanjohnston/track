@@ -645,12 +645,15 @@ void track::PluginNodeComponent::openThisPluginsEditor() {
     AudioPluginAudioProcessorEditor *editor =
         this->findParentComponentOfClass<AudioPluginAudioProcessorEditor>();
 
-    DBG("pluginIndex = " << pluginIndex);
+    track::subplugin *plugin =
+        pcc->getCorrespondingTrack()->plugins[(size_t)pluginIndex].get();
 
-    if (editor->isPluginEditorWindowOpen(pcc->route, pluginIndex))
-        editor->closePluginEditorWindow(pcc->route, pluginIndex);
+    if (plugin->plugin->hasEditor()) {
+        if (editor->isPluginEditorWindowOpen(pcc->route, pluginIndex))
+            editor->closePluginEditorWindow(pcc->route, pluginIndex);
 
-    editor->openPluginEditorWindow(pcc->route, pluginIndex);
+        editor->openPluginEditorWindow(pcc->route, pluginIndex);
+    }
 
     repaint();
 }
@@ -671,6 +674,14 @@ void track::PluginNodeComponent::openThisPluginsRelayMenu() {
 void track::PluginNodeComponent::updatePluginInformation() {
     this->pluginName = getPlugin()->get()->plugin->getName();
     this->isBypassed = getPluginBypassedStatus();
+
+    PluginChainComponent *pcc =
+        findParentComponentOfClass<PluginChainComponent>();
+    track::subplugin *plugin =
+        pcc->getCorrespondingTrack()->plugins[(size_t)pluginIndex].get();
+    if (!plugin->plugin->hasEditor()) {
+        openEditorBtn.setEnabled(false);
+    }
 }
 
 void track::PluginNodeComponent::paint(juce::Graphics &g) {
