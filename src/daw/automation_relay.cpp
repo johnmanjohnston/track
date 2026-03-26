@@ -317,12 +317,12 @@ void track::RelayManagerNode::paint(juce::Graphics &g) {
     g.setColour(juce::Colours::grey);
     g.setFont(getInterBoldItalic());
     g.drawText("IN", 4, 5, 30 - 2, 20, juce::Justification::right);
-    g.drawText("OUT", 4, 22 + 5, 30 - 2, 20, juce::Justification::right);
+    g.drawText("OUT", 4, 22 + 6, 30 - 2, 20, juce::Justification::right);
 }
 
 void track::RelayManagerNode::resized() {
     this->relaySelector.setBounds(10 + 30, 5, 220, 20);
-    this->hostedPluginParamSelector.setBounds(10 + 30, 22 + 7, 220, 20);
+    this->hostedPluginParamSelector.setBounds(10 + 30, 22 + 6, 220, 20);
 }
 
 // WARN: this shitshow gets REAL messy with the confusing class names
