@@ -369,9 +369,8 @@ void track::ui::CustomLookAndFeel::drawPopupMenuItem(
 
     if (isHighlighted && isActive && !isSeparator) {
         juce::LookAndFeel_V2::drawGlassLozenge(
-            g, area.getX(), area.getY(), area.getWidth(),
-            area.getHeight() / 2.f,
-            juce::Colours::white.darker(0.5f).withAlpha(0.1f), 1.f, 0.f, true,
+            g, area.getX(), area.getY(), area.getWidth(), area.getHeight(),
+            juce::Colours::white.darker(0.5f).withAlpha(0.3f), 1.f, 0.f, true,
             true, false, true);
     }
 }
