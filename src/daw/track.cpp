@@ -388,7 +388,11 @@ void track::ClipComponent::mouseDown(const juce::MouseEvent &event) {
 
 // cs exam tomorrow but fuck it the curriculum is full of shit
 void track::ClipComponent::mouseDrag(const juce::MouseEvent &event) {
+    int y = event.getEventRelativeTo(getParentComponent()).y;
+
     isBeingDragged = true;
+    curDragNodeDisplayIndex =
+        ((y + (UI_TRACK_HEIGHT / 2)) / UI_TRACK_HEIGHT) - 1;
 
     int distanceMoved = event.getDistanceFromDragStartX();
     int deltaSamples = (distanceMoved * SAMPLE_RATE) / UI_ZOOM_MULTIPLIER;
@@ -467,6 +471,13 @@ void track::ClipComponent::mouseDrag(const juce::MouseEvent &event) {
 }
 
 void track::ClipComponent::mouseUp(const juce::MouseEvent &event) {
+    if (curDragNodeDisplayIndex != -1) {
+        DBG("move this clip to node with display index: "
+            << curDragNodeDisplayIndex);
+
+        curDragNodeDisplayIndex = -1;
+    }
+
     if (isBeingDragged) {
         isBeingDragged = false;
 
@@ -2228,9 +2239,7 @@ void track::Tracklist::clearStains() {
 void track::Tracklist::setTrackComponentBounds() {
     int counter = 0;
     for (auto &tc : trackComponents) {
-        tc->setBounds(0,
-                      UI_TRACK_VERTICAL_OFFSET + (UI_TRACK_HEIGHT * counter) +
-                          (UI_TRACK_VERTICAL_MARGIN * counter),
+        tc->setBounds(0, UI_TRACK_VERTICAL_OFFSET + (UI_TRACK_HEIGHT * counter),
                       UI_TRACK_WIDTH, UI_TRACK_HEIGHT);
 
         counter++;

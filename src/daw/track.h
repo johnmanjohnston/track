@@ -41,6 +41,7 @@ class ClipComponent : public juce::Component, public juce::ChangeListener {
     void paint(juce::Graphics &g) override;
     bool stale = true;
     int nodeDisplayIndex = -1;
+    int curDragNodeDisplayIndex = 1;
 
     void copyClip();
 

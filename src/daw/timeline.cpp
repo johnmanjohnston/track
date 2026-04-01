@@ -549,11 +549,15 @@ void track::TimelineComponent::paint(juce::Graphics &g) {
 }
 
 void track::TimelineComponent::resizeClipComponent(track::ClipComponent *clip) {
+    int effectiveY = clip->curDragNodeDisplayIndex == -1
+                         ? clip->nodeDisplayIndex
+                         : clip->curDragNodeDisplayIndex;
+
     clip->setBounds(clip->correspondingClip->startPositionSample / SAMPLE_RATE *
                         UI_ZOOM_MULTIPLIER,
-                    UI_TRACK_VERTICAL_OFFSET +
-                        (clip->nodeDisplayIndex * UI_TRACK_HEIGHT) +
-                        (UI_TRACK_VERTICAL_MARGIN * clip->nodeDisplayIndex),
+
+                    UI_TRACK_VERTICAL_OFFSET + (effectiveY * UI_TRACK_HEIGHT),
+
                     (clip->correspondingClip->buffer.getNumSamples() -
                      clip->correspondingClip->trimLeft -
                      clip->correspondingClip->trimRight) /

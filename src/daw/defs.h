@@ -12,7 +12,6 @@ constexpr int UI_MAXIMUM_TRACK_HEIGHT = 120;
 
 constexpr int UI_TRACK_HEIGHT_COLLAPSE_BREAKPOINT = 25;
 
-constexpr int UI_TRACK_VERTICAL_MARGIN = 0;
 constexpr int UI_TRACK_VERTICAL_OFFSET = 19;
 constexpr int UI_TRACK_WIDTH = 300;
 constexpr int UI_TRACK_INDEX_WIDTH = 22;

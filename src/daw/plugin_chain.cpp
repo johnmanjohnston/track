@@ -268,8 +268,6 @@ void track::ActionPastePlugin::updateGUI() {
                                       nodeRoute);
 }
 
-// it's that time of the year again where track is the only
-// thing keeping me going :thumbsup:
 track::ActionPastePluginChain::ActionPastePluginChain(
     pluginChainClipboardData data, std::vector<int> route, void *processor) {
     this->chainData = data;
