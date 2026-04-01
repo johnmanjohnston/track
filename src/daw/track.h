@@ -41,7 +41,7 @@ class ClipComponent : public juce::Component, public juce::ChangeListener {
     void paint(juce::Graphics &g) override;
     bool stale = true;
     int nodeDisplayIndex = -1;
-    int curDragNodeDisplayIndex = 1;
+    int curDragNodeDisplayIndex = -1;
 
     void copyClip();
 
@@ -110,6 +110,26 @@ class ActionClipModified : public juce::UndoableAction {
     bool undo() override;
     void markClipComponentStale();
     void updateGUI(); // GUI sounds cooler than UI here, idk man // y
+};
+
+class ActionMoveClipToNode : public juce::UndoableAction {
+  public:
+    void *p = nullptr;
+    std::vector<int> srcRoute;
+    std::vector<int> destRoute;
+    int clipIndex = -1;
+
+    int srcStartSample = -1;
+    int destStartSample = -1;
+
+    ActionMoveClipToNode(void *processor, std::vector<int> src,
+                         std::vector<int> dest, int index,
+                         int sourceStartSample, int destinationStartSample);
+    ~ActionMoveClipToNode();
+
+    bool perform() override;
+    bool undo() override;
+    void updateGUI();
 };
 
 class ClipPropertiesWindow : public track::Subwindow {

@@ -471,11 +471,52 @@ void track::ClipComponent::mouseDrag(const juce::MouseEvent &event) {
 }
 
 void track::ClipComponent::mouseUp(const juce::MouseEvent &event) {
-    if (curDragNodeDisplayIndex != -1) {
+    if (curDragNodeDisplayIndex != -1 &&
+        curDragNodeDisplayIndex != nodeDisplayIndex) {
         DBG("move this clip to node with display index: "
             << curDragNodeDisplayIndex);
 
-        curDragNodeDisplayIndex = -1;
+        TimelineComponent *tc = findParentComponentOfClass<TimelineComponent>();
+        jassert(tc != nullptr);
+        jassert(tc->viewport != nullptr);
+        jassert(tc->viewport->tracklist != nullptr);
+
+        if ((size_t)curDragNodeDisplayIndex >
+            tc->viewport->tracklist->trackComponents.size() - 1) {
+            correspondingClip->startPositionSample =
+                startDragStartPositionSample;
+
+            curDragNodeDisplayIndex = -1;
+
+            tc->resizeClipComponent(this);
+        } else {
+            std::vector<int> srcRoute =
+                tc->viewport->tracklist
+                    ->trackComponents[(size_t)nodeDisplayIndex]
+                    ->route;
+
+            std::vector<int> destRoute =
+                tc->viewport->tracklist
+                    ->trackComponents[(size_t)curDragNodeDisplayIndex]
+                    ->route;
+
+            // this is an absolute fucking mess and i am too lazy to fix it
+            ActionMoveClipToNode *action = new ActionMoveClipToNode(
+                tc->processorRef, srcRoute, destRoute,
+                utility::getIndexOfClipByValue(
+                    utility::getNodeFromRoute(srcRoute, tc->processorRef),
+                    *correspondingClip),
+                this->startDragStartPositionSample,
+                correspondingClip->startPositionSample);
+
+            tc->processorRef->undoManager.beginNewTransaction(
+                "action move clip to different node");
+            tc->processorRef->undoManager.perform(action);
+            DBG("action dispatched");
+
+            curDragNodeDisplayIndex = -1;
+            return;
+        }
     }
 
     if (isBeingDragged) {
@@ -645,6 +686,64 @@ void track::ActionClipModified::updateGUI() {
 
     processor->dispatchGUIInstruction(UI_INSTRUCTION_UPDATE_STALE_TIMELINE);
     processor->dispatchGUIInstruction(UI_INSTRUCTION_INIT_CPWS);
+}
+
+track::ActionMoveClipToNode::ActionMoveClipToNode(
+    void *processor, std::vector<int> src, std::vector<int> dest, int index,
+
+    int sourceStartSample, int destinationStartSample) {
+    this->p = processor;
+    this->srcRoute = src;
+    this->destRoute = dest;
+    this->clipIndex = index;
+    this->srcStartSample = sourceStartSample;
+    this->destStartSample = destinationStartSample;
+}
+
+track::ActionMoveClipToNode::~ActionMoveClipToNode() {}
+
+bool track::ActionMoveClipToNode::perform() {
+    audioNode *srcNode = utility::getNodeFromRoute(srcRoute, p);
+    audioNode *destNode = utility::getNodeFromRoute(destRoute, p);
+
+    if (!destNode->isTrack) {
+        srcNode->clips[(size_t)this->clipIndex].startPositionSample =
+            srcStartSample;
+        updateGUI();
+        return false;
+    }
+
+    clip c = srcNode->clips[(size_t)this->clipIndex];
+    c.startPositionSample = destStartSample;
+
+    auto &x = destNode->clips.emplace_back();
+    x = c;
+
+    srcNode->clips.erase(srcNode->clips.begin() + this->clipIndex);
+
+    updateGUI();
+
+    return true;
+}
+
+bool track::ActionMoveClipToNode::undo() {
+    audioNode *srcNode = utility::getNodeFromRoute(srcRoute, p);
+    audioNode *destNode = utility::getNodeFromRoute(destRoute, p);
+
+    clip c = destNode->clips.back();
+    c.startPositionSample = srcStartSample;
+    srcNode->clips.emplace(srcNode->clips.begin() + this->clipIndex);
+    srcNode->clips[(size_t)clipIndex] = c;
+    destNode->clips.pop_back();
+
+    updateGUI();
+
+    return true;
+}
+
+void track::ActionMoveClipToNode::updateGUI() {
+    AudioPluginAudioProcessor *processor = (AudioPluginAudioProcessor *)p;
+    processor->dispatchGUIInstruction(UI_INSTRUCTION_UPDATE_CORE);
 }
 
 track::ClipPropertiesWindow::ClipPropertiesWindow() : track::Subwindow() {
