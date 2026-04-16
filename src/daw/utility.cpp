@@ -235,6 +235,110 @@ void track::utility::traverseAndFlattenNodes(std::vector<audioNode *> *vec,
     }
 }
 
+// RIP Keychron K6
+juce::String track::utility::resampledToHostSampleRate(juce::String path) {
+    track::clip retval;
+
+    bool forceWav = false;
+    // init reader
+    juce::AudioFormatManager afm;
+    afm.registerBasicFormats();
+    std::unique_ptr<juce::AudioFormatReader> reader(afm.createReaderFor(path));
+
+    juce::AudioFormat *fmt = nullptr;
+    juce::File originalFile = juce::File(path);
+
+    for (int i = 0; i < afm.getNumKnownFormats(); ++i) {
+        if (afm.getKnownFormat(i)->canHandleFile(originalFile)) {
+            fmt = afm.getKnownFormat(i);
+            break;
+        }
+    }
+    jassert(fmt != nullptr);
+    DBG("USING FORMAT: " << fmt->getFormatName());
+
+    if (fmt->getFormatName().containsIgnoreCase("mp3")) {
+        DBG("force wav = true");
+        forceWav = true;
+    }
+
+    // read original buffer
+    juce::AudioBuffer<float> originalBuffer = juce::AudioBuffer<float>(
+        (int)reader->numChannels, reader->lengthInSamples);
+
+    reader->read(&originalBuffer, 0, originalBuffer.getNumSamples(), 0, true,
+                 true);
+
+    // le juice
+    double ratio = reader->sampleRate / track::SAMPLE_RATE;
+    juce::AudioBuffer<float> resampledBuffer = juce::AudioBuffer<float>(
+        (int)reader->numChannels,
+        (int)((double)reader->lengthInSamples / ratio));
+
+    auto inputs = originalBuffer.getArrayOfReadPointers();
+    auto outputs = resampledBuffer.getArrayOfWritePointers();
+
+    DBG(reader->lengthInSamples << " samples became "
+                                << resampledBuffer.getNumSamples()
+                                << " samples with a ratio of " << ratio);
+
+    for (int ch = 0; ch < (int)reader->numChannels; ++ch) {
+        std::unique_ptr<juce::LagrangeInterpolator> resampler =
+            std::make_unique<juce::LagrangeInterpolator>();
+        resampler->reset();
+        resampler->process(ratio, inputs[ch], outputs[ch],
+                           resampledBuffer.getNumSamples());
+
+        DBG("resampled channel " << ch);
+    }
+
+    // now write resampled file
+    juce::File parentDir = originalFile.getParentDirectory();
+    juce::String originalFileName = originalFile.getFileName();
+
+    // because windows is stupid
+    char dirSep = '/';
+#if JUCE_WINDOWS
+    dirSep = '\\';
+#endif
+
+    // ex., /home/johnston/j35-44100hz.wav
+    juce::String resampledFilePath =
+        parentDir.getFullPathName() + dirSep +
+        originalFile.getFileNameWithoutExtension() + "-" +
+        juce::String(track::SAMPLE_RATE) + "hz" +
+        (forceWav ? ".wav" : originalFile.getFileExtension());
+
+    juce::File resampledFile = juce::File(resampledFilePath);
+    resampledFile.create();
+
+    std::unique_ptr<juce::AudioFormatWriter> writer;
+
+    if (forceWav) {
+        fmt = new juce::WavAudioFormat();
+    }
+
+    writer.reset(fmt->createWriterFor(
+        new juce::FileOutputStream(resampledFilePath), track::SAMPLE_RATE,
+        (unsigned int)reader->numChannels, (int)reader->bitsPerSample,
+        reader->metadataValues, 0));
+
+    jassert(writer != nullptr);
+
+    DBG("writing...");
+    writer->writeFromAudioSampleBuffer(resampledBuffer, 0,
+                                       resampledBuffer.getNumSamples());
+    writer->flush();
+    writer.reset();
+
+    DBG("written succesfully to " << resampledFilePath);
+
+    if (forceWav)
+        delete fmt;
+
+    return resampledFilePath;
+}
+
 void track::utility::reorderPlugin(int srcIndex, int destIndex,
                                    audioNode *node) {
     // std::move is absolute magic how have i not known of this sooner

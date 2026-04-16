@@ -5,7 +5,7 @@
 namespace track::utility {
 juce::String prettyVector(std::vector<int> x);
 
-// nodes
+// nodes/clips
 bool isDescendant(audioNode *parent, audioNode *possibleChild,
                   bool directDescandant);
 
@@ -39,6 +39,8 @@ void deleteNode(std::vector<int> route, void *p);
 std::vector<audioNode *> getFlattenedNodes(void *p);
 void traverseAndFlattenNodes(std::vector<audioNode *> *vec, audioNode *parent,
                              void *p);
+
+juce::String resampledToHostSampleRate(juce::String path);
 
 // plugins
 void reorderPlugin(int srcIndex, int destIndex, audioNode *node);
