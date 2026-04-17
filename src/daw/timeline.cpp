@@ -713,13 +713,22 @@ void track::TimelineComponent::filesDropped(const juce::StringArray &files,
         juce::jlimit(0, (int)viewport->tracklist->trackComponents.size() - 1,
                      nodeDisplayIndex);
 
+    int startSample = (x * SAMPLE_RATE) / UI_ZOOM_MULTIPLIER;
+
+    juce::String path = files[0];
+
+    validateFile(path, nodeDisplayIndex, startSample);
+}
+
+void track::TimelineComponent::validateFile(juce::String path,
+                                            int nodeDisplayIndex,
+                                            int startSample) {
     // check if file is valid audio
-    juce::File file(files[0]);
+    juce::File file(path);
     juce::AudioFormatManager afm;
     afm.registerBasicFormats();
 
     std::unique_ptr<juce::AudioFormatReader> reader(afm.createReaderFor(file));
-    juce::String path = files[0];
 
     if (reader == nullptr) {
         juce::String filename = juce::File(path).getFileName();
@@ -740,8 +749,6 @@ void track::TimelineComponent::filesDropped(const juce::StringArray &files,
 
         return;
     }
-
-    int startSample = (x * SAMPLE_RATE) / UI_ZOOM_MULTIPLIER;
 
     // look for sample rate mismatch
     if (!juce::approximatelyEqual(track::SAMPLE_RATE, reader->sampleRate)) {

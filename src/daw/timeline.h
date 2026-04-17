@@ -116,6 +116,7 @@ class TimelineComponent : public juce::Component,
     bool isInterestedInFileDrag(const juce::StringArray &files) override;
     void mouseDown(const juce::MouseEvent &event) override;
     void filesDropped(const juce::StringArray &files, int x, int y) override;
+    void validateFile(juce::String path, int nodeDisplayIndex, int startSample);
     void addNewClipToTimeline(juce::String path, int startSample,
                               int nodeDisplayIndex);
 
