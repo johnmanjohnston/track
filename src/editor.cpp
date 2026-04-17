@@ -925,8 +925,52 @@ void AudioPluginAudioProcessorEditor::handleSampleRateMismatch(
             .withButton("Resample all clips")
             .withButton("Cancel"),
 
-        [this](int result) {
+        [this, oldSampleRate](int result) {
             if (result == 0) {
+                std::vector<track::audioNode *> nodes =
+                    track::utility::getFlattenedNodes(&processorRef);
+
+                for (size_t i = 0; i < nodes.size(); ++i) {
+                    track::audioNode *node = nodes[i];
+
+                    if (!node->isTrack)
+                        continue;
+
+                    std::vector<track::clip> newClips;
+
+                    for (size_t j = 0; j < node->clips.size(); ++j) {
+                        DBG("resampling node: " << node->trackName
+                                                << ", clip index " << j);
+
+                        track::clip *unsampledClip = &node->clips[j];
+
+                        juce::String resampledPath =
+                            track::utility::resampledToHostSampleRate(
+                                unsampledClip->path);
+
+                        track::clip &resampledClip = newClips.emplace_back();
+                        resampledClip.path = resampledPath;
+
+                        // copy over data (and multiply with ratio)
+                        double ratio = track::SAMPLE_RATE / oldSampleRate;
+                        resampledClip.startPositionSample =
+                            unsampledClip->startPositionSample * ratio;
+                        resampledClip.trimLeft =
+                            unsampledClip->trimLeft * ratio;
+                        resampledClip.trimRight =
+                            unsampledClip->trimRight * ratio;
+
+                        resampledClip.gain = unsampledClip->gain;
+                        resampledClip.name = unsampledClip->name;
+                        resampledClip.active = unsampledClip->active;
+
+                        resampledClip.updateBuffer();
+                    }
+
+                    node->clips = newClips;
+                }
+
+                processorRef.dispatchGUIInstruction(UI_INSTRUCTION_UPDATE_CORE);
             }
         });
 }
