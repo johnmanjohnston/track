@@ -399,9 +399,11 @@ void track::TimelineComponent::mouseDown(const juce::MouseEvent &event) {
 
 #define MENU_PASTE_CLIP 1
 #define MENU_SPLIT_ALL_CLIPS_HERE 2
+#define MENU_INSERT_CLIP 3
 
         contextMenu.addItem(MENU_PASTE_CLIP, "Paste clip",
                             clipboard::typecode == TYPECODE_CLIP);
+        contextMenu.addItem(MENU_INSERT_CLIP, "Insert audio file");
         contextMenu.addItem(MENU_SPLIT_ALL_CLIPS_HERE, "Split all clips here");
         contextMenu.addSubMenu("Grid", gridMenu);
 
@@ -493,6 +495,43 @@ void track::TimelineComponent::mouseDown(const juce::MouseEvent &event) {
                         processorRef->undoManager.perform(action);
                     }
                 }
+            }
+
+            else if (result == MENU_INSERT_CLIP) {
+                DBG("MENU_INSERT_CLIP selected");
+
+                juce::FileChooser *fileChooser =
+                    new juce::FileChooser("Select audio file",
+                                          juce::File::getSpecialLocation(
+                                              juce::File::userHomeDirectory),
+                                          "*");
+
+                int flags = juce::FileBrowserComponent::openMode |
+                            juce::FileBrowserComponent::canSelectFiles;
+
+                fileChooser->launchAsync(
+                    flags, [this, event,
+                            fileChooser](const juce::FileChooser &chooser) {
+                        juce::File f = chooser.getResult();
+
+                        int startSample =
+                            ((float)event.x / UI_ZOOM_MULTIPLIER) * SAMPLE_RATE;
+
+                        int nodeDisplayIndex =
+                            ((event.y + (UI_TRACK_HEIGHT / 2)) /
+                             UI_TRACK_HEIGHT) -
+                            1;
+                        nodeDisplayIndex = juce::jlimit(
+                            0,
+                            (int)viewport->tracklist->trackComponents.size() -
+                                1,
+                            nodeDisplayIndex);
+
+                        validateFile(f.getFullPathName(), nodeDisplayIndex,
+                                     startSample);
+
+                        delete fileChooser;
+                    });
             }
         });
     }
