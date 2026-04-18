@@ -762,6 +762,9 @@ void track::TimelineComponent::filesDropped(const juce::StringArray &files,
 void track::TimelineComponent::validateFile(juce::String path,
                                             int nodeDisplayIndex,
                                             int startSample) {
+    if (path == "")
+        return;
+
     // check if file is valid audio
     juce::File file(path);
     juce::AudioFormatManager afm;
